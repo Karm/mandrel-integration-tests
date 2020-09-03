@@ -27,6 +27,13 @@ import java.util.regex.Pattern;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 public enum WhitelistLogLines {
+
+    // This is appended to all undermentioned listings
+    ALL(new Pattern[]{
+            // https://github.com/graalvm/mandrel/issues/125
+            Pattern.compile(".*Using an older version of the labsjdk-11.*")
+    }),
+
     NONE(new Pattern[]{}),
 
     MICRONAUT_HELLOWORLD(new Pattern[]{

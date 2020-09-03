@@ -46,6 +46,11 @@ public enum BuildAndRunCmds {
     HELIDON_QUICKSTART_SE(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{Commands.isThisWindows ? "target\\helidon-quickstart-se" : "./target/helidon-quickstart-se"}
+    }),
+    TIMEZONES(new String[][]{
+            new String[]{"mvn", "package"},
+            new String[]{"native-image", "-J-Duser.country=CA", "-J-Duser.language=fr", "-jar", "target/timezones.jar", "target/timezones"},
+            new String[]{Commands.isThisWindows ? "target\\timezones" : "./target/timezones"}
     });
 
     public final String[][] cmds;

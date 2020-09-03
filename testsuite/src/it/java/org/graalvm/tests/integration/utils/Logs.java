@@ -29,18 +29,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
-import static org.graalvm.tests.integration.utils.Commands.isThisWindows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
+import static org.graalvm.tests.integration.utils.Commands.isThisWindows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -52,6 +48,9 @@ public class Logs {
     public static final long SKIP = -1L;
 
     public static void checkLog(String testClass, String testMethod, Apps app, File log) throws IOException {
+        final Pattern[] whitelistPatterns = new Pattern[app.whitelistLogLines.errs.length + WhitelistLogLines.ALL.errs.length];
+        System.arraycopy(app.whitelistLogLines.errs, 0, whitelistPatterns, 0, app.whitelistLogLines.errs.length);
+        System.arraycopy(WhitelistLogLines.ALL.errs, 0, whitelistPatterns, app.whitelistLogLines.errs.length, WhitelistLogLines.ALL.errs.length);
         try (Scanner sc = new Scanner(log, UTF_8)) {
             Set<String> offendingLines = new HashSet<>();
             while (sc.hasNextLine()) {
@@ -59,7 +58,7 @@ public class Logs {
                 boolean error = warnErrorDetectionPattern.matcher(line).matches();
                 boolean whiteListed = false;
                 if (error) {
-                    for (Pattern p : app.whitelistLogLines.errs) {
+                    for (Pattern p : whitelistPatterns) {
                         if (p.matcher(line).matches()) {
                             whiteListed = true;
                             LOGGER.info(log.getName() + " log for " + testMethod + " contains whitelisted error: `" + line + "'");

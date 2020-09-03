@@ -79,6 +79,7 @@
                 <module>apps/micronaut-helloworld</module>
                 <module>apps/helidon-quickstart-se</module>
                 <module>apps/random-numbers</module>
+                <module>apps/timezones</module>
             </modules>
         </profile>
     </profiles>

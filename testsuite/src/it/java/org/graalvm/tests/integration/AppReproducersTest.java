@@ -77,21 +77,8 @@ public class AppReproducersTest {
             // Build
             processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
 
-            // The last command is reserved for running it
-            assertTrue(app.buildAndRunCmds.cmds.length > 1);
-            Logs.appendln(report, "# " + cn + ", " + mn);
-            for (int i = 0; i < app.buildAndRunCmds.cmds.length - 1; i++) {
-                // We cannot run commands in parallel, we need them to follow one after another
-                ExecutorService buildService = Executors.newFixedThreadPool(1);
-                List<String> cmd = Commands.getBuildCommand(app.buildAndRunCmds.cmds[i]);
-                buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 30)); // Timeout for Maven downloading the Internet
-                Logs.appendln(report, (new Date()).toString());
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", cmd));
-                buildService.shutdown();
-                buildService.awaitTermination(30, TimeUnit.MINUTES);
-            }
-            assertTrue(processLog.exists());
+            builderRoutine(app, report, cn, mn, appDir, processLog);
+
             LOGGER.info("Running...#1");
             List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = Commands.runCommand(cmd, appDir, processLog);
@@ -126,14 +113,86 @@ public class AppReproducersTest {
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            // Make sure processes are down even if there was an exception / failure
-            if (process != null) {
-                Commands.processStopper(process, true);
-            }
-            // Archive logs no matter what
-            Logs.archiveLog(cn, mn, processLog);
-            Logs.writeReport(cn, mn, report.toString());
-            Commands.cleanTarget(app);
+            cleanup(process, cn, mn, processLog, report, app);
         }
+    }
+
+    @Test
+    @Tag("timezones")
+    public void timezonesBakedIn(TestInfo testInfo) throws IOException, InterruptedException {
+        Apps app = Apps.TIMEZONES;
+        LOGGER.info("Testing app: " + app.toString());
+        Process process = null;
+        File processLog = null;
+        StringBuilder report = new StringBuilder();
+        File appDir = new File(BASE_DIR + File.separator + app.dir);
+        String cn = testInfo.getTestClass().get().getCanonicalName();
+        String mn = testInfo.getTestMethod().get().getName();
+        try {
+            // Cleanup
+            Commands.cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // Build
+            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+
+            builderRoutine(app, report, cn, mn, appDir, processLog);
+
+            LOGGER.info("Running...");
+            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = Commands.runCommand(cmd, appDir, processLog);
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+
+            Pattern p = Pattern.compile(".*d’Europe centrale.*");
+            boolean found = false;
+            try (Scanner sc = new Scanner(processLog, UTF_8)) {
+                while (sc.hasNextLine()) {
+                    Matcher m = p.matcher(sc.nextLine());
+                    if (m.matches()) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            assertTrue(found, "`d’Europe centrale' string was expected. There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
+
+            Commands.processStopper(process, false);
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            cleanup(process, cn, mn, processLog, report, app);
+        }
+    }
+
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
+        // The last command is reserved for running it
+        assertTrue(app.buildAndRunCmds.cmds.length > 1);
+        Logs.appendln(report, "# " + cn + ", " + mn);
+        for (int i = 0; i < app.buildAndRunCmds.cmds.length - 1; i++) {
+            // We cannot run commands in parallel, we need them to follow one after another
+            ExecutorService buildService = Executors.newFixedThreadPool(1);
+            List<String> cmd = Commands.getBuildCommand(app.buildAndRunCmds.cmds[i]);
+            buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 1));
+            Logs.appendln(report, (new Date()).toString());
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            buildService.shutdown();
+            buildService.awaitTermination(10, TimeUnit.MINUTES); // Native image build might take a long time....
+        }
+        assertTrue(processLog.exists());
+    }
+
+    public static void cleanup(Process process, String cn, String mn, File processLog, StringBuilder report, Apps app)
+            throws InterruptedException, IOException {
+        // Make sure processes are down even if there was an exception / failure
+        if (process != null) {
+            Commands.processStopper(process, true);
+        }
+        // Archive logs no matter what
+        Logs.archiveLog(cn, mn, processLog);
+        Logs.writeReport(cn, mn, report.toString());
+        Commands.cleanTarget(app);
     }
 }
