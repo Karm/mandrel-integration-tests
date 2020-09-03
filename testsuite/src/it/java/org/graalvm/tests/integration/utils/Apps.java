@@ -53,7 +53,11 @@ public enum Apps {
     HELIDON_QUICKSTART_SE("apps" + File.separator + "helidon-quickstart-se",
             URLContent.HELIDON_QUICKSTART_SE,
             WhitelistLogLines.HELIDON_QUICKSTART_SE,
-            BuildAndRunCmds.HELIDON_QUICKSTART_SE);
+            BuildAndRunCmds.HELIDON_QUICKSTART_SE),
+    TIMEZONES("apps" + File.separator + "timezones",
+            URLContent.NONE,
+            WhitelistLogLines.NONE,
+            BuildAndRunCmds.TIMEZONES);
 
     public final String dir;
     public final URLContent urlContent;
