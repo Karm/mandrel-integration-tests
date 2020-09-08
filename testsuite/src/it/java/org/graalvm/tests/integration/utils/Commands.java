@@ -131,15 +131,34 @@ public class Commands {
     }
 
     public static Process runCommand(List<String> command, File directory, File logFile) {
-        ProcessBuilder pa = new ProcessBuilder(command);
-        Map<String, String> envA = pa.environment();
+
+        // There might be this weird glitch where native-image command completes
+        // but the FS does not appear to have the resulting binary ready and executable for the
+        // next process *immediately*. Hence this small wait that mitigates this glitch.
+        long now = System.currentTimeMillis();
+        final long startTime = now;
+        while (now - startTime < 1000) {
+            if(new File(directory.getAbsolutePath() + File.separator + command.get(command.size() - 1)).canExecute()) {
+                break;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+            now = System.currentTimeMillis();
+        }
+
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
-        pa.directory(directory);
-        pa.redirectErrorStream(true);
-        pa.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+        processBuilder.directory(directory)
+        .redirectErrorStream(true)
+        .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
         Process pA = null;
         try {
-            pA = pa.start();
+            pA = processBuilder.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -267,16 +286,19 @@ public class Commands {
                 if (!log.exists()) {
                     Files.createFile(log.toPath());
                 }
-                Files.write(log.toPath(), ("Command: " + String.join(" ", command) + "\n").getBytes(), StandardOpenOption.APPEND);
+                Files.write(log.toPath(),
+                        ("Command: " + String.join(" ", command) + "\n").getBytes(), StandardOpenOption.APPEND);
                 pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
                 p = pb.start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
             try {
-                Objects.requireNonNull(p).waitFor(timeoutMinutes, TimeUnit.MINUTES);
+                Objects.requireNonNull(p, "command " + command + " not found/invalid")
+                        .waitFor(timeoutMinutes, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
     }

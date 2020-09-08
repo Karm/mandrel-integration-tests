@@ -29,6 +29,7 @@ package org.graalvm.tests.integration.utils;
  */
 public enum BuildAndRunCmds {
     // Note that at least 2 command are expected. One or more to build. The last one to run the app.
+    // Note that the very last element of the very last array is expected to be a path to the executable.
     QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"mvn", "clean", "compile", "package", "-Pnative"},
             new String[]{Commands.isThisWindows ? "target\\quarkus-runner" : "./target/quarkus-runner"}
