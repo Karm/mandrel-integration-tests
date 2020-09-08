@@ -27,14 +27,14 @@
 
     <properties>
         <!-- Quarkus Full MicroProfile app -->
-        <quarkus.version>1.7.0.Final</quarkus.version>
+        <quarkus.version>1.7.2.Final</quarkus.version>
         <vertx.auth.jwt.version>3.9.2</vertx.auth.jwt.version>
 
         <!-- Micronaut minimal app -->
-        <micronaut.version>2.0.0</micronaut.version>
+        <micronaut.version>2.0.1</micronaut.version>
 
         <!-- Helidon quickstart -->
-        <version.helidon>2.0.1</version.helidon>
+        <version.helidon>2.0.2</version.helidon>
 
         <!-- General TS deps -->
         <maven.compiler.source>11</maven.compiler.source>
