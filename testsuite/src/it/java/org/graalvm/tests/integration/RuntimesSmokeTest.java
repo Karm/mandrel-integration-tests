@@ -130,7 +130,7 @@ public class RuntimesSmokeTest {
             Logs.logMeasurements(log, measurementsLog);
             Logs.appendln(report, "Measurements:");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
-            Logs.checkThreshold(app, rssKb, timeToFirstOKRequest, Logs.SKIP);
+            Logs.checkThreshold(app, rssKb, timeToFirstOKRequest);
         } finally {
             // Make sure processes are down even if there was an exception / failure
             if (process != null) {
@@ -139,6 +139,10 @@ public class RuntimesSmokeTest {
             // Archive logs no matter what
             Logs.archiveLog(cn, mn, processLog);
             Logs.writeReport(cn, mn, report.toString());
+
+            // This is debatable. When the run fails,
+            // it might be valuable to have the binary and not just the logs?
+            // Nope: Delete it. One can reproduce it from the journal file we maintain.
             Commands.cleanTarget(app);
         }
     }
@@ -147,6 +151,13 @@ public class RuntimesSmokeTest {
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
         testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+    }
+
+    @Test
+    @Tag("builder-image")
+    @Tag("quarkus")
+    public void quarkusEncodingIssues(TestInfo testInfo) throws IOException, InterruptedException {
+        testRuntime(testInfo, Apps.QUARKUS_BUILDER_IMAGE_ENCODING);
     }
 
     @Test

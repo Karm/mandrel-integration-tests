@@ -19,6 +19,9 @@
  */
 package org.graalvm.tests.integration.utils;
 
+import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
+import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+
 /**
  * BuildAndRunCmds
  *
@@ -29,10 +32,16 @@ package org.graalvm.tests.integration.utils;
  */
 public enum BuildAndRunCmds {
     // Note that at least 2 command are expected. One or more to build. The last one to run the app.
-    // Note that the very last element of the very last array is expected to be a path to the executable.
     QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"mvn", "clean", "compile", "package", "-Pnative"},
             new String[]{Commands.isThisWindows ? "target\\quarkus-runner" : "./target/quarkus-runner"}
+    }),
+    QUARKUS_BUILDER_IMAGE_ENCODING(new String[][]{
+            new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
+                    "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
+                    "-Dquarkus.native.builder-image=" + BUILDER_IMAGE},
+            new String[]{CONTAINER_RUNTIME, "build", "-f", "src/main/docker/Dockerfile.native", "-t", "my-quarkus-mandrel-app", "."},
+            new String[]{CONTAINER_RUNTIME, "run", "-i", "--rm", "-p", "8080:8080", "my-quarkus-mandrel-app"}
     }),
     MICRONAUT_HELLOWORLD(new String[][]{
             new String[]{"mvn", "package"},

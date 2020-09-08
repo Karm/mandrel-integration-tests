@@ -50,9 +50,36 @@ import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
  */
 public class Commands {
     private static final Logger LOGGER = Logger.getLogger(Commands.class.getName());
-
+    public static final String CONTAINER_RUNTIME = getProperty(
+            new String[]{"QUARKUS_NATIVE_CONTAINER_RUNTIME", "quarkus.native.container-runtime"},
+            "docker");
+    public static final String BUILDER_IMAGE = getProperty(
+            new String[]{"QUARKUS_NATIVE_BUILDER_IMAGE", "quarkus.native.builder-image"},
+            "quay.io/quarkus/ubi-quarkus-mandrel:20.1-java11");
     public static final boolean isThisWindows = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern numPattern = Pattern.compile("[ \t]*[0-9]+[ \t]*");
+
+    public static String getProperty(String[] alternatives, String defaultValue) {
+        String prop = null;
+        for (String p : alternatives) {
+            String env = System.getenv().get(p);
+            if (StringUtils.isNotBlank(env)) {
+                prop = env;
+                break;
+            }
+            String sys = System.getProperty(p);
+            if (StringUtils.isNotBlank(sys)) {
+                prop = sys;
+                break;
+            }
+        }
+        if (prop == null) {
+            LOGGER.warn("Failed to detect any of " + String.join(",", alternatives) +
+                    " as env or sys props, defaulting to " + defaultValue);
+            return defaultValue;
+        }
+        return prop;
+    }
 
     public static String getBaseDir() {
         String env = System.getenv().get("basedir");
@@ -130,15 +157,21 @@ public class Commands {
         return Integer.parseInt(url.split(":")[2].split("/")[0]);
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile) {
-
-        // There might be this weird glitch where native-image command completes
-        // but the FS does not appear to have the resulting binary ready and executable for the
-        // next process *immediately*. Hence this small wait that mitigates this glitch.
+    /**
+     * There might be this weird glitch where native-image command completes
+     * but the FS does not appear to have the resulting binary ready and executable for the
+     * next process *immediately*. Hence this small wait that mitigates this glitch.
+     *
+     * Note that nothing happens at the end of the timeout and the TS hopes for the best.
+     *
+     * @param command
+     * @param directory
+     */
+    public static void waitForExecutable(List<String> command, File directory) {
         long now = System.currentTimeMillis();
         final long startTime = now;
         while (now - startTime < 1000) {
-            if(new File(directory.getAbsolutePath() + File.separator + command.get(command.size() - 1)).canExecute()) {
+            if (new File(directory.getAbsolutePath() + File.separator + command.get(command.size() - 1)).canExecute()) {
                 break;
             }
             try {
@@ -149,13 +182,21 @@ public class Commands {
             }
             now = System.currentTimeMillis();
         }
+    }
+
+    public static Process runCommand(List<String> command, File directory, File logFile) {
+
+        // No point in doing this if the executable is being from from a container
+        if (!CONTAINER_RUNTIME.equals(command.get(0))) {
+            waitForExecutable(command, directory);
+        }
 
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
         processBuilder.directory(directory)
-        .redirectErrorStream(true)
-        .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+                .redirectErrorStream(true)
+                .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
         Process pA = null;
         try {
             pA = processBuilder.start();
