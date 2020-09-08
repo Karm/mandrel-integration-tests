@@ -16,6 +16,7 @@ On Fedora/CentOS/RHEL they can be installed with:
 ```bash
 dnf install glibc-devel zlib-devel gcc libffi-devel libstdc++-static
 ```
+Note the package might be called `glibc-static` instead of `libstdc++-static`.
 
 On Ubuntu-like systems with:
 ```bash
