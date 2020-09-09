@@ -78,7 +78,12 @@ public class Logs {
         }
     }
 
-    public static void checkThreshold(Apps app, long rssKb, long timeToFirstOKRequest, long timeToReloadedOKRequest) {
+    public static void checkThreshold(Apps app, long rssKb, long timeToFirstOKRequest) {
+        if (app.thresholdProperties.isEmpty() && (timeToFirstOKRequest != SKIP || rssKb != SKIP)) {
+            LOGGER.warn("It seem there is no " + BASE_DIR + File.separator + app.dir + File.separator + "threshold.properties. " +
+                    "Skipping checking thresholds.");
+            return;
+        }
         String propPrefix = isThisWindows ? "windows" : "linux";
         if (timeToFirstOKRequest != SKIP) {
             long timeToFirstOKRequestThresholdMs = app.thresholdProperties.get(propPrefix + ".time.to.first.ok.request.threshold.ms");

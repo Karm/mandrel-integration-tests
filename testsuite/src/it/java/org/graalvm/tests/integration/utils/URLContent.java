@@ -44,6 +44,9 @@ public enum URLContent {
             new String[]{"http://localhost:8080/data/client/test/parameterValue=xxx", "Processed parameter value 'parameterValue=xxx'"}
     }),
 
+    QUARKUS_BUILDER_IMAGE_ENCODING(new String[][]{
+            new String[]{"http://localhost:8080/s%C3%A5nt%20%C3%A4r%20livet", "žluťoučká, říká ďolíčkatý koníček"}}),
+
     HELIDON_QUICKSTART_SE(new String[][]{
             new String[]{"http://localhost:8080/greet", "Hello World!"},
             new String[]{"http://localhost:8080/greet/Karm", "Hello Karm!"},

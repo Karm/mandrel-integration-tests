@@ -62,7 +62,17 @@
                 <module>testsuite</module>
             </modules>
             <properties>
-                <excludeTags>none</excludeTags>
+                <excludeTags>builder-image</excludeTags>
+            </properties>
+        </profile>
+        <profile>
+            <id>testsuite-builder-image</id>
+            <modules>
+                <module>testsuite</module>
+            </modules>
+            <properties>
+                <excludeTags>all</excludeTags>
+                <includeTags>builder-image</includeTags>
             </properties>
         </profile>
         <profile>
@@ -80,6 +90,7 @@
                 <module>apps/helidon-quickstart-se</module>
                 <module>apps/random-numbers</module>
                 <module>apps/timezones</module>
+                <module>builder-image-apps/quarkus-spöklik-encoding</module>
             </modules>
         </profile>
     </profiles>
