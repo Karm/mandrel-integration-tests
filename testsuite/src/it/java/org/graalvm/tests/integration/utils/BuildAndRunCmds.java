@@ -32,35 +32,37 @@ import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
  */
 public enum BuildAndRunCmds {
     // Note that at least 2 command are expected. One or more to build. The last one to run the app.
+    // Make sure you use an explicit --name when running the app as a container. It is used throughout the TS.
     QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"mvn", "clean", "compile", "package", "-Pnative"},
-            new String[]{Commands.isThisWindows ? "target\\quarkus-runner" : "./target/quarkus-runner"}
+            new String[]{Commands.IS_THIS_WINDOWS ? "target\\quarkus-runner" : "./target/quarkus-runner"}
     }),
     QUARKUS_BUILDER_IMAGE_ENCODING(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                     "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                     "-Dquarkus.native.builder-image=" + BUILDER_IMAGE},
             new String[]{CONTAINER_RUNTIME, "build", "-f", "src/main/docker/Dockerfile.native", "-t", "my-quarkus-mandrel-app", "."},
-            new String[]{CONTAINER_RUNTIME, "run", "-i", "--rm", "-p", "8080:8080", "my-quarkus-mandrel-app"}
+            new String[]{CONTAINER_RUNTIME, "run", "-i", "--rm", "-p", "8080:8080",
+                    "--name", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "my-quarkus-mandrel-app"}
     }),
     MICRONAUT_HELLOWORLD(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-jar", "target/helloworld.jar", "target/helloWorld"},
-            new String[]{Commands.isThisWindows ? "target\\helloWorld" : "./target/helloWorld"}
+            new String[]{Commands.IS_THIS_WINDOWS ? "target\\helloWorld" : "./target/helloWorld"}
     }),
     RANDOM_NUMBERS(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-jar", "target/random-numbers.jar", "target/random-numbers"},
-            new String[]{Commands.isThisWindows ? "target\\random-numbers" : "./target/random-numbers"}
+            new String[]{Commands.IS_THIS_WINDOWS ? "target\\random-numbers" : "./target/random-numbers"}
     }),
     HELIDON_QUICKSTART_SE(new String[][]{
             new String[]{"mvn", "package"},
-            new String[]{Commands.isThisWindows ? "target\\helidon-quickstart-se" : "./target/helidon-quickstart-se"}
+            new String[]{Commands.IS_THIS_WINDOWS ? "target\\helidon-quickstart-se" : "./target/helidon-quickstart-se"}
     }),
     TIMEZONES(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-J-Duser.country=CA", "-J-Duser.language=fr", "-jar", "target/timezones.jar", "target/timezones"},
-            new String[]{Commands.isThisWindows ? "target\\timezones" : "./target/timezones"}
+            new String[]{Commands.IS_THIS_WINDOWS ? "target\\timezones" : "./target/timezones"}
     });
 
     public final String[][] cmds;

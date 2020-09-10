@@ -38,42 +38,51 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 public enum Apps {
+
     RANDOM_NUMBERS("apps" + File.separator + "random-numbers",
             URLContent.NONE,
             WhitelistLogLines.NONE,
-            BuildAndRunCmds.RANDOM_NUMBERS),
+            BuildAndRunCmds.RANDOM_NUMBERS,
+            ContainerNames.NONE),
     MICRONAUT_HELLOWORLD("apps" + File.separator + "micronaut-helloworld",
             URLContent.MICRONAUT_HELLOWORLD,
             WhitelistLogLines.MICRONAUT_HELLOWORLD,
-            BuildAndRunCmds.MICRONAUT_HELLOWORLD),
+            BuildAndRunCmds.MICRONAUT_HELLOWORLD,
+            ContainerNames.NONE),
     QUARKUS_FULL_MICROPROFILE("apps" + File.separator + "quarkus-full-microprofile",
             URLContent.QUARKUS_FULL_MICROPROFILE,
             WhitelistLogLines.QUARKUS_FULL_MICROPROFILE,
-            BuildAndRunCmds.QUARKUS_FULL_MICROPROFILE),
+            BuildAndRunCmds.QUARKUS_FULL_MICROPROFILE,
+            ContainerNames.NONE),
     QUARKUS_BUILDER_IMAGE_ENCODING("builder-image-apps" + File.separator + "quarkus-spöklik-encoding",
             URLContent.QUARKUS_BUILDER_IMAGE_ENCODING,
             WhitelistLogLines.NONE,
-            BuildAndRunCmds.QUARKUS_BUILDER_IMAGE_ENCODING),
+            BuildAndRunCmds.QUARKUS_BUILDER_IMAGE_ENCODING,
+            ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING),
     HELIDON_QUICKSTART_SE("apps" + File.separator + "helidon-quickstart-se",
             URLContent.HELIDON_QUICKSTART_SE,
             WhitelistLogLines.HELIDON_QUICKSTART_SE,
-            BuildAndRunCmds.HELIDON_QUICKSTART_SE),
+            BuildAndRunCmds.HELIDON_QUICKSTART_SE,
+            ContainerNames.NONE),
     TIMEZONES("apps" + File.separator + "timezones",
             URLContent.NONE,
             WhitelistLogLines.NONE,
-            BuildAndRunCmds.TIMEZONES);
+            BuildAndRunCmds.TIMEZONES,
+            ContainerNames.NONE);
 
     public final String dir;
     public final URLContent urlContent;
     public final WhitelistLogLines whitelistLogLines;
     public final BuildAndRunCmds buildAndRunCmds;
     public final Map<String, Long> thresholdProperties = new HashMap<>();
+    public final ContainerNames runtimeContainer;
 
-    Apps(String dir, URLContent urlContent, WhitelistLogLines whitelistLogLines, BuildAndRunCmds buildAndRunCmds) {
+    Apps(String dir, URLContent urlContent, WhitelistLogLines whitelistLogLines, BuildAndRunCmds buildAndRunCmds, ContainerNames runtimeContainer) {
         this.dir = dir;
         this.urlContent = urlContent;
         this.whitelistLogLines = whitelistLogLines;
         this.buildAndRunCmds = buildAndRunCmds;
+        this.runtimeContainer = runtimeContainer;
         File tpFile = new File(BASE_DIR + File.separator + dir + File.separator + "threshold.properties");
         // Some apps don't have threshold.properties
         if (tpFile.exists()) {

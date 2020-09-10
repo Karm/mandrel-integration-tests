@@ -81,14 +81,14 @@ public class AppReproducersTest {
 
             LOGGER.info("Running...#1");
             List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog);
+            process = Commands.runCommand(cmd, appDir, processLog, app);
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             LOGGER.info("Running...#2");
             cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog);
+            process = Commands.runCommand(cmd, appDir, processLog, app);
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -140,7 +140,7 @@ public class AppReproducersTest {
 
             LOGGER.info("Running...");
             List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog);
+            process = Commands.runCommand(cmd, appDir, processLog, app);
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -173,7 +173,7 @@ public class AppReproducersTest {
         for (int i = 0; i < app.buildAndRunCmds.cmds.length - 1; i++) {
             // We cannot run commands in parallel, we need them to follow one after another
             ExecutorService buildService = Executors.newFixedThreadPool(1);
-            List<String> cmd = Commands.getBuildCommand(app.buildAndRunCmds.cmds[i]);
+            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[i]);
             buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 10)); // might take a long time....
             Logs.appendln(report, (new Date()).toString());
             Logs.appendln(report, appDir.getAbsolutePath());

@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
-import static org.graalvm.tests.integration.utils.Commands.isThisWindows;
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -84,7 +84,7 @@ public class Logs {
                     "Skipping checking thresholds.");
             return;
         }
-        String propPrefix = isThisWindows ? "windows" : "linux";
+        String propPrefix = IS_THIS_WINDOWS ? "windows" : "linux";
         if (timeToFirstOKRequest != SKIP) {
             long timeToFirstOKRequestThresholdMs = app.thresholdProperties.get(propPrefix + ".time.to.first.ok.request.threshold.ms");
             assertTrue(timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
