@@ -44,8 +44,6 @@ public class LogBuilder {
     private long buildTimeMs = -1L;
     private static final String timeToFirstOKRequestMsHeader = "timeToFirstOKRequestMs";
     private long timeToFirstOKRequestMs = -1L;
-    private static final String timeToReloadedOKRequestHeader = "timeToReloadMs";
-    private long timeToReloadedOKRequest = -1L;
     private static final String rssKbHeader = "RSSKb";
     private long rssKb = -1L;
     private static final String openedFilesHeader = "FDs";
@@ -113,13 +111,6 @@ public class LogBuilder {
             h.append(timeToFirstOKRequestMsHeader);
             h.append(',');
             l.append(timeToFirstOKRequestMs);
-            l.append(',');
-            sections++;
-        }
-        if (timeToReloadedOKRequest != -1L) {
-            h.append(timeToReloadedOKRequestHeader);
-            h.append(',');
-            l.append(timeToReloadedOKRequest);
             l.append(',');
             sections++;
         }

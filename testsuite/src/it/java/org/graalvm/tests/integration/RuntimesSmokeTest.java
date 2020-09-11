@@ -21,6 +21,7 @@ package org.graalvm.tests.integration;
 
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.Commands;
+import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
@@ -60,18 +61,19 @@ public class RuntimesSmokeTest {
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app.toString());
         Process process = null;
-        File processLog = null;
-        StringBuilder report = new StringBuilder();
-        File appDir = new File(BASE_DIR + File.separator + app.dir);
-        String cn = testInfo.getTestClass().get().getCanonicalName();
-        String mn = testInfo.getTestMethod().get().getName();
+        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+        final StringBuilder report = new StringBuilder();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
             Commands.cleanTarget(app);
+            if (app.runtimeContainer != ContainerNames.NONE) {
+                // If we are about to be working with containers, we need a clean slate.
+                Commands.stopAllRunningContainers();
+            }
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
-
-            // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
 
             // The last command is reserved for running it
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
@@ -80,7 +82,7 @@ public class RuntimesSmokeTest {
             for (int i = 0; i < app.buildAndRunCmds.cmds.length - 1; i++) {
                 // We cannot run commands in parallel, we need them to follow one after another
                 ExecutorService buildService = Executors.newFixedThreadPool(1);
-                List<String> cmd = Commands.getBuildCommand(app.buildAndRunCmds.cmds[i]);
+                List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[i]);
                 buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 30)); // Timeout for Maven downloading the Internet
                 Logs.appendln(report, (new Date()).toString());
                 Logs.appendln(report, appDir.getAbsolutePath());
@@ -94,7 +96,7 @@ public class RuntimesSmokeTest {
             // Run
             LOGGER.info("Running...");
             List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog);
+            process = Commands.runCommand(cmd, appDir, processLog, app);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
@@ -106,27 +108,41 @@ public class RuntimesSmokeTest {
             }
 
             LOGGER.info("Terminate and scan logs...");
+            // Makes sure the log is written.
             process.getInputStream().available();
 
-            long rssKb = Commands.getRSSkB(process.pid());
-            long openedFiles = Commands.getOpenedFDs(process.pid());
-
-            Commands.processStopper(process, false);
+            LogBuilder.Log log;
+            long rssKb;
+            // Running without a container
+            if (app.runtimeContainer == ContainerNames.NONE) {
+                rssKb = Commands.getRSSkB(process.pid());
+                long openedFiles = Commands.getOpenedFDs(process.pid());
+                Commands.processStopper(process, false);
+                log = new LogBuilder()
+                        .app(app)
+                        .buildTimeMs(buildEnds - buildStarts)
+                        .timeToFirstOKRequestMs(timeToFirstOKRequest)
+                        .rssKb(rssKb)
+                        .openedFiles(openedFiles)
+                        .build();
+                // Running as a container
+            } else {
+                rssKb = Commands.getContainerMemoryKb(app.runtimeContainer.name);
+                Commands.stopRunningContainer(app.runtimeContainer.name);
+                log = new LogBuilder()
+                        .app(app)
+                        .buildTimeMs(buildEnds - buildStarts)
+                        .timeToFirstOKRequestMs(timeToFirstOKRequest)
+                        .rssKb(rssKb)
+                        .build();
+            }
 
             LOGGER.info("Gonna wait for ports closed...");
             // Release ports
             Assertions.assertTrue(Commands.waitForTcpClosed("localhost", Commands.parsePort(app.urlContent.urlContent[0][0]), 60),
                     "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
-
             Path measurementsLog = Paths.get(Logs.getLogsDir(cn, mn).toString(), "measurements.csv");
-            LogBuilder.Log log = new LogBuilder()
-                    .app(app)
-                    .buildTimeMs(buildEnds - buildStarts)
-                    .timeToFirstOKRequestMs(timeToFirstOKRequest)
-                    .rssKb(rssKb)
-                    .openedFiles(openedFiles)
-                    .build();
             Logs.logMeasurements(log, measurementsLog);
             Logs.appendln(report, "Measurements:");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
@@ -139,7 +155,6 @@ public class RuntimesSmokeTest {
             // Archive logs no matter what
             Logs.archiveLog(cn, mn, processLog);
             Logs.writeReport(cn, mn, report.toString());
-
             // This is debatable. When the run fails,
             // it might be valuable to have the binary and not just the logs?
             // Nope: Delete it. One can reproduce it from the journal file we maintain.

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
@@ -56,8 +57,10 @@ public class Commands {
     public static final String BUILDER_IMAGE = getProperty(
             new String[]{"QUARKUS_NATIVE_BUILDER_IMAGE", "quarkus.native.builder-image"},
             "quay.io/quarkus/ubi-quarkus-mandrel:20.1-java11");
-    public static final boolean isThisWindows = System.getProperty("os.name").matches(".*[Ww]indows.*");
-    private static final Pattern numPattern = Pattern.compile("[ \t]*[0-9]+[ \t]*");
+    public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
+    private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
+    private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
+    private static final Pattern CONTAINER_STATS_MEMORY = Pattern.compile("(?:table)?[ \t]*([0-9\\.]+)([a-zA-Z]+).*");
 
     public static String getProperty(String[] alternatives, String defaultValue) {
         String prop = null;
@@ -109,24 +112,21 @@ public class Commands {
         }
     }
 
+    /**
+     * Adds prefix on Windows, no-op on Linux
+     * TODO: Get rid of this?
+     *
+     * @param baseCommand
+     * @return
+     */
     public static List<String> getRunCommand(String[] baseCommand) {
         List<String> runCmd = new ArrayList<>();
-        if (isThisWindows) {
+        if (IS_THIS_WINDOWS) {
             runCmd.add("cmd");
             runCmd.add("/C");
         }
         runCmd.addAll(Arrays.asList(baseCommand));
-        return Collections.unmodifiableList(runCmd);
-    }
-
-    public static List<String> getBuildCommand(String[] baseCommand) {
-        List<String> buildCmd = new ArrayList<>();
-        if (isThisWindows) {
-            buildCmd.add("cmd");
-            buildCmd.add("/C");
-        }
-        buildCmd.addAll(Arrays.asList(baseCommand));
-        return Collections.unmodifiableList(buildCmd);
+        return runCmd;
     }
 
     public static boolean waitForTcpClosed(String host, int port, long loopTimeoutS) throws InterruptedException, UnknownHostException {
@@ -184,13 +184,11 @@ public class Commands {
         }
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile) {
-
-        // No point in doing this if the executable is being from from a container
-        if (!CONTAINER_RUNTIME.equals(command.get(0))) {
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app) {
+        // Skip the wait if the app runs as a container
+        if (app.runtimeContainer == ContainerNames.NONE) {
             waitForExecutable(command, directory);
         }
-
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
@@ -208,7 +206,7 @@ public class Commands {
 
     public static void pidKiller(long pid, boolean force) {
         try {
-            if (isThisWindows) {
+            if (IS_THIS_WINDOWS) {
                 if (!force) {
                     Process p = Runtime.getRuntime().exec(new String[]{
                             BASE_DIR + File.separator + "testsuite" + File.separator + "src" + File.separator + "it" + File.separator + "resources" + File.separator +
@@ -224,9 +222,91 @@ public class Commands {
         }
     }
 
+    public static List<String> getRunningContainersIDs() throws IOException, InterruptedException {
+        final ProcessBuilder processBuilder = new ProcessBuilder(CONTAINER_RUNTIME, "ps");
+        Map<String, String> envA = processBuilder.environment();
+        envA.put("PATH", System.getenv("PATH"));
+        processBuilder.redirectErrorStream(true);
+        Process p = processBuilder.start();
+        final List<String> ids = new ArrayList<>();
+        try (BufferedReader processOutputReader =
+                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+            String l = processOutputReader.readLine();
+            // Skip the first line
+            if (l == null || !l.startsWith("CONTAINER ID")) {
+                throw new RuntimeException("Unexpected docker command output. Check the daemon.");
+            }
+            while ((l = processOutputReader.readLine()) != null) {
+                Matcher m = ALPHANUMERIC_FIRST.matcher(l);
+                if (m.matches()) {
+                    ids.add(m.group(1).trim());
+                }
+            }
+            p.waitFor();
+        }
+        return Collections.unmodifiableList(ids);
+    }
+
+    public static void stopAllRunningContainers() throws InterruptedException, IOException {
+        List<String> ids = getRunningContainersIDs();
+        if (!ids.isEmpty()) {
+            // TODO rework the command concatenation
+            final List<String> cmd = new ArrayList<>(getRunCommand(new String[]{CONTAINER_RUNTIME, "stop"}));
+            cmd.addAll(ids);
+            Process process = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+            process.waitFor(5, TimeUnit.SECONDS);
+        }
+    }
+
+    public static void stopRunningContainer(String containerName) throws InterruptedException, IOException {
+        final List<String> cmd = new ArrayList<>(getRunCommand(new String[]{CONTAINER_RUNTIME, "stop", containerName}));
+        Process process = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+        process.waitFor(5, TimeUnit.SECONDS);
+    }
+
+    /*
+    No idea if Docker works with 1024 and Podman with 1000 :-)
+    $ podman stats --no-stream --format "table {{.MemUsage}}" my-quarkus-mandrel-app-container
+    table 18.06MB / 12.11GB
+    $ docker stats --no-stream --format "table {{.MemUsage}}" my-quarkus-mandrel-app-container
+    MEM USAGE / LIMIT
+    13.43MiB / 11.28GiB
+     */
+    public static long getContainerMemoryKb(String containerName) throws IOException, InterruptedException {
+        ProcessBuilder pa = new ProcessBuilder(getRunCommand(new String[]{
+                CONTAINER_RUNTIME, "stats", "--no-stream", "--format", "table {{.MemUsage}}", containerName}));
+        Map<String, String> envA = pa.environment();
+        envA.put("PATH", System.getenv("PATH"));
+        pa.redirectErrorStream(true);
+        Process p = pa.start();
+        try (BufferedReader processOutputReader =
+                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+            String l;
+            while ((l = processOutputReader.readLine()) != null) {
+                Matcher m = CONTAINER_STATS_MEMORY.matcher(l);
+                if (m.matches()) {
+                    float value = Float.parseFloat(m.group(1));
+                    String unit = m.group(2);
+                    // Yes, precision is just fine here.
+                    if (unit.startsWith("M")) {
+                        return (long) value * 1024;
+                    } else if (unit.startsWith("G")) {
+                        return (long) value * 1024 * 1024;
+                    } else if (unit.startsWith("k") || unit.startsWith("K")) {
+                        return (long) value;
+                    } else {
+                        throw new IllegalArgumentException("We don't know how to work with memory unit " + unit);
+                    }
+                }
+            }
+            p.waitFor();
+        }
+        return -1L;
+    }
+
     public static long getRSSkB(long pid) throws IOException, InterruptedException {
         ProcessBuilder pa;
-        if (isThisWindows) {
+        if (IS_THIS_WINDOWS) {
             // Note that PeakWorkingSetSize might be better, but we would need to change it on Linux too...
             // https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-process
             pa = new ProcessBuilder("wmic", "process", "where", "processid=" + pid, "get", "WorkingSetSize");
@@ -241,8 +321,8 @@ public class Commands {
                      new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             while ((l = processOutputReader.readLine()) != null) {
-                if (numPattern.matcher(l).matches()) {
-                    if (isThisWindows) {
+                if (NUM_PATTERN.matcher(l).matches()) {
+                    if (IS_THIS_WINDOWS) {
                         // Qualifiers: DisplayName ("Working Set Size"), Units ("bytes")
                         return Long.parseLong(l.trim()) / 1024L;
                     } else {
@@ -258,7 +338,7 @@ public class Commands {
     public static long getOpenedFDs(long pid) throws IOException, InterruptedException {
         ProcessBuilder pa;
         long count = 0;
-        if (isThisWindows) {
+        if (IS_THIS_WINDOWS) {
             pa = new ProcessBuilder("wmic", "process", "where", "processid=" + pid, "get", "HandleCount");
         } else {
             pa = new ProcessBuilder("lsof", "-F0n", "-p", Long.toString(pid));
@@ -269,11 +349,11 @@ public class Commands {
         Process p = pa.start();
         try (BufferedReader processOutputReader =
                      new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
-            if (isThisWindows) {
+            if (IS_THIS_WINDOWS) {
                 String l;
                 // TODO: We just get a magical number with all FDs... Is it O.K.?
                 while ((l = processOutputReader.readLine()) != null) {
-                    if (numPattern.matcher(l).matches()) {
+                    if (NUM_PATTERN.matcher(l).matches()) {
                         return Long.parseLong(l.trim());
                     }
                 }
