@@ -17,21 +17,23 @@
  * limitations under the License.
  *
  */
-package org.graalvm.tests.integration.utils;
+package debug_symbols_smoke;
 
 /**
- * Convenient enum for collecting container names for apps
- *
+ * !!! DO NOT TOUCH THE SOURCE WITHOUT EDITING GDBSession.java !!!
  * @author Michal Karm Babacek <karm@redhat.com>
  */
-public enum ContainerNames {
-    QUARKUS_BUILDER_IMAGE_ENCODING("my-quarkus-mandrel-app-container"),
-    DEBUG_QUARKUS_BUILDER_IMAGE_VERTX("my-quarkus-mandrel-app-container"), // Probably no reason to call them differently?
-    NONE("NO_CONTAINER");
+public class ClassA {
+    public final int myNumber;
+    public final String myString;
 
-    public final String name;
+    public ClassA(int myNumber, String myString) {
+        this.myNumber = myNumber;
+        this.myString = myString;
+    }
 
-    ContainerNames(String name) {
-        this.name = name;
+    @Override
+    public String toString() {
+        return "{\"myString\":\"" + myString + "\",\"myNumber\":\"" + myNumber + "\"}";
     }
 }

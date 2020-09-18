@@ -101,7 +101,7 @@ public class RuntimesSmokeTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             // Test web pages
-            long timeToFirstOKRequest = WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
+            final long timeToFirstOKRequest = WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
             LOGGER.info("Testing web page content...");
             for (String[] urlContent : app.urlContent.urlContent) {
                 WebpageTester.testWeb(urlContent[0], 5, urlContent[1], false);
@@ -116,7 +116,7 @@ public class RuntimesSmokeTest {
             // Running without a container
             if (app.runtimeContainer == ContainerNames.NONE) {
                 rssKb = Commands.getRSSkB(process.pid());
-                long openedFiles = Commands.getOpenedFDs(process.pid());
+                final long openedFiles = Commands.getOpenedFDs(process.pid());
                 Commands.processStopper(process, false);
                 log = new LogBuilder()
                         .app(app)
@@ -183,7 +183,8 @@ public class RuntimesSmokeTest {
 
     @Test
     @Tag("helidon")
-    @DisabledOnOs({OS.WINDOWS}) // No Windows. https://github.com/oracle/helidon/issues/2230
+    @DisabledOnOs({OS.WINDOWS})
+    // No Windows. https://github.com/oracle/helidon/issues/2230
     public void helidonQuickStart(TestInfo testInfo) throws IOException, InterruptedException {
         testRuntime(testInfo, Apps.HELIDON_QUICKSTART_SE);
     }

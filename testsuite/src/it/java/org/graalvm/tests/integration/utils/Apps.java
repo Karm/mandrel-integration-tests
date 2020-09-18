@@ -54,6 +54,16 @@ public enum Apps {
             WhitelistLogLines.QUARKUS_FULL_MICROPROFILE,
             BuildAndRunCmds.QUARKUS_FULL_MICROPROFILE,
             ContainerNames.NONE),
+    DEBUG_QUARKUS_FULL_MICROPROFILE("apps" + File.separator + "quarkus-full-microprofile",
+            URLContent.NONE,
+            WhitelistLogLines.QUARKUS_FULL_MICROPROFILE,
+            BuildAndRunCmds.DEBUG_QUARKUS_FULL_MICROPROFILE,
+            ContainerNames.NONE),
+    DEBUG_QUARKUS_BUILDER_IMAGE_VERTX("builder-image-apps" + File.separator + "quarkus-vertx",
+            URLContent.NONE,
+            WhitelistLogLines.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX,
+            BuildAndRunCmds.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX,
+            ContainerNames.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX),
     QUARKUS_BUILDER_IMAGE_ENCODING("builder-image-apps" + File.separator + "quarkus-spöklik-encoding",
             URLContent.QUARKUS_BUILDER_IMAGE_ENCODING,
             WhitelistLogLines.NONE,
@@ -68,6 +78,11 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.NONE,
             BuildAndRunCmds.TIMEZONES,
+            ContainerNames.NONE),
+    DEBUG_SYMBOLS_SMOKE("apps" + File.separator + "debug-symbols-smoke",
+            URLContent.NONE,
+            WhitelistLogLines.NONE,
+            BuildAndRunCmds.DEBUG_SYMBOLS_SMOKE,
             ContainerNames.NONE);
 
     public final String dir;

@@ -59,6 +59,12 @@ public enum WhitelistLogLines {
             Pattern.compile(".*oracle/graal/issues/2387.*")
     }),
 
+    DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
+            // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
+            Pattern.compile(".*GR-10238.*"),
+            Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*")
+    }),
+
     HELIDON_QUICKSTART_SE(new Pattern[]{
             // Unused argument on new Graal
             Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*")

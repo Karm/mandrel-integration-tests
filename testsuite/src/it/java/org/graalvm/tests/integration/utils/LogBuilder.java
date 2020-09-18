@@ -44,12 +44,14 @@ public class LogBuilder {
     private long buildTimeMs = -1L;
     private static final String timeToFirstOKRequestMsHeader = "timeToFirstOKRequestMs";
     private long timeToFirstOKRequestMs = -1L;
+    private static final String timeToFinishMsHeader = "timeToFinishMs";
+    private long timeToFinishMs = -1L;
     private static final String rssKbHeader = "RSSKb";
     private long rssKb = -1L;
     private static final String openedFilesHeader = "FDs";
     private long openedFiles = -1L;
     private static final String appHeader = "App";
-    private Apps app = null;
+    private String app = null;
 
     public LogBuilder buildTimeMs(long buildTimeMs) {
         if (buildTimeMs <= 0) {
@@ -64,6 +66,14 @@ public class LogBuilder {
             throw new IllegalArgumentException("timeToFirstOKRequestMs must be a positive long, was: " + timeToFirstOKRequestMs);
         }
         this.timeToFirstOKRequestMs = timeToFirstOKRequestMs;
+        return this;
+    }
+
+    public LogBuilder timeToFinishMs(long timeToFinishMs) {
+        if (timeToFinishMs <= 0) {
+            throw new IllegalArgumentException("timeToFinishMs must be a positive long, was: " + timeToFinishMs);
+        }
+        this.timeToFinishMs = timeToFinishMs;
         return this;
     }
 
@@ -84,6 +94,12 @@ public class LogBuilder {
     }
 
     public LogBuilder app(Apps app) {
+        Objects.requireNonNull(app, "Valid app flavour must be provided");
+        this.app = app.toString();
+        return this;
+    }
+
+    public LogBuilder app(String app) {
         Objects.requireNonNull(app, "Valid app flavour must be provided");
         this.app = app;
         return this;
@@ -111,6 +127,13 @@ public class LogBuilder {
             h.append(timeToFirstOKRequestMsHeader);
             h.append(',');
             l.append(timeToFirstOKRequestMs);
+            l.append(',');
+            sections++;
+        }
+        if (timeToFinishMs != -1L) {
+            h.append(timeToFinishMsHeader);
+            h.append(',');
+            l.append(timeToFinishMs);
             l.append(',');
             sections++;
         }

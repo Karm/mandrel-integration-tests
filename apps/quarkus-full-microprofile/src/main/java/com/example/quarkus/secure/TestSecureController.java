@@ -20,6 +20,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * !!! DO NOT TOUCH THE SOURCE WITHOUT EDITING GDBSession.java !!!
+ */
 @Path("/secured")
 @ApplicationScoped
 public class TestSecureController {
