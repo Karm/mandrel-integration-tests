@@ -10,17 +10,16 @@ Native image builds also require you have the following packages installed:
 * glibc-devel
 * zlib-devel
 * gcc
-* libffi-devel
 
 On Fedora/CentOS/RHEL they can be installed with:
 ```bash
-dnf install glibc-devel zlib-devel gcc libffi-devel libstdc++-static
+dnf install glibc-devel zlib-devel gcc libstdc++-static
 ```
 Note the package might be called `glibc-static` instead of `libstdc++-static`.
 
 On Ubuntu-like systems with:
 ```bash
-apt install gcc zlib1g-dev libffi-dev build-essential
+apt install gcc zlib1g-dev build-essential
 ```
 
 ## Usage
