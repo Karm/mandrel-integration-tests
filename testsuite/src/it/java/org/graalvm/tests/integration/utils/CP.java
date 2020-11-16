@@ -19,19 +19,18 @@
  */
 package org.graalvm.tests.integration.utils;
 
+import java.util.regex.Pattern;
+
 /**
- * Convenient enum for collecting container names for apps
- *
+ * Utility struct
  * @author Michal Karm Babacek <karm@redhat.com>
  */
-public enum ContainerNames {
-    QUARKUS_BUILDER_IMAGE_ENCODING("my-quarkus-mandrel-app-container"),
-    DEBUG_QUARKUS_BUILDER_IMAGE_VERTX("my-quarkus-mandrel-app-container"), // Probably no reason to call them differently?
-    NONE("NO_CONTAINER");
+public class CP {
+    public final String c;
+    public final Pattern p;
 
-    public final String name;
-
-    ContainerNames(String name) {
-        this.name = name;
+    public CP(String c, Pattern p) {
+        this.c = c;
+        this.p = p;
     }
 }

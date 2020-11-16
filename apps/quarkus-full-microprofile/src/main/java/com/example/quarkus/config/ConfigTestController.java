@@ -9,6 +9,9 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+/**
+ * !!! DO NOT TOUCH THE SOURCE WITHOUT EDITING GDBSession.java !!!
+ */
 @Path("/config")
 @RequestScoped
 public class ConfigTestController {

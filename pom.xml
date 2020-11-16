@@ -26,20 +26,21 @@
     <name>Native image integration TS</name>
 
     <properties>
-        <!-- Quarkus Full MicroProfile app -->
-        <quarkus.version>1.7.2.Final</quarkus.version>
+        <!-- Quarkus apps -->
+        <quarkus.version>1.7.5.Final</quarkus.version>
         <vertx.auth.jwt.version>3.9.2</vertx.auth.jwt.version>
 
         <!-- Micronaut minimal app -->
         <micronaut.version>2.0.1</micronaut.version>
 
         <!-- Helidon quickstart -->
-        <version.helidon>2.0.2</version.helidon>
+        <version.helidon>2.1.0</version.helidon>
 
         <!-- General TS deps -->
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven.failsafe.version>2.22.2</maven.failsafe.version>
         <maven.build.helper.version>3.0.0</maven.build.helper.version>
@@ -90,7 +91,9 @@
                 <module>apps/helidon-quickstart-se</module>
                 <module>apps/random-numbers</module>
                 <module>apps/timezones</module>
+                <module>apps/debug-symbols-smoke</module>
                 <module>builder-image-apps/quarkus-spöklik-encoding</module>
+                <module>builder-image-apps/quarkus-vertx</module>
             </modules>
         </profile>
     </profiles>

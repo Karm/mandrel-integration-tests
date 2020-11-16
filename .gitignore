@@ -28,6 +28,7 @@ hs_err_pid*
 *.ipr
 *.iws
 target
+sources
 
 # VS Code
 .classpath
