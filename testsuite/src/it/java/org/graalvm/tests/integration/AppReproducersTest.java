@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -488,13 +489,18 @@ public class AppReproducersTest {
     }
 
     public static void carryOutGDBSession(StringBuffer stringBuffer, GDBSession gdbSession, ExecutorService esvc, BufferedWriter writer, StringBuilder report) {
+        final ConcurrentLinkedQueue<String> errorQueue = new ConcurrentLinkedQueue<>();
         Stream.of(gdbSession.gdbOutput).forEach(cp -> {
                     stringBuffer.delete(0, stringBuffer.length());
                     try {
                         if (cp.c.startsWith("GOTO URL")) {
                             final Runnable webRequest = () -> {
                                 try {
-                                    assertTrue(cp.p.matcher(WebpageTester.getUrlContents(cp.c.split("URL ")[1])).matches());
+                                    final String url = cp.c.split("URL ")[1];
+                                    final String content = WebpageTester.getUrlContents(url);
+                                    if (!cp.p.matcher(content).matches()) {
+                                        errorQueue.add("Content of URL " + url + " should have matched regexp " + cp.p.pattern() + " but it was this: " + content);
+                                    }
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                     fail("Unexpected failure: ", e);
@@ -508,8 +514,10 @@ public class AppReproducersTest {
                             boolean m = waitForBufferToMatch(stringBuffer, cp.p, 10, 1, TimeUnit.SECONDS);
                             Logs.appendlnSection(report, cp.c);
                             Logs.appendln(report, stringBuffer.toString());
-                            assertTrue(m, "Command '" + cp.c.trim() + "' did not match the expected pattern '" +
-                                    cp.p.pattern() + "'. Output was: " + stringBuffer.toString());
+                            if (!m) {
+                                errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern '" +
+                                        cp.p.pattern() + "'. Output was: " + stringBuffer.toString());
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -517,6 +525,9 @@ public class AppReproducersTest {
                     }
                 }
         );
+        assertTrue(errorQueue.isEmpty(), "There were errors in the GDB session. " +
+                "Note that commands in the session might depend on each other. Errors: " +
+                System.lineSeparator() + String.join(", " + System.lineSeparator(), errorQueue));
     }
 
     public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
