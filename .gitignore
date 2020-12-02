@@ -36,3 +36,11 @@ sources
 .project
 .settings
 .vscode
+
+# Perfs
+callgrind.out.*
+graph.png
+out.dot
+out.perf-folded
+perf.data
+perf.svg

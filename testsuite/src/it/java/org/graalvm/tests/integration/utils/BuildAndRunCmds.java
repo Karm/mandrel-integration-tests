@@ -83,7 +83,10 @@ public enum BuildAndRunCmds {
     }),
     DEBUG_SYMBOLS_SMOKE(new String[][]{
             new String[]{"mvn", "package"},
-            new String[]{"unzip", "test_data.txt.zip", "-d", "target"}, // TODO: Windows cca powershell -c "Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force
+            Commands.IS_THIS_WINDOWS ?
+                    new String[]{"powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\""}
+                    :
+                    new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
             new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
                     "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
