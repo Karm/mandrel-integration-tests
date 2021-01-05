@@ -80,7 +80,7 @@ public enum GDBSession {
             new CP("run&\n",
                     Pattern.compile(".*Installed features:.*", Pattern.DOTALL)),
             new CP("GOTO URL http://localhost:8080/data/config/lookup",
-                    Pattern.compile(".*injected.*", Pattern.DOTALL)),
+                    Pattern.compile(".*lookup value.*", Pattern.DOTALL)),
             new CP("bt\n",
                     Pattern.compile(".*at.*com/example/quarkus/config/ConfigTestController.java:33.*", Pattern.DOTALL)),
             new CP("list\n",
