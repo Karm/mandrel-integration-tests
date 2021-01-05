@@ -387,8 +387,8 @@ public class AppReproducersTest {
                 writer.flush();
 
                 writer.write("set directories " +
-                        appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources/:" +
-                        appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources/src/\n");
+                        appDir.getAbsolutePath() + "/target/sources/:" +
+                        appDir.getAbsolutePath() + "/target/sources/src/\n");
                 writer.flush();
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report);

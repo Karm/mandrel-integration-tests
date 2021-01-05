@@ -14,7 +14,7 @@
 
   <properties>
     <maven.compiler.parameters>true</maven.compiler.parameters>
-    <quarkus.platform.artifact-id>quarkus-universe-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
   </properties>
 

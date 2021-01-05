@@ -22,5 +22,7 @@ You can test the behaviour yourself if you:
 
 ## Compile the binary
 
+```
 λ vcvars64
 λ cl CtrlC.cpp  /Oi /MT
+```
