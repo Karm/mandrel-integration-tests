@@ -81,6 +81,13 @@ public enum BuildAndRunCmds {
             new String[]{"native-image", "-J-Duser.country=CA", "-J-Duser.language=fr", "-jar", "target/timezones.jar", "target/timezones"},
             new String[]{Commands.IS_THIS_WINDOWS ? "target\\timezones" : "./target/timezones"}
     }),
+    IMAGEIO(new String[][]{
+            new String[]{"mvn", "clean", "package"},
+            new String[]{"java", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
+            new String[]{"jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF"},
+            new String[]{"native-image", "-H:IncludeResources=Grace_M._Hopper.jp2,FreeMono.ttf,FreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
+            new String[]{Commands.IS_THIS_WINDOWS ? "target\\imageio" : "./target/imageio"}
+    }),
     DEBUG_SYMBOLS_SMOKE(new String[][]{
             new String[]{"mvn", "package"},
             Commands.IS_THIS_WINDOWS ?
