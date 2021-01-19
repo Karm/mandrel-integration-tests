@@ -43,6 +43,7 @@
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven.failsafe.version>2.22.2</maven.failsafe.version>
+        <maven-jar-plugin.version></maven-jar-plugin.version>
         <maven.build.helper.version>3.0.0</maven.build.helper.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -91,6 +92,7 @@
                 <module>apps/helidon-quickstart-se</module>
                 <module>apps/random-numbers</module>
                 <module>apps/timezones</module>
+                <module>apps/imageio</module>
                 <module>apps/debug-symbols-smoke</module>
                 <module>builder-image-apps/quarkus-spöklik-encoding</module>
                 <module>builder-image-apps/quarkus-vertx</module>
