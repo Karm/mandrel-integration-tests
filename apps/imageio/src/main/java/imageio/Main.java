@@ -57,22 +57,6 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 // $ native-image -H:IncludeResources=Grace_M._Hopper.jp2,FreeMono.ttf,FreeSerif.ttf --no-fallback -jar target/imageio.jar target/imageio
 // $ rm -rf mytest*
 // $ ./target/imageio
-
-/**
- * Expected results (sha256 hashes):
- * ec29663c7be2fbebd39be4fcea1ca18e81c2e0f31d92f73b3907c47c9f59aa1e  mytest.bmp
- * 2e8b712b9e3fe240b9fd1d9ccedd622a63344f94998b9cca6d86baad7bac8e81  mytest.gif
- * c427e9377c1ad6e787a5c3bb0096eeca68d4c917254f541aefa92e027c2263e8  mytest.jpg
- * 68638780950b392fb5f4fbd93d900d14446c55a91c52afb2adc0cbbeb84508f8  mytest.png
- * b802d1d7609bb8503e14c7d59e13e554470f892ea3db266b3aaa9fff49aacb77  mytest.svg
- * 7b879c98b55e70a414db6796b76ddcd9c353abb9998bfb2f6b3aa2c1fa6bc81a  mytest.tiff
- * 3d823e4b879c4a094da95d8eccf5ec5c6a413ec64696502d52d6c68b496d1a91  mytest_toC.png
- * 0bd36a1d079a805792ec69a54061e0234042daa199d1a3adcc4e7f95125cc9c1  mytest_toG.png
- * 1190ea971d2ac879988a43007219dd31bd0e26852e5cd3b04d5d88d768de7d07  mytest_toL.png
- * 17db14e726ec590c8834dfb68320d05b4558dac82602df2fa54e04bf95e2f708  mytest_toP.png
- * 4ce0872610f9865d39bfcfc237230a1e3c3a1903ad93b9d4f2522955ed4769dc  mytest_toS.png
- * d5a9cae953a5d6436def014115254c4d7268f042a97069c07942e1ef9193998b  mytest.wbmp
- */
 public class Main {
 
     /**
