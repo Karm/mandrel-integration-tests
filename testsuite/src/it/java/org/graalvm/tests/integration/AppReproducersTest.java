@@ -415,13 +415,13 @@ public class AppReproducersTest {
             esvc.submit(reader);
 
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                Logs.appendln(report, appDir.getAbsolutePath());
+                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
+                Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
                         Pattern.compile(".*Reading symbols from \\./target/debug-symbols-smoke\\.\\.\\.done\\..*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
-                Logs.appendln(report, stringBuffer.toString());
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report);
 
@@ -479,13 +479,13 @@ public class AppReproducersTest {
             esvc.submit(reader);
 
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+                Logs.appendln(report, appDir.getAbsolutePath());
+                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
+                Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
                         Pattern.compile(".*Reading symbols from.*quarkus-runner.debug.*done.*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
-                Logs.appendln(report, stringBuffer.toString());
 
                 writer.write("set confirm off\n");
                 writer.flush();
@@ -557,13 +557,13 @@ public class AppReproducersTest {
             esvc.submit(reader);
 
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(gdbProcess.getOutputStream()))) {
+                Logs.appendln(report, appDir.getAbsolutePath());
+                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
+                Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
                         Pattern.compile(".*Reading symbols from.*/work/quarkus-runner.debug.*done.*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
-                Logs.appendln(report, stringBuffer.toString());
 
                 writer.write("set confirm off\n");
                 writer.flush();
