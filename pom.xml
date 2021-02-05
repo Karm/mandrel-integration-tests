@@ -31,7 +31,7 @@
         <vertx.auth.jwt.version>3.9.2</vertx.auth.jwt.version>
 
         <!-- Micronaut minimal app -->
-        <micronaut.version>2.2.2</micronaut.version>
+        <micronaut.version>2.3.0</micronaut.version>
 
         <!-- Helidon quickstart -->
         <version.helidon>2.1.0</version.helidon>
