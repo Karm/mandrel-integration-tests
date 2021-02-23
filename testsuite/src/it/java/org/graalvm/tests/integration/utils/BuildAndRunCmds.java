@@ -81,6 +81,11 @@ public enum BuildAndRunCmds {
             new String[]{"native-image", "-J-Duser.country=CA", "-J-Duser.language=fr", "-jar", "target/timezones.jar", "target/timezones"},
             new String[]{Commands.IS_THIS_WINDOWS ? "target\\timezones" : "./target/timezones"}
     }),
+    VERSIONS(new String[][]{
+            new String[]{"mvn", "package"},
+            new String[]{"native-image", "--features=org.graalvm.home.HomeFinderFeature", "-jar", "target/version.jar", "target/version"},
+            new String[]{Commands.IS_THIS_WINDOWS ? "target\\version" : "./target/version"}
+    }),
     IMAGEIO(new String[][]{
             new String[]{"mvn", "clean", "package"},
             new String[]{"java", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},

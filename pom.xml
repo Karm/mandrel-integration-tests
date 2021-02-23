@@ -92,6 +92,7 @@
                 <module>apps/helidon-quickstart-se</module>
                 <module>apps/random-numbers</module>
                 <module>apps/timezones</module>
+                <module>apps/versions</module>
                 <module>apps/imageio</module>
                 <module>apps/debug-symbols-smoke</module>
                 <module>builder-image-apps/quarkus-spöklik-encoding</module>
