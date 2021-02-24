@@ -63,7 +63,9 @@ import java.util.stream.Stream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
+import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -288,6 +290,51 @@ public class AppReproducersTest {
     }
 
     @Test
+    @Tag("versions")
+    public void versionsParsingMandrel(TestInfo testInfo) throws IOException, InterruptedException {
+        final Apps app = Apps.VERSIONS;
+        LOGGER.info("Testing app: " + app.toString());
+        Process process = null;
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        try {
+            // Cleanup
+            Commands.cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // Build
+            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+
+            builderRoutine(2, app, report, cn, mn, appDir, processLog);
+
+            LOGGER.info("Running...");
+            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = Commands.runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check "+getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+
+            String actual = null;
+            try (Scanner sc = new Scanner(processLog, UTF_8)) {
+                while (sc.hasNextLine()) {
+                    actual = sc.nextLine();
+                }
+            }
+
+            assertEquals("TargetSub: Hello!", actual, "Sanity check that Graal version parsing worked!");
+
+            Commands.processStopper(process, false);
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            cleanup(process, cn, mn, processLog, report, app);
+        }
+    }
+
+    @Test
     @Tag("nativeJVMTextProcessing")
     public void nativeJVMTextProcessing(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_SYMBOLS_SMOKE;
@@ -349,7 +396,7 @@ public class AppReproducersTest {
 
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
-            final Path measurementsLog = Paths.get(Logs.getLogsDir(cn, mn).toString(), "measurements.csv");
+            final Path measurementsLog = Paths.get(getLogsDir(cn, mn).toString(), "measurements.csv");
             LogBuilder.Log logJVM = new LogBuilder()
                     .app(app.toString() + "_JVM")
                     .timeToFinishMs(jvmRunTookMs)
