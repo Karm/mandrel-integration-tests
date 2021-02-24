@@ -63,7 +63,9 @@ import java.util.stream.Stream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
+import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -311,6 +313,7 @@ public class AppReproducersTest {
             LOGGER.info("Running...");
             List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = Commands.runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check "+getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -318,7 +321,7 @@ public class AppReproducersTest {
             String actual = null;
             try (Scanner sc = new Scanner(processLog, UTF_8)) {
                 while (sc.hasNextLine()) {
-		    actual = sc.nextLine();
+                    actual = sc.nextLine();
                 }
             }
 
@@ -393,7 +396,7 @@ public class AppReproducersTest {
 
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
-            final Path measurementsLog = Paths.get(Logs.getLogsDir(cn, mn).toString(), "measurements.csv");
+            final Path measurementsLog = Paths.get(getLogsDir(cn, mn).toString(), "measurements.csv");
             LogBuilder.Log logJVM = new LogBuilder()
                     .app(app.toString() + "_JVM")
                     .timeToFinishMs(jvmRunTookMs)
