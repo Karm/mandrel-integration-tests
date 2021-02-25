@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
 import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
@@ -54,7 +55,7 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 // $ mvn clean package
 // $ java -agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image -jar target/imageio.jar
 // $ jar uf target/imageio.jar -C src/main/resources/ META-INF
-// $ native-image -H:IncludeResources=Grace_M._Hopper.jp2,FreeMono.ttf,FreeSerif.ttf --no-fallback -jar target/imageio.jar target/imageio
+// $ native-image -H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf --no-fallback -jar target/imageio.jar target/imageio
 // $ rm -rf mytest*
 // $ ./target/imageio
 public class Main {
@@ -84,6 +85,7 @@ public class Main {
 
     /**
      * Paints a groovy picture, exercising some draw methods
+     *
      * @throws IOException
      * @throws FontFormatException
      */
@@ -114,8 +116,8 @@ public class Main {
     private static void loadFonts() throws IOException, FontFormatException {
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         // Font source: https://ftp.gnu.org/gnu/freefont/
-        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, Main.class.getResourceAsStream("/FreeMono.ttf")));
-        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, Main.class.getResourceAsStream("/FreeSerif.ttf")));
+        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, Main.class.getResourceAsStream("/MyFreeMono.ttf")));
+        ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, Main.class.getResourceAsStream("/MyFreeSerif.ttf")));
     }
 
     private static BufferedImage createABGRTestImage(final Color[] colors, final int dx, final int h) {
@@ -147,10 +149,16 @@ public class Main {
 
         // Label, text
         g.setColor(Color.BLACK);
-        g.setFont(new Font("FreeMono", Font.PLAIN, 15));
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        // Name of the font is not just the name of the file. It is baked in it.
+        g.setFont(new Font("MyFreeMono", Font.PLAIN, 15));
         g.drawString("Mandrel", 20, 20);
-        g.setFont(new Font("FreeSerif", Font.PLAIN, 15));
+        g.setFont(new Font("MyFreeSerif", Font.PLAIN, 15));
         g.drawString("Mandrel", 20, 60);
+        g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 15));
+        g.drawString("Mandrel", 20, 100);
+
         g.dispose();
         return img;
     }
