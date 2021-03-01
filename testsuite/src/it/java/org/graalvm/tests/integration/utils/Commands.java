@@ -23,9 +23,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -463,5 +466,40 @@ public class Commands {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    public static boolean searchBinaryFile(File binaryFile, byte[] match, long skipBytes) throws IOException {
+        try (InputStream inputStream = new BufferedInputStream(
+                new FileInputStream(binaryFile))
+        ) {
+            final byte[] buffer = new byte[16384];
+            boolean found = false;
+            inputStream.skip(skipBytes);
+            while (inputStream.read(buffer) != -1) {
+                if (contains(buffer, match)) {
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+        }
+    }
+
+    public static boolean contains(byte[] one, byte[] theOther) {
+        if (one.length < theOther.length || theOther.length == 0) {
+            return false;
+        }
+        for (int i = 0; i < one.length; i++) {
+            int j = 0;
+            for (; j < theOther.length; j++) {
+                if (i + j >= one.length || one[i + j] != theOther[j]) {
+                    break;
+                }
+            }
+            if (j == theOther.length) {
+                return true;
+            }
+        }
+        return false;
     }
 }

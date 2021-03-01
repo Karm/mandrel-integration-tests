@@ -60,8 +60,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.searchBinaryFile;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -227,6 +229,15 @@ public class AppReproducersTest {
             assertTrue(errors.isEmpty(),
                     "There were errors checking the generated image files, see:\n" + String.join("\n", errors));
 
+            // Test static libs in the executable
+            final File executable = new File(appDir.getAbsolutePath(), app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1][0]);
+            //TODO: This might be too fragile... e.g. order shouldn't matter.
+            final String toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";
+            final byte[] match = toFind.getBytes(US_ASCII);
+            // Given the structure of the file, we can skip the first n bytes.
+            boolean found = searchBinaryFile(executable, match, 1800);
+            assertTrue(found, "String: " + toFind + " was expected in the executable file: " + executable);
+
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
@@ -313,7 +324,7 @@ public class AppReproducersTest {
             LOGGER.info("Running...");
             List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = Commands.runCommand(cmd, appDir, processLog, app);
-            assertNotNull(process, "The test application failed to run. Check "+getLogsDir(cn, mn) + File.separator + processLog.getName());
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
