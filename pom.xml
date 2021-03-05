@@ -95,6 +95,7 @@
                 <module>apps/versions</module>
                 <module>apps/imageio</module>
                 <module>apps/debug-symbols-smoke</module>
+                <module>apps/getenv</module>
                 <module>builder-image-apps/quarkus-spöklik-encoding</module>
                 <module>builder-image-apps/quarkus-vertx</module>
             </modules>
