@@ -31,7 +31,10 @@ public enum WhitelistLogLines {
     // This is appended to all undermentioned listings
     ALL(new Pattern[]{
             // https://github.com/graalvm/mandrel/issues/125
-            Pattern.compile(".*Using an older version of the labsjdk-11.*")
+            Pattern.compile(".*Using an older version of the labsjdk-11.*"),
+            // Harmless download, e.g.
+            // Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-error-diagnostics...
+            Pattern.compile(".*maven-error-diagnostics.*")
     }),
 
     NONE(new Pattern[]{}),
