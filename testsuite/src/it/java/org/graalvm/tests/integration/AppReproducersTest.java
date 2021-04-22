@@ -45,7 +45,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,7 +62,10 @@ import java.util.stream.Stream;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.searchBinaryFile;
+import static org.graalvm.tests.integration.utils.Commands.searchLogLines;
+import static org.graalvm.tests.integration.utils.Commands.waitForBufferToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -138,7 +140,7 @@ public class AppReproducersTest {
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            cleanup(process, cn, mn, processLog, report, app);
+            cleanup(process, cn, mn, report, app, processLog);
         }
     }
 
@@ -241,7 +243,7 @@ public class AppReproducersTest {
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            cleanup(process, cn, mn, processLog, report, app);
+            cleanup(process, cn, mn, report, app, processLog);
             if (metaINF.exists()) {
                 FileUtils.cleanDirectory(metaINF);
             }
@@ -278,25 +280,14 @@ public class AppReproducersTest {
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
-            final Pattern p = Pattern.compile(".*d’Europe centrale.*");
-            boolean found = false;
-            try (Scanner sc = new Scanner(processLog, UTF_8)) {
-                while (sc.hasNextLine()) {
-                    final Matcher m = p.matcher(sc.nextLine());
-                    if (m.matches()) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-
-            assertTrue(found, "`d’Europe centrale' string was expected. " +
+            final Pattern p = Pattern.compile(".*d.Europe centrale.*");
+            assertTrue(searchLogLines(p, processLog), "Expected pattern " + p.toString() + " was not found in the log. " +
                     "There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
 
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            cleanup(process, cn, mn, processLog, report, app);
+            cleanup(process, cn, mn, report, app, processLog);
         }
     }
 
@@ -329,19 +320,19 @@ public class AppReproducersTest {
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
-            String actual = null;
+            String lastLine = null;
             try (Scanner sc = new Scanner(processLog, UTF_8)) {
                 while (sc.hasNextLine()) {
-                    actual = sc.nextLine();
+                    lastLine = sc.nextLine();
                 }
             }
 
-            assertEquals("TargetSub: Hello!", actual, "Sanity check that Graal version parsing worked!");
+            assertEquals("TargetSub: Hello!", lastLine, "Sanity check that Graal version parsing worked!");
 
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            cleanup(process, cn, mn, processLog, report, app);
+            cleanup(process, cn, mn, report, app, processLog);
         }
     }
 
@@ -424,7 +415,7 @@ public class AppReproducersTest {
             Logs.checkThreshold(app, "jvm", Logs.SKIP, Logs.SKIP, jvmRunTookMs);
             Logs.checkThreshold(app, "native", Logs.SKIP, Logs.SKIP, nativeRunTookMs);
         } finally {
-            cleanup(process, cn, mn, processLog, report, app);
+            cleanup(process, cn, mn, report, app, processLog);
         }
     }
 
@@ -491,7 +482,7 @@ public class AppReproducersTest {
             Commands.processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            cleanup(null, cn, mn, processLog, report, app);
+            cleanup(null, cn, mn, report, app, processLog);
         }
     }
 
@@ -562,7 +553,7 @@ public class AppReproducersTest {
             Commands.processStopper(process, true);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            cleanup(null, cn, mn, processLog, report, app);
+            cleanup(null, cn, mn, report, app, processLog);
         }
     }
 
@@ -645,7 +636,7 @@ public class AppReproducersTest {
             Commands.stopRunningContainer("quarkus_test_db");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            cleanup(null, cn, mn, processLog, report, app);
+            cleanup(null, cn, mn, report, app, processLog);
             Commands.stopAllRunningContainers();
         }
     }
@@ -692,55 +683,18 @@ public class AppReproducersTest {
                 System.lineSeparator() + String.join(", " + System.lineSeparator(), errorQueue));
     }
 
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
-        // The last command is reserved for running it
-        assertTrue(app.buildAndRunCmds.cmds.length > 1);
-        Logs.appendln(report, "# " + cn + ", " + mn);
-        for (int i = 0; i < steps; i++) {
-            // We cannot run commands in parallel, we need them to follow one after another
-            final ExecutorService buildService = Executors.newFixedThreadPool(1);
-            final List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[i]);
-            buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 10)); // might take a long time....
-            Logs.appendln(report, (new Date()).toString());
-            Logs.appendln(report, appDir.getAbsolutePath());
-            Logs.appendlnSection(report, String.join(" ", cmd));
-            buildService.shutdown();
-            buildService.awaitTermination(10, TimeUnit.MINUTES); // Native image build might take a long time....
-        }
-        assertTrue(processLog.exists());
-    }
-
-    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
-        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
-    }
-
-    public static void cleanup(Process process, String cn, String mn, File processLog, StringBuilder report, Apps app)
+    public static void cleanup(Process process, String cn, String mn, StringBuilder report, Apps app, File... log)
             throws InterruptedException, IOException {
         // Make sure processes are down even if there was an exception / failure
         if (process != null) {
             Commands.processStopper(process, true);
         }
         // Archive logs no matter what
-        Logs.archiveLog(cn, mn, processLog);
+        for (File f : log) {
+            Logs.archiveLog(cn, mn, f);
+        }
         Logs.writeReport(cn, mn, report.toString());
         Commands.cleanTarget(app);
     }
 
-    public static boolean waitForBufferToMatch(StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
-        long timeoutMillis = unit.toMillis(timeout);
-        long sleepMillis = unit.toMillis(sleep);
-        long startMillis = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startMillis < timeoutMillis) {
-            if (pattern.matcher(stringBuffer.toString()).matches()) {
-                return true;
-            }
-            try {
-                Thread.sleep(sleepMillis);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                Thread.currentThread().interrupt();
-            }
-        }
-        return false;
-    }
 }
