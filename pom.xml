@@ -27,7 +27,7 @@
 
     <properties>
         <!-- Quarkus apps -->
-        <quarkus.version>1.11.0.Beta2</quarkus.version>
+        <quarkus.version>1.11.6.Final</quarkus.version>
         <vertx.auth.jwt.version>3.9.2</vertx.auth.jwt.version>
 
         <!-- Micronaut minimal app -->
