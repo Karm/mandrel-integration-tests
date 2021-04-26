@@ -35,13 +35,13 @@ public enum GDBSession {
             new CP("info functions .*smoke.*\n",
                     Pattern.compile(
                             ".*File debug_symbols_smoke/ClassA.java:.*" +
-                                    "void debug_symbols_smoke.ClassA::toString.*void.*" +
+                                    "class java.lang.String \\*debug_symbols_smoke.ClassA::toString\\(void\\).*" +
                                     "File debug_symbols_smoke/Main\\$\\$Lambda.*.java:.*" +
-                                    "void debug_symbols_smoke.Main..Lambda..*::accept\\(java.lang.Object.*void.*" +
+                                    "void debug_symbols_smoke.Main..Lambda..*::accept\\(java.lang.Object \\*\\).*" +
                                     "File debug_symbols_smoke/Main.java:.*" +
-                                    "void debug_symbols_smoke.Main::lambda\\$thisIsTheEnd\\$0\\(java.io.ByteArrayOutputStream, debug_symbols_smoke.ClassA\\).*void.*" +
-                                    "void debug_symbols_smoke.Main::main\\(java.lang.String\\[\\]\\).*void.*" +
-                                    "void debug_symbols_smoke.Main::thisIsTheEnd\\(java.util.List\\).*void.*"
+                                    "void debug_symbols_smoke.Main::lambda\\$thisIsTheEnd\\$0\\(java.io.ByteArrayOutputStream \\*, debug_symbols_smoke.ClassA \\*\\).*" +
+                                    "void debug_symbols_smoke.Main::main\\(java.lang.String\\[\\] \\*\\).*" +
+                                    "void debug_symbols_smoke.Main::thisIsTheEnd\\(java.util.List \\*\\).*"
                             , Pattern.DOTALL)),
             new CP("break Main.java:70\n",
                     Pattern.compile(".*Breakpoint 1 at .*: file debug_symbols_smoke/Main.java, line 70.*",
