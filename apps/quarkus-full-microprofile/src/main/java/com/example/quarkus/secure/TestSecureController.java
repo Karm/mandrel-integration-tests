@@ -7,7 +7,6 @@ import io.vertx.ext.auth.jwt.JWTAuthOptions;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Initialized;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
@@ -48,11 +47,11 @@ public class TestSecureController {
     }
 
     private static String generateJWT(String key) {
-        @SuppressWarnings("deprecation")
+        System.out.println(key);
         JWTAuth provider = JWTAuth.create(null, new JWTAuthOptions()
                 .addPubSecKey(new PubSecKeyOptions()
                         .setAlgorithm("RS256")
-                        .setSecretKey(key)
+                        .setBuffer(key)
                 ));
 
         MPJWTToken token = new MPJWTToken();
@@ -76,10 +75,8 @@ public class TestSecureController {
                         TestSecureController.class.getResourceAsStream("/privateKey.pem"), StandardCharsets.US_ASCII))) {
             String line;
             while ((line = is.readLine()) != null) {
-                if (!line.startsWith("-")) {
-                    sb.append(line);
-                    sb.append('\n');
-                }
+                sb.append(line);
+                sb.append('\n');
             }
         } catch (IOException e) {
             e.printStackTrace();

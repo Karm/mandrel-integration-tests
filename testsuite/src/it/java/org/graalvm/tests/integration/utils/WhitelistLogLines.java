@@ -63,7 +63,11 @@ public enum WhitelistLogLines {
             // Unused argument on new Graal; Quarkus uses it for backward compatibility.
             Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
             // Windows specific warning
-            Pattern.compile(".*oracle/graal/issues/2387.*")
+            Pattern.compile(".*oracle/graal/issues/2387.*"),
+            // Jaeger Opentracing initialization, Quarkus 2.x specific issue.
+            Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException:.*"),
+            // Jaeger Opentracing, Quarkus 2.x specific issue.
+            Pattern.compile(".*MpPublisherMessageBodyReader is already registered.*")
     }),
 
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
