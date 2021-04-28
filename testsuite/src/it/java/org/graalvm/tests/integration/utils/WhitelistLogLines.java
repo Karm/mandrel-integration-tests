@@ -34,7 +34,11 @@ public enum WhitelistLogLines {
             Pattern.compile(".*Using an older version of the labsjdk-11.*"),
             // Harmless download, e.g.
             // Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-error-diagnostics...
-            Pattern.compile(".*maven-error-diagnostics.*")
+            Pattern.compile(".*maven-error-diagnostics.*"),
+            // JDK:
+            Pattern.compile("WARNING.* reflective access.*"),
+            Pattern.compile("WARNING: All illegal access operations.*"),
+            Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*")
     }),
 
     NONE(new Pattern[]{}),

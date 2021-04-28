@@ -34,20 +34,27 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Michal Karm Babacek <karm@redhat.com>
@@ -191,7 +198,7 @@ public class Commands {
         }
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input) {
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input, Map<String, String> env) {
         // Skip the wait if the app runs as a container
         if (app.runtimeContainer == ContainerNames.NONE) {
             waitForExecutable(command, directory);
@@ -199,6 +206,9 @@ public class Commands {
         final ProcessBuilder processBuilder = new ProcessBuilder(command);
         final Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
+        if (env != null) {
+            envA.putAll(env);
+        }
         processBuilder.directory(directory)
                 .redirectErrorStream(true)
                 .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
@@ -214,8 +224,12 @@ public class Commands {
         return pA;
     }
 
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input) {
+        return runCommand(command, directory, logFile, app, input, null);
+    }
+
     public static Process runCommand(List<String> command, File directory, File logFile, Apps app) {
-        return runCommand(command, directory, logFile, app, null);
+        return runCommand(command, directory, logFile, app, null, null);
     }
 
     public static void pidKiller(long pid, boolean force) {
@@ -431,12 +445,22 @@ public class Commands {
         final File log;
         final List<String> command;
         final long timeoutMinutes;
+        final Map<String, String> envProps;
 
         public ProcessRunner(File directory, File log, List<String> command, long timeoutMinutes) {
             this.directory = directory;
             this.log = log;
             this.command = command;
             this.timeoutMinutes = timeoutMinutes;
+            this.envProps = null;
+        }
+
+        public ProcessRunner(File directory, File log, List<String> command, long timeoutMinutes, Map<String, String> envProps) {
+            this.directory = directory;
+            this.log = log;
+            this.command = command;
+            this.timeoutMinutes = timeoutMinutes;
+            this.envProps = envProps;
         }
 
         @Override
@@ -444,6 +468,9 @@ public class Commands {
             final ProcessBuilder pb = new ProcessBuilder(command);
             final Map<String, String> env = pb.environment();
             env.put("PATH", System.getenv("PATH"));
+            if (envProps != null) {
+                env.putAll(envProps);
+            }
             pb.directory(directory);
             pb.redirectErrorStream(true);
             Process p = null;
@@ -501,5 +528,65 @@ public class Commands {
             }
         }
         return false;
+    }
+
+    public static boolean searchLogLines(Pattern p, File processLog, Charset charset) throws IOException {
+        try (Scanner sc = new Scanner(processLog, charset)) {
+            while (sc.hasNextLine()) {
+                final Matcher m = p.matcher(sc.nextLine());
+                if (m.matches()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean waitForBufferToMatch(StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
+        long timeoutMillis = unit.toMillis(timeout);
+        long sleepMillis = unit.toMillis(sleep);
+        long startMillis = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startMillis < timeoutMillis) {
+            if (pattern.matcher(stringBuffer.toString()).matches()) {
+                return true;
+            }
+            try {
+                Thread.sleep(sleepMillis);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+        }
+        return false;
+    }
+
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws InterruptedException {
+        // The last command is reserved for running it
+        assertTrue(app.buildAndRunCmds.cmds.length > 1);
+        Logs.appendln(report, "# " + cn + ", " + mn);
+        for (int i = 0; i < steps; i++) {
+            // We cannot run commands in parallel, we need them to follow one after another
+            final ExecutorService buildService = Executors.newFixedThreadPool(1);
+            final List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[i]);
+            buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 10, env)); // might take a long time....
+            Logs.appendln(report, (new Date()).toString());
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            buildService.shutdown();
+            buildService.awaitTermination(10, TimeUnit.MINUTES); // Native image build might take a long time....
+        }
+        assertTrue(processLog.exists());
+    }
+
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
+        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null);
+    }
+
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws InterruptedException {
+        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env);
+    }
+
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
+        builderRoutine(steps, app, report, cn, mn, appDir, processLog, null);
     }
 }
