@@ -34,6 +34,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -529,8 +530,8 @@ public class Commands {
         return false;
     }
 
-    public static boolean searchLogLines(Pattern p, File processLog) throws IOException {
-        try (Scanner sc = new Scanner(processLog, UTF_8)) {
+    public static boolean searchLogLines(Pattern p, File processLog, Charset charset) throws IOException {
+        try (Scanner sc = new Scanner(processLog, charset)) {
             while (sc.hasNextLine()) {
                 final Matcher m = p.matcher(sc.nextLine());
                 if (m.matches()) {
