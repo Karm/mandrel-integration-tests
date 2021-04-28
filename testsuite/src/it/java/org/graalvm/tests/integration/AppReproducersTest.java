@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -280,8 +281,35 @@ public class AppReproducersTest {
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
+            /*
+            ...about encoding and output on Windows vs. Linux:
+            Linux output:
+            mer. avr. 28 11:46:38 CEST 2021
+            heure normale d’Europe centrale
+
+            Windows output:
+            mar. avr. 27 12:46:52 HAP 2021
+            heure normale dÆEurope centrale
+
+            Match found in the log file according to different encodings used to read it:
+
+                Linux:
+                Expected pattern .*d.+Europe centrale.* was found in the log. Encoding: UTF-8
+                Expected pattern .*d.+Europe centrale.* was not found in the log. Encoding: US-ASCII
+                Expected pattern .*d.+Europe centrale.* was found in the log. Encoding: ISO-8859-1
+                Expected pattern .*d.+Europe centrale.* was not found in the log. Encoding: UTF-16
+
+                Windows:
+                Expected pattern .*d.+Europe centrale.* was not found in the log. Encoding: UTF-8
+                Expected pattern .*d.+Europe centrale.* was not found in the log. Encoding: US-ASCII
+                Expected pattern .*d.+Europe centrale.* was found in the log. Encoding: ISO-8859-1
+                Expected pattern .*d.+Europe centrale.* was not found in the log. Encoding: UTF-16
+                Expected pattern .*d.+Europe centrale.* was found in the log. Encoding: windows-1252
+
+            So we use UTF-8 on Linux and windows-1252 on Windows...and that corresponds to Charset.defaultCharset(). Went the full circle on this.
+            */
             final Pattern p = Pattern.compile(".*d.Europe centrale.*");
-            assertTrue(searchLogLines(p, processLog), "Expected pattern " + p.toString() + " was not found in the log. " +
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log. " +
                     "There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
 
             Commands.processStopper(process, false);
