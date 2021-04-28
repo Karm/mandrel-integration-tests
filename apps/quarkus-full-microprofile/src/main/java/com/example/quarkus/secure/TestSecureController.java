@@ -47,7 +47,6 @@ public class TestSecureController {
     }
 
     private static String generateJWT(String key) {
-        System.out.println(key);
         JWTAuth provider = JWTAuth.create(null, new JWTAuthOptions()
                 .addPubSecKey(new PubSecKeyOptions()
                         .setAlgorithm("RS256")
