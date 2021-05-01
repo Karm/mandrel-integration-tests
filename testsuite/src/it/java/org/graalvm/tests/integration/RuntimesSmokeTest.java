@@ -25,6 +25,7 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -177,6 +178,7 @@ public class RuntimesSmokeTest {
 
     @Test
     @Tag("micronaut")
+    @IfMandrelVersion(min = "20.1.0.4", max = "20.3.2")
     public void micronautHelloWorld(TestInfo testInfo) throws IOException, InterruptedException {
         testRuntime(testInfo, Apps.MICRONAUT_HELLOWORLD);
     }
