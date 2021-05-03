@@ -31,7 +31,7 @@
         <vertx.auth.jwt.version>4.0.3</vertx.auth.jwt.version>
 
         <!-- Micronaut minimal app -->
-        <micronaut.version>2.4.2</micronaut.version>
+        <micronaut.version>2.3.0</micronaut.version>
 
         <!-- Helidon quickstart -->
         <version.helidon>2.2.2</version.helidon>
@@ -47,7 +47,7 @@
         <maven.build.helper.version>3.0.0</maven.build.helper.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit.jupiter.version>5.6.0</junit.jupiter.version>
+        <junit.jupiter.version>5.7.1</junit.jupiter.version>
         <resteasy.version>4.3.0.Final</resteasy.version>
         <commons.lang.version>3.9</commons.lang.version>
         <jboss-logging.version>3.4.1.Final</jboss-logging.version>

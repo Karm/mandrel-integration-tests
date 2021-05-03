@@ -28,6 +28,7 @@ import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -147,6 +148,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("imageio")
+    @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.IMAGEIO;
         LOGGER.info("Testing app: " + app.toString());

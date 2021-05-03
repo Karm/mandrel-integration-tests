@@ -50,6 +50,15 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- org.graalvm.home.Version used for filtering tests based on Graalvm/Mandrel version.
+             GraalVM sdk is not used for testing. You need Mandrel installed either locally or
+             in a builder image. -->
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>graal-sdk</artifactId>
+            <version>21.1.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>

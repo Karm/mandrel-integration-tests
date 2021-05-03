@@ -52,7 +52,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -87,7 +86,7 @@ public class Commands {
             }
         }
         if (prop == null) {
-            LOGGER.warn("Failed to detect any of " + String.join(",", alternatives) +
+            LOGGER.info("Failed to detect any of " + String.join(",", alternatives) +
                     " as env or sys props, defaulting to " + defaultValue);
             return defaultValue;
         }
@@ -222,6 +221,17 @@ public class Commands {
             e.printStackTrace();
         }
         return pA;
+    }
+
+    public static String runCommand(List<String> command) throws IOException {
+        final ProcessBuilder processBuilder = new ProcessBuilder(command);
+        final Map<String, String> envA = processBuilder.environment();
+        envA.put("PATH", System.getenv("PATH"));
+        processBuilder.redirectErrorStream(true);
+        final Process p = processBuilder.start();
+        try (InputStream is = p.getInputStream()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8); // note that UTF-8 would mingle glyphs on Windows
+        }
     }
 
     public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input) {
