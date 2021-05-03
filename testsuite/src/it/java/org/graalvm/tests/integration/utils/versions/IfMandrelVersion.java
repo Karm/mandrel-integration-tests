@@ -28,13 +28,24 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Closed interval from min to max.
+ *
+ * e.g. closed interval [20.1, 20.3.2], as in 20.1 <= GRAALVM_VERSION <= 20.3.2
+ * translates to @IfMandrelVersion(min = "20.1", max="20.3.2").
+ *
  * Examples:
  *
  *     IfMandrelVersion(min = "20.1", max="20.3.2")
+ *     i.e. [20.1, 20.3.2]
  *
  *     IfMandrelVersion(min = "21.1", inContainer = true)
+ *     i.e. [21.1, +∞)
+ *
+ * Note that versions 21.1.0.0-final and 21.1.0.0-snapshot and 21.1.0.0 are all considered equal.
  *
  * The actual comparator comes from Graal's own org.graalvm.home.Version.
+ *
+ * inContainer: Whether the version should be pulled from a builder image container.
  *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
