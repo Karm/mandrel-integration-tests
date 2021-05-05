@@ -147,10 +147,21 @@ public class AppReproducersTest {
     }
 
     @Test
+    @Tag("builder-image")
+    @Tag("imageio")
+    @IfMandrelVersion(min = "21.1", inContainer = true)
+    public void imageioAWTContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+        imageioAWT(testInfo, Apps.IMAGEIO_BUILDER_IMAGE);
+    }
+
+    @Test
     @Tag("imageio")
     @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
-        final Apps app = Apps.IMAGEIO;
+        imageioAWT(testInfo, Apps.IMAGEIO);
+    }
+
+    public void imageioAWT(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app.toString());
 
         final Map<String, String> controlData = new HashMap<>(12);
@@ -235,7 +246,7 @@ public class AppReproducersTest {
                     "There were errors checking the generated image files, see:\n" + String.join("\n", errors));
 
             // Test static libs in the executable
-            final File executable = new File(appDir.getAbsolutePath(), app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1][0]);
+            final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
             //TODO: This might be too fragile... e.g. order shouldn't matter.
             final String toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";
             final byte[] match = toFind.getBytes(US_ASCII);
