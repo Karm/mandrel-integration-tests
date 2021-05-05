@@ -27,6 +27,7 @@ package org.graalvm.tests.integration.utils;
 public enum ContainerNames {
     QUARKUS_BUILDER_IMAGE_ENCODING("my-quarkus-mandrel-app-container"),
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX("my-quarkus-mandrel-app-container"), // Probably no reason to call them differently?
+    IMAGEIO_BUILDER_IMAGE("karm/my-imageio-runner"),
     NONE("NO_CONTAINER");
 
     public final String name;

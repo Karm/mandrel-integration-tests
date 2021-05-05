@@ -25,6 +25,8 @@ import org.jboss.logging.Logger;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
@@ -42,31 +44,14 @@ public class UsedVersion {
 
     private static final Logger LOGGER = Logger.getLogger(UsedVersion.class.getName());
 
-    private enum VersionType {
-        OLD,
-        NEW,
-        INVALID
-    }
+    private static final Pattern versionPattern = Pattern.compile("(?:GraalVM|native-image)(?: Version)? ([^ ]*).*");
 
-    private static VersionType getVersionType(String[] parts) {
-        if (parts.length > 2) {
-            if ("native-image".equals(parts[0])) {
-                return VersionType.NEW;
-            }
-            if ("GraalVM".equals(parts[0])) {
-                return VersionType.OLD;
-            }
-        }
-        return VersionType.INVALID;
-    }
-
-    private static Version parseVersion(VersionType versionType, String[] parts) {
-        final String v = (versionType == VersionType.NEW) ? parts[1] : parts[2];
+    private static Version versionParse(String version) {
         // Invalid version string '20.1.0.4.Final'
-        final String sanitized = v.toLowerCase()
+        return Version.parse(version
+                .toLowerCase()
                 .replace(".f", "-f")
-                .replace(".s", "-s");
-        return Version.parse(sanitized);
+                .replace(".s", "-s"));
     }
 
     public static Version getVersion(boolean inContainer) throws IOException {
@@ -76,15 +61,18 @@ public class UsedVersion {
                 LOGGER.info("Running command " + cmd.toString() + " to determine Mandrel version used.");
                 final String out = Commands.runCommand(cmd);
                 final String[] lines = out.split(System.lineSeparator());
-                final String lastLine = lines[lines.length - 1];
-                final String[] parts = lastLine.split(" ");
-                final VersionType versionType = getVersionType(parts);
-                if (versionType == VersionType.INVALID) {
-                    throw new IllegalArgumentException("native-image command failed. " +
-                            "Is " + CONTAINER_RUNTIME + " running and image " + BUILDER_IMAGE + " available? " +
-                            "Output: " + lastLine);
+                final String lastLine = lines[lines.length - 1].trim();
+                if (!lastLine.contains("Mandrel")) {
+                    LOGGER.warn("You are probably running GraalVM and not Mandrel container. " +
+                            "It might not work as tests might expect certain paths such as /opt/mandrel/.");
                 }
-                versionInContainer = parseVersion(versionType, parts);
+                final Matcher m = versionPattern.matcher(lastLine);
+                if (!m.matches()) {
+                    throw new IllegalArgumentException("native-image command failed to produce a parseable output. " +
+                            "Is " + CONTAINER_RUNTIME + " running and image " + BUILDER_IMAGE + " available? " +
+                            "Output: '" + lastLine + "'");
+                }
+                versionInContainer = versionParse(m.group(1));
                 LOGGER.info("The test suite runs with Mandrel version " + versionInContainer.toString() + " in container.");
             }
             return versionInContainer;
@@ -93,15 +81,14 @@ public class UsedVersion {
         if (version == null) {
             final List<String> cmd = List.of("native-image", "--version");
             LOGGER.info("Running command " + cmd.toString() + " to determine Mandrel version used.");
-            final String line = Commands.runCommand(cmd);
-            final String[] parts = line.split(" ");
-            final VersionType versionType = getVersionType(parts);
-            if (versionType == VersionType.INVALID) {
-                throw new IllegalArgumentException("native-image command failed. " +
+            final String line = Commands.runCommand(cmd).trim();
+            final Matcher m = versionPattern.matcher(line);
+            if (!m.matches()) {
+                throw new IllegalArgumentException("native-image command failed to produce a parseable output. " +
                         "Is it on PATH? " +
-                        "Output: " + line);
+                        "Output: '" + line + "'");
             }
-            version = parseVersion(versionType, parts);
+            version = versionParse(m.group(1));
             LOGGER.info("The test suite runs with Mandrel version " + version.toString() + " installed locally on PATH.");
         }
         return version;

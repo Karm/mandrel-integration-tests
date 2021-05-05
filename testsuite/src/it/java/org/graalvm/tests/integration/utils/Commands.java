@@ -19,6 +19,7 @@
  */
 package org.graalvm.tests.integration.utils;
 
+import com.sun.security.auth.module.UnixSystem;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
@@ -91,6 +92,11 @@ public class Commands {
             return defaultValue;
         }
         return prop;
+    }
+
+    public static String getUnixUIDGID() {
+        final UnixSystem s = new UnixSystem();
+        return s.getUid() + ":" + s.getGid();
     }
 
     public static String getBaseDir() {
