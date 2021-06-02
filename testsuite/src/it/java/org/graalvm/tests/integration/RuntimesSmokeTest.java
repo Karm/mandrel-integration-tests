@@ -45,6 +45,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
+import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
+import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
+import static org.graalvm.tests.integration.utils.Commands.getContainerMemoryKb;
+import static org.graalvm.tests.integration.utils.Commands.getOpenedFDs;
+import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
+import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
+import static org.graalvm.tests.integration.utils.Commands.parsePort;
+import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.runCommand;
+import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
+import static org.graalvm.tests.integration.utils.Commands.stopRunningContainer;
+import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -57,7 +70,7 @@ public class RuntimesSmokeTest {
 
     private static final Logger LOGGER = Logger.getLogger(RuntimesSmokeTest.class.getName());
 
-    public static final String BASE_DIR = Commands.getBaseDir();
+    public static final String BASE_DIR = getBaseDir();
 
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app.toString());
@@ -69,10 +82,10 @@ public class RuntimesSmokeTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             if (app.runtimeContainer != ContainerNames.NONE) {
                 // If we are about to be working with containers, we need a clean slate.
-                Commands.stopAllRunningContainers();
+                stopAllRunningContainers();
             }
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
@@ -83,7 +96,7 @@ public class RuntimesSmokeTest {
             for (int i = 0; i < app.buildAndRunCmds.cmds.length - 1; i++) {
                 // We cannot run commands in parallel, we need them to follow one after another
                 ExecutorService buildService = Executors.newFixedThreadPool(1);
-                List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[i]);
+                List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
                 buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 30)); // Timeout for Maven downloading the Internet
                 Logs.appendln(report, (new Date()).toString());
                 Logs.appendln(report, appDir.getAbsolutePath());
@@ -96,8 +109,8 @@ public class RuntimesSmokeTest {
 
             // Run
             LOGGER.info("Running...");
-            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog, app);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
@@ -116,9 +129,9 @@ public class RuntimesSmokeTest {
             long rssKb;
             // Running without a container
             if (app.runtimeContainer == ContainerNames.NONE) {
-                rssKb = Commands.getRSSkB(process.pid());
-                final long openedFiles = Commands.getOpenedFDs(process.pid());
-                Commands.processStopper(process, false);
+                rssKb = getRSSkB(process.pid());
+                final long openedFiles = getOpenedFDs(process.pid());
+                processStopper(process, false);
                 log = new LogBuilder()
                         .app(app)
                         .buildTimeMs(buildEnds - buildStarts)
@@ -128,8 +141,8 @@ public class RuntimesSmokeTest {
                         .build();
                 // Running as a container
             } else {
-                rssKb = Commands.getContainerMemoryKb(app.runtimeContainer.name);
-                Commands.stopRunningContainer(app.runtimeContainer.name);
+                rssKb = getContainerMemoryKb(app.runtimeContainer.name);
+                stopRunningContainer(app.runtimeContainer.name);
                 log = new LogBuilder()
                         .app(app)
                         .buildTimeMs(buildEnds - buildStarts)
@@ -140,7 +153,7 @@ public class RuntimesSmokeTest {
 
             LOGGER.info("Gonna wait for ports closed...");
             // Release ports
-            Assertions.assertTrue(Commands.waitForTcpClosed("localhost", Commands.parsePort(app.urlContent.urlContent[0][0]), 60),
+            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                     "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
             Path measurementsLog = Paths.get(Logs.getLogsDir(cn, mn).toString(), "measurements.csv");
@@ -151,7 +164,7 @@ public class RuntimesSmokeTest {
         } finally {
             // Make sure processes are down even if there was an exception / failure
             if (process != null) {
-                Commands.processStopper(process, true);
+                processStopper(process, true);
             }
             // Archive logs no matter what
             Logs.archiveLog(cn, mn, processLog);
@@ -159,15 +172,27 @@ public class RuntimesSmokeTest {
             // This is debatable. When the run fails,
             // it might be valuable to have the binary and not just the logs?
             // Nope: Delete it. One can reproduce it from the journal file we maintain.
-            Commands.cleanTarget(app);
+            cleanTarget(app);
         }
     }
 
     @Test
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
-        testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+        if (QUARKUS_VERSION.startsWith("1.")) {
+            try {
+                runCommand(getRunCommand("git", "apply", "quarkus_1.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+                testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+            } finally {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_1.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+            }
+        } else {
+            testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+        }
     }
+
 
     @Test
     @Tag("builder-image")

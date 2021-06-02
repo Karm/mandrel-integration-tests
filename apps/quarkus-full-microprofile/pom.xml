@@ -13,6 +13,11 @@
 
     <artifactId>quarkus-full-microprofile</artifactId>
 
+    <properties>
+        <quarkus.version>${global.quarkus.version}</quarkus.version>
+        <vertx.auth.jwt.version>4.0.3</vertx.auth.jwt.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>

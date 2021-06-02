@@ -22,7 +22,6 @@ package org.graalvm.tests.integration;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.graalvm.tests.integration.utils.Apps;
-import org.graalvm.tests.integration.utils.Commands;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.LogBuilder;
@@ -65,8 +64,16 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
+import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
+import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
+import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
+import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.removeContainers;
+import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.searchBinaryFile;
 import static org.graalvm.tests.integration.utils.Commands.searchLogLines;
+import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
+import static org.graalvm.tests.integration.utils.Commands.stopRunningContainers;
 import static org.graalvm.tests.integration.utils.Commands.waitForBufferToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
@@ -85,7 +92,7 @@ public class AppReproducersTest {
 
     private static final Logger LOGGER = Logger.getLogger(AppReproducersTest.class.getName());
 
-    public static final String BASE_DIR = Commands.getBaseDir();
+    public static final String BASE_DIR = getBaseDir();
 
     @Test
     @Tag("randomNumbers")
@@ -100,7 +107,7 @@ public class AppReproducersTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
@@ -109,15 +116,15 @@ public class AppReproducersTest {
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...#1");
-            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog, app);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             LOGGER.info("Running...#2");
-            cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog, app);
+            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -139,7 +146,7 @@ public class AppReproducersTest {
                     "showing 2 different pseudorandom sequences. The fact that there are less than 4 means the native image" +
                     "was not properly re-seeded. See https://github.com/oracle/graal/issues/2265.");
 
-            Commands.processStopper(process, false);
+            processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
@@ -176,7 +183,7 @@ public class AppReproducersTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             if (metaINF.exists()) {
                 FileUtils.cleanDirectory(metaINF);
             }
@@ -219,8 +226,8 @@ public class AppReproducersTest {
             controlData.keySet().forEach(f -> new File(appDir, f).delete());
 
             LOGGER.info("Running...");
-            final List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog, app);
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
             process.waitFor(15, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -254,7 +261,7 @@ public class AppReproducersTest {
             boolean found = searchBinaryFile(executable, match, 1800);
             assertTrue(found, "String: " + toFind + " was expected in the executable file: " + executable);
 
-            Commands.processStopper(process, false);
+            processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
@@ -279,7 +286,7 @@ public class AppReproducersTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
@@ -288,8 +295,8 @@ public class AppReproducersTest {
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...");
-            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog, app);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -325,7 +332,7 @@ public class AppReproducersTest {
             assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log. " +
                     "There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
 
-            Commands.processStopper(process, false);
+            processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
@@ -345,7 +352,7 @@ public class AppReproducersTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
@@ -354,8 +361,8 @@ public class AppReproducersTest {
             builderRoutine(2, app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...");
-            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog, app);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
@@ -370,7 +377,7 @@ public class AppReproducersTest {
 
             assertEquals("TargetSub: Hello!", lastLine, "Sanity check that Graal version parsing worked!");
 
-            Commands.processStopper(process, false);
+            processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
@@ -390,7 +397,7 @@ public class AppReproducersTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
@@ -404,8 +411,8 @@ public class AppReproducersTest {
 
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();
-            List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
-            process = Commands.runCommand(cmd, appDir, processLog, app, inputData);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            process = runCommand(cmd, appDir, processLog, app, inputData);
             process.waitFor(30, TimeUnit.SECONDS);
             long jvmRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
@@ -413,8 +420,8 @@ public class AppReproducersTest {
 
             LOGGER.info("Running Native mode...");
             start = System.currentTimeMillis();
-            cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
-            process = Commands.runCommand(cmd, appDir, processLog, app, inputData);
+            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app, inputData);
             process.waitFor(30, TimeUnit.SECONDS);
             long nativeRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
@@ -437,7 +444,7 @@ public class AppReproducersTest {
                     "One from JVM run and one for Native image run. " +
                     "" + count + " such hashes were found. Check build-and-run.log and report.md.");
 
-            Commands.processStopper(process, false);
+            processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
             final Path measurementsLog = Paths.get(getLogsDir(cn, mn).toString(), "measurements.csv");
             LogBuilder.Log logJVM = new LogBuilder()
@@ -473,7 +480,7 @@ public class AppReproducersTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
@@ -483,7 +490,7 @@ public class AppReproducersTest {
             // We should somehow capture this semantically in an Enum or something. This is fragile...
             builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog);
 
-            final ProcessBuilder processBuilder = new ProcessBuilder("gdb", "./target/debug-symbols-smoke");
+            final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/debug-symbols-smoke"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
             processBuilder.directory(appDir)
@@ -520,7 +527,7 @@ public class AppReproducersTest {
             }
             process.waitFor(1, TimeUnit.SECONDS);
 
-            Commands.processStopper(process, false);
+            processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
@@ -540,14 +547,14 @@ public class AppReproducersTest {
         final String mn = testInfo.getTestMethod().get().getName();
         try {
             // Cleanup
-            Commands.cleanTarget(app);
+            cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
             processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
 
-            final ProcessBuilder processBuilder = new ProcessBuilder("gdb", "./target/quarkus-runner");
+            final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/quarkus-runner"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
             processBuilder.directory(appDir)
@@ -573,7 +580,7 @@ public class AppReproducersTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*quarkus-runner\\.debug.*done.*", Pattern.DOTALL),
+                        Pattern.compile(".*quarkus-runner.*done.*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
@@ -591,7 +598,7 @@ public class AppReproducersTest {
                 writer.flush();
             }
             process.waitFor(1, TimeUnit.SECONDS);
-            Commands.processStopper(process, true);
+            processStopper(process, true);
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
@@ -613,8 +620,8 @@ public class AppReproducersTest {
         final Pattern dbReady = Pattern.compile(".*ready to accept connections.*");
         try {
             // Cleanup
-            Commands.cleanTarget(app);
-            Commands.stopAllRunningContainers();
+            cleanTarget(app);
+            stopAllRunningContainers();
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build & Run
@@ -624,8 +631,8 @@ public class AppReproducersTest {
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
 
             // GDB process
-            final ProcessBuilder processBuilder = new ProcessBuilder(
-                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb", "/work/application", "1")
+            final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(
+                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb", "/work/application", "1"))
                     .directory(appDir)
                     .redirectErrorStream(true);
             final Map<String, String> envA = processBuilder.environment();
@@ -667,18 +674,18 @@ public class AppReproducersTest {
 
             gdbProcess.waitFor(1, TimeUnit.SECONDS);
 
-            final Process process = Commands.runCommand(
-                    Commands.getRunCommand(new String[]{CONTAINER_RUNTIME, "logs", app.runtimeContainer.name}),
+            final Process process = runCommand(
+                    getRunCommand(CONTAINER_RUNTIME, "logs", app.runtimeContainer.name),
                     appDir, processLog, app);
             process.waitFor(5, TimeUnit.SECONDS);
 
-            Commands.processStopper(gdbProcess, true);
-            Commands.stopRunningContainer(app.runtimeContainer.name);
-            Commands.stopRunningContainer("quarkus_test_db");
+            processStopper(gdbProcess, true);
+            stopRunningContainers(app.runtimeContainer.name, "quarkus_test_db");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
-            Commands.stopAllRunningContainers();
+            stopAllRunningContainers();
+            removeContainers(app.runtimeContainer.name, "quarkus_test_db");
         }
     }
 
@@ -728,14 +735,14 @@ public class AppReproducersTest {
             throws InterruptedException, IOException {
         // Make sure processes are down even if there was an exception / failure
         if (process != null) {
-            Commands.processStopper(process, true);
+            processStopper(process, true);
         }
         // Archive logs no matter what
         for (File f : log) {
             Logs.archiveLog(cn, mn, f);
         }
         Logs.writeReport(cn, mn, report.toString());
-        Commands.cleanTarget(app);
+        cleanTarget(app);
     }
 
 }

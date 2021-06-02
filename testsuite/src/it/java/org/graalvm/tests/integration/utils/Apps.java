@@ -93,7 +93,7 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.NONE,
             BuildAndRunCmds.IMAGEIO_BUILDER_IMAGE,
-            ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING),
+            ContainerNames.IMAGEIO_BUILDER_IMAGE),
     DEBUG_SYMBOLS_SMOKE("apps" + File.separator + "debug-symbols-smoke",
             URLContent.NONE,
             WhitelistLogLines.NONE,

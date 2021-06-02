@@ -3,8 +3,8 @@
 # docker run -i --rm -p 8080:8080 quarkus/using-vertx
 #
 ###
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.2
-RUN microdnf --enablerepo=*debug* install gdb glibc-debuginfo zlib-debuginfo
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
+RUN microdnf --enablerepo=ubi-8-baseos-debug --enablerepo=ubi-8-appstream-debug install gdb zlib-debuginfo glibc-debuginfo
 WORKDIR /work/
 COPY target/*-runner /work/application
 COPY target/*-runner.debug /work/

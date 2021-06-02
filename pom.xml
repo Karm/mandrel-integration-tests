@@ -27,8 +27,9 @@
 
     <properties>
         <!-- Quarkus apps -->
-        <quarkus.version>2.0.0.Alpha1</quarkus.version>
-        <vertx.auth.jwt.version>4.0.3</vertx.auth.jwt.version>
+        <!-- Note that the TS switches Quarkus version at test run,
+             see Commands.java, QUARKUS_VERSION -->
+        <global.quarkus.version>2.0.0.CR2</global.quarkus.version>
 
         <!-- Micronaut minimal app -->
         <micronaut.version>2.3.0</micronaut.version>
