@@ -73,6 +73,8 @@ public enum WhitelistLogLines {
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
             // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
             Pattern.compile(".*GR-10238.*"),
+            // Container image build
+            Pattern.compile(".*lib.*-WARNING .*"),
             Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*")
     }),
 

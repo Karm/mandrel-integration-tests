@@ -7,7 +7,7 @@
     <groupId>org.graalvm.tests.integration</groupId>
     <artifactId>parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../..</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>quarkus-spoklik-encoding</artifactId>
@@ -16,6 +16,7 @@
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+    <quarkus.version>${global.quarkus.version}</quarkus.version>
   </properties>
 
   <dependencyManagement>

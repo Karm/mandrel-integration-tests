@@ -38,6 +38,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,7 +67,13 @@ public class Commands {
             "docker");
     public static final String BUILDER_IMAGE = getProperty(
             new String[]{"QUARKUS_NATIVE_BUILDER_IMAGE", "quarkus.native.builder-image"},
-            "quay.io/quarkus/ubi-quarkus-mandrel:20.1-java11");
+            "quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11");
+    // Podman: Error: stats is not supported in rootless mode without cgroups v2
+    public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(
+            getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
+    public static final String QUARKUS_VERSION = getProperty(
+            new String[]{"QUARKUS_VERSION", "quarkus.version"},
+            "2.0.0.CR2");
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
@@ -132,17 +139,18 @@ public class Commands {
     }
 
     /**
-     * Adds prefix on Windows, no-op on Linux
-     * TODO: Get rid of this?
+     * Adds prefix on Windows, deals with podman on Linux
      *
      * @param baseCommand
      * @return
      */
-    public static List<String> getRunCommand(String[] baseCommand) {
+    public static List<String> getRunCommand(String... baseCommand) {
         final List<String> runCmd = new ArrayList<>();
         if (IS_THIS_WINDOWS) {
             runCmd.add("cmd");
             runCmd.add("/C");
+        } else if ("podman".equals(baseCommand[0]) && PODMAN_WITH_SUDO) {
+            runCmd.add("sudo");
         }
         runCmd.addAll(Arrays.asList(baseCommand));
         return runCmd;
@@ -229,15 +237,20 @@ public class Commands {
         return pA;
     }
 
-    public static String runCommand(List<String> command) throws IOException {
+    public static String runCommand(List<String> command, File directory) throws IOException {
         final ProcessBuilder processBuilder = new ProcessBuilder(command);
         final Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
-        processBuilder.redirectErrorStream(true);
+        processBuilder.redirectErrorStream(true)
+                .directory(directory);
         final Process p = processBuilder.start();
         try (InputStream is = p.getInputStream()) {
             return new String(is.readAllBytes(), StandardCharsets.UTF_8); // note that UTF-8 would mingle glyphs on Windows
         }
+    }
+
+    public static String runCommand(List<String> command) throws IOException {
+        return runCommand(command, new File("."));
     }
 
     public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input) {
@@ -270,7 +283,7 @@ public class Commands {
         long timeoutMillis = unit.toMillis(timeout);
         long sleepMillis = unit.toMillis(sleep);
         long startMillis = System.currentTimeMillis();
-        final ProcessBuilder processBuilder = new ProcessBuilder(CONTAINER_RUNTIME, "logs", containerName);
+        final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(CONTAINER_RUNTIME, "logs", containerName));
         final Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
         processBuilder.redirectErrorStream(true);
@@ -297,7 +310,7 @@ public class Commands {
     }
 
     public static List<String> getRunningContainersIDs() throws IOException, InterruptedException {
-        final ProcessBuilder processBuilder = new ProcessBuilder(CONTAINER_RUNTIME, "ps");
+        final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(CONTAINER_RUNTIME, "ps"));
         final Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
         processBuilder.redirectErrorStream(true);
@@ -308,7 +321,7 @@ public class Commands {
             String l = processOutputReader.readLine();
             // Skip the first line
             if (l == null || !l.startsWith("CONTAINER ID")) {
-                throw new RuntimeException("Unexpected docker command output. Check the daemon.");
+                throw new RuntimeException("Unexpected " + CONTAINER_RUNTIME + " command output. Check the daemon.");
             }
             while ((l = processOutputReader.readLine()) != null) {
                 Matcher m = ALPHANUMERIC_FIRST.matcher(l);
@@ -324,17 +337,34 @@ public class Commands {
     public static void stopAllRunningContainers() throws InterruptedException, IOException {
         List<String> ids = getRunningContainersIDs();
         if (!ids.isEmpty()) {
-            // TODO rework the command concatenation
-            final List<String> cmd = new ArrayList<>(getRunCommand(new String[]{CONTAINER_RUNTIME, "stop"}));
+            final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "stop"));
             cmd.addAll(ids);
-            final Process process = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+            final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
             process.waitFor(5, TimeUnit.SECONDS);
         }
     }
 
+    public static void stopRunningContainers(String... containerNames) throws InterruptedException, IOException {
+        for (String name : containerNames) {
+            stopRunningContainer(name);
+        }
+    }
+
     public static void stopRunningContainer(String containerName) throws InterruptedException, IOException {
-        final List<String> cmd = new ArrayList<>(getRunCommand(new String[]{CONTAINER_RUNTIME, "stop", containerName}));
-        final Process process = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+        final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "stop", containerName));
+        final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
+        process.waitFor(5, TimeUnit.SECONDS);
+    }
+
+    public static void removeContainers(String... containerNames) throws InterruptedException, IOException {
+        for (String name : containerNames) {
+            removeContainer(name);
+        }
+    }
+
+    public static void removeContainer(String containerName) throws InterruptedException, IOException {
+        final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "rm", containerName, "--force"));
+        final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
         process.waitFor(5, TimeUnit.SECONDS);
     }
 
@@ -347,8 +377,8 @@ public class Commands {
     13.43MiB / 11.28GiB
      */
     public static long getContainerMemoryKb(String containerName) throws IOException, InterruptedException {
-        final ProcessBuilder pa = new ProcessBuilder(getRunCommand(new String[]{
-                CONTAINER_RUNTIME, "stats", "--no-stream", "--format", "table {{.MemUsage}}", containerName}));
+        final ProcessBuilder pa = new ProcessBuilder(getRunCommand(
+                CONTAINER_RUNTIME, "stats", "--no-stream", "--format", "table {{.MemUsage}}", containerName));
         final Map<String, String> envA = pa.environment();
         envA.put("PATH", System.getenv("PATH"));
         pa.redirectErrorStream(true);
@@ -604,5 +634,14 @@ public class Commands {
 
     public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
         builderRoutine(steps, app, report, cn, mn, appDir, processLog, null);
+    }
+
+    public static void replaceInSmallTextFile(Pattern search, String replace, Path file, Charset charset) throws IOException {
+        final String data = Files.readString(file, charset);
+        Files.writeString(file, search.matcher(data).replaceAll(replace), charset, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    public static void replaceInSmallTextFile(Pattern search, String replace, Path file) throws IOException {
+        replaceInSmallTextFile(search, replace, file, Charset.defaultCharset());
     }
 }
