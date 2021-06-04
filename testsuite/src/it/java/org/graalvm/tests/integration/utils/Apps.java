@@ -66,7 +66,7 @@ public enum Apps {
             ContainerNames.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX),
     QUARKUS_BUILDER_IMAGE_ENCODING("builder-image-apps" + File.separator + "quarkus-spöklik-encoding",
             URLContent.QUARKUS_BUILDER_IMAGE_ENCODING,
-            WhitelistLogLines.NONE,
+            WhitelistLogLines.QUARKUS_BUILDER_IMAGE_ENCODING,
             BuildAndRunCmds.QUARKUS_BUILDER_IMAGE_ENCODING,
             ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING),
     HELIDON_QUICKSTART_SE("apps" + File.separator + "helidon-quickstart-se",
