@@ -81,6 +81,11 @@ public enum WhitelistLogLines {
     HELIDON_QUICKSTART_SE(new Pattern[]{
             // Unused argument on new Graal
             Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*")
+    }),
+
+    QUARKUS_BUILDER_IMAGE_ENCODING(new Pattern[]{
+        // Quarkus 2.0 quirk?
+        Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*")
     });
 
     public final Pattern[] errs;

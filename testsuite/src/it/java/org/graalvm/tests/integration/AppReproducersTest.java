@@ -658,7 +658,7 @@ public class AppReproducersTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*Reading symbols from.*/work/quarkus-runner.debug.*done.*", Pattern.DOTALL),
+                        Pattern.compile(".*Reading symbols from.*/work/.*done.*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
