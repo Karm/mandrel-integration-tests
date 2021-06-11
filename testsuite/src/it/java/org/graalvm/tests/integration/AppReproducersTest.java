@@ -21,6 +21,7 @@ package org.graalvm.tests.integration;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
@@ -28,6 +29,7 @@ import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,7 @@ import java.util.stream.Stream;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
@@ -163,6 +166,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("imageio")
+    @DisabledOnOs({OS.WINDOWS}) // AWT support is not there yet
     @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO);
@@ -460,8 +464,8 @@ public class AppReproducersTest {
             Logs.appendln(report, "Measurements:");
             Logs.appendln(report, logJVM.headerMarkdown + "\n" + logJVM.lineMarkdown);
             Logs.appendln(report, logNative.lineMarkdown);
-            Logs.checkThreshold(app, "jvm", Logs.SKIP, Logs.SKIP, jvmRunTookMs);
-            Logs.checkThreshold(app, "native", Logs.SKIP, Logs.SKIP, nativeRunTookMs);
+            Logs.checkThreshold(app, "jvm", Logs.SKIP, Logs.SKIP, Logs.SKIP, jvmRunTookMs);
+            Logs.checkThreshold(app, "native", Logs.SKIP, Logs.SKIP, Logs.SKIP, nativeRunTookMs);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
         }
@@ -516,11 +520,11 @@ public class AppReproducersTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*Reading symbols from \\./target/debug-symbols-smoke\\.\\.\\.done\\..*", Pattern.DOTALL),
+                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
-                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report);
+                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report, UsedVersion.getVersion(false));
 
                 writer.write("q\n");
                 writer.flush();
@@ -549,6 +553,12 @@ public class AppReproducersTest {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // Patch for compatibility
+            if (QUARKUS_VERSION.startsWith("1.")) {
+                runCommand(getRunCommand("git", "apply", "quarkus_1.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+            }
 
             // Build
             processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
@@ -580,19 +590,17 @@ public class AppReproducersTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*quarkus-runner.*done.*", Pattern.DOTALL),
+                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
                 writer.write("set confirm off\n");
                 writer.flush();
 
-                writer.write("set directories " +
-                        appDir.getAbsolutePath() + "/target/sources/:" +
-                        appDir.getAbsolutePath() + "/target/sources/src/\n");
+                writer.write("set directories "+appDir.getAbsolutePath() + "/target/sources\n");
                 writer.flush();
 
-                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report);
+                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report, UsedVersion.getVersion(false));
 
                 writer.write("q\n");
                 writer.flush();
@@ -602,6 +610,10 @@ public class AppReproducersTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
+            if (QUARKUS_VERSION.startsWith("1.")) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_1.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+            }
         }
     }
 
@@ -631,8 +643,11 @@ public class AppReproducersTest {
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
 
             // GDB process
+            // Note that Q 2.x and Mandrel 21.1.x work with /work/application too, while
+            // Q 1.11.7.Final and Mandrel 20.3.2 needs work/application.debug
+            // Is Q 2.x baking debug symbols to the main executable too?
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(
-                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb", "/work/application", "1"))
+                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb", "/work/application.debug", "1"))
                     .directory(appDir)
                     .redirectErrorStream(true);
             final Map<String, String> envA = processBuilder.environment();
@@ -658,16 +673,16 @@ public class AppReproducersTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*Reading symbols from.*/work/.*done.*", Pattern.DOTALL),
+                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                         3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
                 writer.write("set confirm off\n");
                 writer.flush();
 
-                writer.write("set directories /work/sources:/work/sources/src\n");
+                writer.write("set directories /work/sources\n");
                 writer.flush();
-                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX, esvc, writer, report);
+                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX, esvc, writer, report, UsedVersion.getVersion(true));
                 writer.write("q\n");
                 writer.flush();
             }
@@ -689,9 +704,10 @@ public class AppReproducersTest {
         }
     }
 
-    public static void carryOutGDBSession(StringBuffer stringBuffer, GDBSession gdbSession, ExecutorService esvc, BufferedWriter writer, StringBuilder report) {
+    public static void carryOutGDBSession(StringBuffer stringBuffer, GDBSession gdbSession, ExecutorService esvc,
+                                          BufferedWriter writer, StringBuilder report, Version mandrelVersion) {
         final ConcurrentLinkedQueue<String> errorQueue = new ConcurrentLinkedQueue<>();
-        Stream.of(gdbSession.gdbOutput).forEach(cp -> {
+        Stream.of(gdbSession.get(mandrelVersion)).forEach(cp -> {
                     stringBuffer.delete(0, stringBuffer.length());
                     try {
                         if (cp.c.startsWith("GOTO URL")) {

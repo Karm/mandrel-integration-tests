@@ -72,43 +72,77 @@ public class Logs {
             }
             assertTrue(offendingLines.isEmpty(),
                     log.getName() + " log should not contain error or warning lines that are not whitelisted. " +
-                            "See testsuite" + File.separator + "target" + File.separator + "archived-logs" +
-                            File.separator + testClass + File.separator + testMethod + File.separator + log.getName() +
+                            "See " + Path.of(BASE_DIR, "testsuite", "target", "archived-logs", testClass, testMethod, log.getName()) +
                             " and check these offending lines: \n" + String.join("\n", offendingLines));
         }
     }
 
-    public static void checkThreshold(Apps app, String mode, long rssKb, long timeToFirstOKRequest, long timeToFinishMs) {
-        if (app.thresholdProperties.isEmpty() && (timeToFirstOKRequest != SKIP || rssKb != SKIP || timeToFinishMs != SKIP)) {
-            LOGGER.warn("It seem there is no " + BASE_DIR + File.separator + app.dir + File.separator + "threshold.properties. " +
+    public static void checkThreshold(Apps app, String mode, long executableSizeKb, long rssKb, long timeToFirstOKRequest, long timeToFinishMs) {
+        if (app.thresholdProperties.isEmpty() &&
+                (executableSizeKb != SKIP || rssKb != SKIP || timeToFirstOKRequest != SKIP || timeToFinishMs != SKIP)) {
+            LOGGER.warn("It seem there is no " + Path.of(BASE_DIR, app.dir, "threshold.properties. ") +
                     "Skipping checking thresholds.");
             return;
         }
         final String propPrefix = (IS_THIS_WINDOWS ? "windows" : "linux") + (mode != null ? "." + mode : "");
+
+        if (executableSizeKb != SKIP) {
+            final String key = propPrefix + ".executable.size.threshold.kB";
+            if (app.thresholdProperties.containsKey(key)) {
+                long executableSizeThresholdKb = app.thresholdProperties.get(key);
+                assertTrue(executableSizeKb <= executableSizeThresholdKb,
+                        "Application " + app + (mode != null ? " in mode " + mode : "") + " executable size is " +
+                                executableSizeKb + " kB, which is over " + executableSizeThresholdKb + " kB threshold.");
+            } else {
+                LOGGER.error("executableSizeKb was to be checked, but there is no " + key + " in " +
+                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+            }
+        }
+
         if (timeToFirstOKRequest != SKIP) {
-            long timeToFirstOKRequestThresholdMs = app.thresholdProperties.get(propPrefix + ".time.to.first.ok.request.threshold.ms");
-            assertTrue(timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
-                    "Application " + app + (mode != null ? " in mode " + mode : "") + " took " + timeToFirstOKRequest
-                            + " ms to get the first OK request, which is over " +
-                            timeToFirstOKRequestThresholdMs + " ms threshold.");
+            final String key = propPrefix + ".time.to.first.ok.request.threshold.ms";
+            if (app.thresholdProperties.containsKey(key)) {
+                long timeToFirstOKRequestThresholdMs = app.thresholdProperties.get(key);
+                assertTrue(timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
+                        "Application " + app + (mode != null ? " in mode " + mode : "") +
+                                " took " + timeToFirstOKRequest + " ms to get the first OK request, which is over " +
+                                timeToFirstOKRequestThresholdMs + " ms threshold.");
+            } else {
+                LOGGER.error("timeToFirstOKRequest was to be checked, but there is no " + key + " in " +
+                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+            }
         }
+
         if (rssKb != SKIP) {
-            long rssThresholdKb = app.thresholdProperties.get(propPrefix + ".RSS.threshold.kB");
-            assertTrue(rssKb <= rssThresholdKb,
-                    "Application " + app + (mode != null ? " in mode " + mode : "") + " consumed " + rssKb + " kB, which is over " +
-                            rssThresholdKb + " kB threshold.");
+            final String key = propPrefix + ".RSS.threshold.kB";
+            if (app.thresholdProperties.containsKey(key)) {
+                long rssThresholdKb = app.thresholdProperties.get(key);
+                assertTrue(rssKb <= rssThresholdKb,
+                        "Application " + app + (mode != null ? " in mode " + mode : "") +
+                                " consumed " + rssKb + " kB or RSS memory, which is over " + rssThresholdKb + " kB threshold.");
+            } else {
+                LOGGER.error("rssKb was to be checked, but there is no " + key + " in " +
+                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+            }
         }
+
         if (timeToFinishMs != SKIP) {
-            long timeToFinishThresholdMs = app.thresholdProperties.get(propPrefix + ".time.to.finish.threshold.ms");
-            assertTrue(timeToFinishMs <= timeToFinishThresholdMs,
-                    "Application " + app + (mode != null ? " in mode " + mode : "") + " took " + timeToFinishMs
-                            + " ms to finish, which is over " +
-                            timeToFinishThresholdMs + " ms threshold.");
+            final String key = propPrefix + ".time.to.finish.threshold.ms";
+            if (app.thresholdProperties.containsKey(key)) {
+                long timeToFinishThresholdMs = app.thresholdProperties.get(key);
+                assertTrue(timeToFinishMs <= timeToFinishThresholdMs,
+                        "Application " + app + (mode != null ? " in mode " + mode : "") + " took " +
+                                timeToFinishMs + " ms to finish, which is over " +
+                                timeToFinishThresholdMs + " ms threshold.");
+            } else {
+                LOGGER.error("timeToFinishMs was to be checked, but there is no " + key + " in " +
+                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+            }
         }
     }
 
-    public static void checkThreshold(Apps app, long rssKb, long timeToFirstOKRequest) {
-        checkThreshold(app, null, rssKb, timeToFirstOKRequest, SKIP);
+    public static void checkThreshold(Apps app, long executableSizeKb, long rssKb, long timeToFirstOKRequest) {
+        checkThreshold(app, null, executableSizeKb, rssKb, timeToFirstOKRequest, SKIP);
     }
 
     public static void archiveLog(String testClass, String testMethod, File log) throws IOException {

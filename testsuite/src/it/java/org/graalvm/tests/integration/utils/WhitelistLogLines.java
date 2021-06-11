@@ -35,6 +35,8 @@ public enum WhitelistLogLines {
             // Harmless download, e.g.
             // Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-error-diagnostics...
             Pattern.compile(".*maven-error-diagnostics.*"),
+            // Download https://repo.maven.apache.org/maven2/com/google/errorprone
+            Pattern.compile(".*com/google/errorprone/error_prone.*"),
             // JDK:
             Pattern.compile("WARNING.* reflective access.*"),
             Pattern.compile("WARNING: All illegal access operations.*"),
@@ -52,6 +54,11 @@ public enum WhitelistLogLines {
             Pattern.compile(".*Failed to create WindowsAnsiOutputStream.*")
     }),
 
+    IMAGEIO_BUILDER_IMAGE(new Pattern[]{
+            // Dnf warnings...
+            Pattern.compile(".*librhsm-WARNING.*")
+    }),
+
     QUARKUS_FULL_MICROPROFILE(new Pattern[]{
             // Some artifacts names...
             Pattern.compile(".*maven-error-diagnostics.*"),
@@ -64,10 +71,19 @@ public enum WhitelistLogLines {
             Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
             // Windows specific warning
             Pattern.compile(".*oracle/graal/issues/2387.*"),
+            // Windows specific warning, O.K.
+            Pattern.compile(".*objcopy executable not found in PATH.*"),
+            Pattern.compile(".*That will result in a larger native image.*"),
+            Pattern.compile(".*contain duplicate files, e.g. javax/activation/ActivationDataFlavor.class.*"),
             // Jaeger Opentracing initialization, Quarkus 2.x specific issue.
             Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException:.*"),
             // Jaeger Opentracing, Quarkus 2.x specific issue.
-            Pattern.compile(".*MpPublisherMessageBodyReader is already registered.*")
+            Pattern.compile(".*MpPublisherMessageBodyReader is already registered.*"),
+            // Params quirk, harmless
+            Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
+            Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
+            // GitHub workflow Windows executor flaw:
+            Pattern.compile(".*Unable to make the Vert.x cache directory.*"),
     }),
 
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
@@ -75,6 +91,12 @@ public enum WhitelistLogLines {
             Pattern.compile(".*GR-10238.*"),
             // Container image build
             Pattern.compile(".*lib.*-WARNING .*"),
+            // Params quirk, harmless
+            Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
+            Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
+            // Specific Podman version warning about the way we start gdb in an already running container; harmless.
+            Pattern.compile(".*The --tty and --interactive flags might not work properly.*"),
+            // Expected part of the app log
             Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*")
     }),
 
@@ -84,8 +106,9 @@ public enum WhitelistLogLines {
     }),
 
     QUARKUS_BUILDER_IMAGE_ENCODING(new Pattern[]{
-        // Quarkus 2.0 quirk?
-        Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*")
+            // Params quirk, harmless
+            Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
+            Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
     });
 
     public final Pattern[] errs;

@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 
 /**
  * Supported `native-image --version' output:
@@ -79,7 +80,7 @@ public class UsedVersion {
         }
 
         if (version == null) {
-            final List<String> cmd = List.of("native-image", "--version");
+            final List<String> cmd = getRunCommand("native-image", "--version");
             LOGGER.info("Running command " + cmd.toString() + " to determine Mandrel version used.");
             final String line = Commands.runCommand(cmd).trim();
             final Matcher m = versionPattern.matcher(line);

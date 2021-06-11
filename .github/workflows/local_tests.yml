@@ -1,0 +1,118 @@
+name: Mandrel Locally
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
+
+env:
+  LANG: en_US.UTF-8
+
+jobs:
+  local-run:
+    name: ${{ matrix.os }} - ${{ matrix.mandrel-version }} - ${{ matrix.quarkus-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        quarkus-version: ['1.11.7.Final', '2.0.0.CR3']
+        mandrel-version: ['21.1.0.0-Final', '20.3.2.0-Final']
+        os: [ubuntu-20.04, windows-2019]
+        exclude:
+          - quarkus-version: '1.11.7.Final'
+            mandrel-version: '21.1.0.0-Final'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          path: ts
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ matrix.quarkus-version }}-${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ matrix.quarkus-version }}-${{ matrix.os }}-
+      - uses: actions/cache@v2
+        name: Mandrel installation cached
+        id: cache_mandrel
+        with:
+          path: |
+            ${{ github.workspace }}/${{ matrix.mandrel-version }}
+          key: ${{ matrix.os }}-${{ matrix.mandrel-version }}
+      - name: Install Mandrel Windows
+        if: startsWith(matrix.os, 'windows') && steps.cache_mandrel.outputs.cache-hit != 'true'
+        run:   |
+          $url= "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java11-windows-amd64-${{ matrix.mandrel-version }}.zip"
+          $wc = New-Object System.Net.WebClient
+          $file = $(Split-Path -Path $url -Leaf)
+          Write-Host "Downloading $url to $Env:temp\$file"
+          $wc.DownloadFile($url, "$Env:temp\$file")
+          Expand-Archive "$Env:temp\$file" -DestinationPath "${{ github.workspace }}"
+          $path=(Get-ChildItem mandrel-*).name
+          move $path ${{ github.workspace }}/${{ matrix.mandrel-version }}
+        shell: powershell
+      - name: Install Mandrel Linux
+        if: startsWith(matrix.os, 'ubuntu') && steps.cache_mandrel.outputs.cache-hit != 'true'
+        run:   |
+          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java11-linux-amd64-${{ matrix.mandrel-version }}.tar.gz"
+          tar -xf mandrel-java11-linux-amd64-${{ matrix.mandrel-version }}.tar.gz
+          rm *.tar.gz
+          mv $( echo mandrel-java11*-*/ ) ${{ github.workspace }}/${{ matrix.mandrel-version }}
+        shell: bash
+      - name: Windows test
+        if: startsWith(matrix.os, 'windows')
+        timeout-minutes: 55
+        env:
+          MAVEN_OPTS: -Xmx1g
+        run:   |
+          set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\;%PATH%
+          call vcvars64
+          IF NOT %ERRORLEVEL% == 0 ( exit 1 )
+          set "GRAALVM_HOME=${{ github.workspace }}\${{ matrix.mandrel-version }}"
+          set "JAVA_HOME=%GRAALVM_HOME%"
+          set "PATH=%JAVA_HOME%\bin;%PATH%"
+          if not exist "%GRAALVM_HOME%\bin\native-image.cmd" (
+            echo "Cannot find native-image tool. Quitting..."
+            exit 1
+          ) else (
+            echo "native-image.cmd is present, good."
+            cmd /C native-image --version
+          )
+          pushd ts
+          mvn clean verify -Ptestsuite -Dquarkus.version=${{ matrix.quarkus-version }}
+        shell: cmd
+      - name: Linux test
+        if: startsWith(matrix.os, 'ubuntu')
+        timeout-minutes: 55
+        env:
+          MAVEN_OPTS: -Xmx1g
+        run:   |
+          sudo apt install gdb
+          export JAVA_HOME=${{ github.workspace }}/${{ matrix.mandrel-version }}
+          export GRAALVM_HOME="${JAVA_HOME}"
+          export PATH="${JAVA_HOME}/bin:$PATH"
+          if [[ ! -e "${JAVA_HOME}/bin/native-image" ]]; then
+              echo "Cannot find native-image tool. Quitting..."
+              exit 1
+          fi
+          native-image --version
+          pushd ts
+          mvn clean verify -Ptestsuite -Dquarkus.version=${{ matrix.quarkus-version }}
+        shell: bash
+      - name: Prepare failure archive (if maven failed)
+        if: failure()
+        run: tar czvf test-reports-mandrel-it.tgz ${{ github.workspace }}/ts/testsuite/target/archived-logs
+      - name: Upload failure Archive (if maven failed)
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: reports-${{ matrix.mandrel-version }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
+          path: 'test-reports-mandrel-it.tgz'

@@ -91,7 +91,7 @@ public enum Apps {
             ContainerNames.NONE),
     IMAGEIO_BUILDER_IMAGE("apps" + File.separator + "imageio",
             URLContent.NONE,
-            WhitelistLogLines.NONE,
+            WhitelistLogLines.IMAGEIO_BUILDER_IMAGE,
             BuildAndRunCmds.IMAGEIO_BUILDER_IMAGE,
             ContainerNames.IMAGEIO_BUILDER_IMAGE),
     DEBUG_SYMBOLS_SMOKE("apps" + File.separator + "debug-symbols-smoke",

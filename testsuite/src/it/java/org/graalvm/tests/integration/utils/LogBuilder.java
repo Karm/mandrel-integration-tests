@@ -48,6 +48,8 @@ public class LogBuilder {
     private long timeToFinishMs = -1L;
     private static final String rssKbHeader = "RSSKb";
     private long rssKb = -1L;
+    private static final String executableSizeKbHeader = "executableSizeKb";
+    private long executableSizeKb = -1L;
     private static final String openedFilesHeader = "FDs";
     private long openedFiles = -1L;
     private static final String appHeader = "App";
@@ -74,6 +76,14 @@ public class LogBuilder {
             throw new IllegalArgumentException("timeToFinishMs must be a positive long, was: " + timeToFinishMs);
         }
         this.timeToFinishMs = timeToFinishMs;
+        return this;
+    }
+
+    public LogBuilder executableSizeKb(long executableSizeKb) {
+        if (executableSizeKb <= 0) {
+            throw new IllegalArgumentException("executableSizeKb must be a positive long, was: " + executableSizeKb);
+        }
+        this.executableSizeKb = executableSizeKb;
         return this;
     }
 
@@ -141,6 +151,13 @@ public class LogBuilder {
             h.append(rssKbHeader);
             h.append(',');
             l.append(rssKb);
+            l.append(',');
+            sections++;
+        }
+        if (executableSizeKb != -1L) {
+            h.append(executableSizeKbHeader);
+            h.append(',');
+            l.append(executableSizeKb);
             l.append(',');
             sections++;
         }
