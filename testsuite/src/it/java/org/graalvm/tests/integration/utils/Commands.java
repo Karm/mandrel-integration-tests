@@ -56,6 +56,7 @@ import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Michal Karm Babacek <karm@redhat.com>
@@ -131,7 +132,9 @@ public class Commands {
     public static void cleanDirOrFile(String... path) {
         for (String s : path) {
             try {
-                FileUtils.forceDelete(new File(s));
+                final File f = new File(s);
+                FileUtils.forceDelete(f);
+                FileUtils.forceDeleteOnExit(f);
             } catch (IOException e) {
                 //Silence is golden
             }
@@ -643,5 +646,29 @@ public class Commands {
 
     public static void replaceInSmallTextFile(Pattern search, String replace, Path file) throws IOException {
         replaceInSmallTextFile(search, replace, file, Charset.defaultCharset());
+    }
+
+    /**
+     * Finds the first matching executable in a given dir,
+     * *does not dive into the tree*, is not recursive...
+     *
+     * @param dir
+     * @param regexp
+     * @return null or the found file
+     */
+    public static File findExecutable(Path dir, Pattern regexp) {
+        if (dir == null || Files.notExists(dir) || regexp == null) {
+            throw new IllegalArgumentException("Path to " + dir + "must exist and regexp must nut be null.");
+        }
+        File[] f = dir.toFile().listFiles(pathname -> {
+            if (pathname.isFile() && Files.isExecutable(pathname.toPath())) {
+                return regexp.matcher(pathname.getName()).matches();
+            }
+            return false;
+        });
+        if (f == null || f.length < 1) {
+            fail("Failed to find any executable in dir " + dir + ", matching regexp " + regexp.toString());
+        }
+        return f[0];
     }
 }

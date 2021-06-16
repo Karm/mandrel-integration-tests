@@ -44,9 +44,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
+import static org.graalvm.tests.integration.utils.Commands.findExecutable;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getContainerMemoryKb;
 import static org.graalvm.tests.integration.utils.Commands.getOpenedFDs;
@@ -127,8 +129,11 @@ public class RuntimesSmokeTest {
 
             LogBuilder.Log log;
             long rssKb;
+            long executableSizeKb;
             // Running without a container
             if (app.runtimeContainer == ContainerNames.NONE) {
+                executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(),
+                        app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1][0])) / 1024L;
                 rssKb = getRSSkB(process.pid());
                 final long openedFiles = getOpenedFDs(process.pid());
                 processStopper(process, false);
@@ -136,17 +141,21 @@ public class RuntimesSmokeTest {
                         .app(app)
                         .buildTimeMs(buildEnds - buildStarts)
                         .timeToFirstOKRequestMs(timeToFirstOKRequest)
+                        .executableSizeKb(executableSizeKb)
                         .rssKb(rssKb)
                         .openedFiles(openedFiles)
                         .build();
                 // Running as a container
             } else {
+                executableSizeKb = findExecutable(Path.of(appDir.getAbsolutePath(), "target"),
+                        Pattern.compile(".*-runner")).length() / 1024L;
                 rssKb = getContainerMemoryKb(app.runtimeContainer.name);
                 stopRunningContainer(app.runtimeContainer.name);
                 log = new LogBuilder()
                         .app(app)
                         .buildTimeMs(buildEnds - buildStarts)
                         .timeToFirstOKRequestMs(timeToFirstOKRequest)
+                        .executableSizeKb(executableSizeKb)
                         .rssKb(rssKb)
                         .build();
             }
@@ -160,7 +169,7 @@ public class RuntimesSmokeTest {
             Logs.logMeasurements(log, measurementsLog);
             Logs.appendln(report, "Measurements:");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
-            Logs.checkThreshold(app, rssKb, timeToFirstOKRequest);
+            Logs.checkThreshold(app, executableSizeKb, rssKb, timeToFirstOKRequest);
         } finally {
             // Make sure processes are down even if there was an exception / failure
             if (process != null) {

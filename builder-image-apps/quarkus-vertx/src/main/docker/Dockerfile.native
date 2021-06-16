@@ -1,14 +1,9 @@
-###
-#
-# docker run -i --rm -p 8080:8080 quarkus/using-vertx
-#
-###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
 RUN microdnf --enablerepo=ubi-8-baseos-debug --enablerepo=ubi-8-appstream-debug install gdb zlib-debuginfo glibc-debuginfo
 WORKDIR /work/
-COPY target/*-runner /work/application
-COPY target/*-runner.debug /work/
+COPY target/quarkus-runner /work/application
+COPY target/quarkus-runner.debug /work/application.debug
 COPY target/sources /work/sources
-RUN chmod 775 /work
+RUN chmod 775 /work -R
 EXPOSE 8080
 CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]

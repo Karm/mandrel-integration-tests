@@ -1,0 +1,69 @@
+name: Mandrel Builder Image
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
+
+env:
+  LANG: en_US.UTF-8
+
+jobs:
+  local-run:
+    name: ${{ matrix.mandrel-builder-image }} - ${{ matrix.os }} - ${{ matrix.quarkus-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        quarkus-version: ['1.11.7.Final', '2.0.0.CR3']
+        mandrel-builder-image: [
+            '20.3-java11',
+            '21.1-java11'
+        ]
+        os: [ubuntu-20.04]
+        exclude:
+          - quarkus-version: '1.11.7.Final'
+            mandrel-builder-image: '21.1-java11'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          path: ts
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ matrix.quarkus-version }}-${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ matrix.quarkus-version }}-${{ matrix.os }}-
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+          check-latest: true
+      - name: Linux test
+        if: startsWith(matrix.os, 'ubuntu')
+        timeout-minutes: 55
+        env:
+          MAVEN_OPTS: -Xmx1g
+        run:   |
+          sudo apt install gdb
+          pushd ts
+          mvn clean verify -Ptestsuite-builder-image -Dquarkus.version=${{ matrix.quarkus-version }} -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:${{ matrix.mandrel-builder-image }}
+        shell: bash
+      - name: Prepare failure archive (if maven failed)
+        if: failure()
+        run: tar czvf test-reports-mandrel-it.tgz ${{ github.workspace }}/ts/testsuite/target/archived-logs
+      - name: Upload failure Archive (if maven failed)
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: reports-${{ matrix.mandrel-builder-image }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
+          path: 'test-reports-mandrel-it.tgz'

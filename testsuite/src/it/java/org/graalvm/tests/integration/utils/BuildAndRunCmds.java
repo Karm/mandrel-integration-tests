@@ -41,12 +41,12 @@ public enum BuildAndRunCmds {
     // Make sure you use an explicit --name when running the app as a container. It is used throughout the TS.
     QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION},
-            new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner" : "./target/quarkus-runner"}
+            new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
     }),
     DEBUG_QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION},
             new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION},
-            new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner" : "./target/quarkus-runner"}
+            new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
     }),
     QUARKUS_BUILDER_IMAGE_ENCODING(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
@@ -61,6 +61,7 @@ public enum BuildAndRunCmds {
                     "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                     "-Dquarkus.native.builder-image=" + BUILDER_IMAGE,
                     "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION},
+            new String[]{"mvn", "dependency:sources"},
             new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-f", "src/main/docker/Dockerfile.native", "-t", "my-quarkus-mandrel-app", "."},
             new String[]{CONTAINER_RUNTIME, "run", "--network=host", "--ulimit", "memlock=-1:-1", "-it", "-d", "--rm=true", "--memory-swappiness=0",
                     "--name", "quarkus_test_db", "-e", "POSTGRES_USER=quarkus_test", "-e", "POSTGRES_PASSWORD=quarkus_test",
@@ -71,33 +72,33 @@ public enum BuildAndRunCmds {
     MICRONAUT_HELLOWORLD(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-jar", "target/helloworld.jar", "target/helloWorld"},
-            new String[]{IS_THIS_WINDOWS ? "target\\helloWorld" : "./target/helloWorld"}
+            new String[]{IS_THIS_WINDOWS ? "target\\helloWorld.exe" : "./target/helloWorld"}
     }),
     RANDOM_NUMBERS(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-jar", "target/random-numbers.jar", "target/random-numbers"},
-            new String[]{IS_THIS_WINDOWS ? "target\\random-numbers" : "./target/random-numbers"}
+            new String[]{IS_THIS_WINDOWS ? "target\\random-numbers.exe" : "./target/random-numbers"}
     }),
     HELIDON_QUICKSTART_SE(new String[][]{
             new String[]{"mvn", "package"},
-            new String[]{IS_THIS_WINDOWS ? "target\\helidon-quickstart-se" : "./target/helidon-quickstart-se"}
+            new String[]{IS_THIS_WINDOWS ? "target\\helidon-quickstart-se.exe" : "./target/helidon-quickstart-se"}
     }),
     TIMEZONES(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-J-Duser.country=CA", "-J-Duser.language=fr", "-jar", "target/timezones.jar", "target/timezones"},
-            new String[]{IS_THIS_WINDOWS ? "target\\timezones" : "./target/timezones"}
+            new String[]{IS_THIS_WINDOWS ? "target\\timezones.exe" : "./target/timezones"}
     }),
     VERSIONS(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "--features=org.graalvm.home.HomeFinderFeature", "-jar", "target/version.jar", "target/version"},
-            new String[]{IS_THIS_WINDOWS ? "target\\version" : "./target/version"}
+            new String[]{IS_THIS_WINDOWS ? "target\\version.exe" : "./target/version"}
     }),
     IMAGEIO(new String[][]{
             new String[]{"mvn", "clean", "package"},
             new String[]{"java", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
             new String[]{"jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF"},
             new String[]{"native-image", "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
-            new String[]{IS_THIS_WINDOWS ? "target\\imageio" : "./target/imageio"}
+            new String[]{IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio"}
     }),
     IMAGEIO_BUILDER_IMAGE(new String[][]{
             // Bring Your Own Maven (not a part of the builder image toolchain)
@@ -135,7 +136,7 @@ public enum BuildAndRunCmds {
             new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
                     "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
-            new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke" : "./target/debug-symbols-smoke"}
+            new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
     });
 
     public final String[][] cmds;
