@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: ['1.11.7.Final', '2.0.0.CR3']
+        quarkus-version: ['1.11.7.Final', '2.0.0.Final']
         mandrel-version: ['21.1.0.0-Final', '20.3.2.0-Final']
         os: [ubuntu-20.04, windows-2019]
         exclude:
