@@ -40,6 +40,7 @@ public enum GDBSession {
         public CP[] get(Version mandrelVersion) {
             if (mandrelVersion.compareTo(Version.create(21, 1, 0)) >= 0) {
                 return new CP[]{
+                        SHOW_VERSION,
                         new CP("run < ./test_data_small.txt\n",
                                 Pattern.compile(".*fdc7c50f390c145bc58a0bedbe5e6d2e35177ac73d12e2b23df149ce496a5572.*exited normally.*",
                                         Pattern.DOTALL)),
@@ -86,6 +87,7 @@ public enum GDBSession {
                 };
             } else {
                 return new CP[]{
+                        SHOW_VERSION,
                         new CP("run < ./test_data_small.txt\n",
                                 Pattern.compile(".*fdc7c50f390c145bc58a0bedbe5e6d2e35177ac73d12e2b23df149ce496a5572.*exited normally.*",
                                         Pattern.DOTALL)),
@@ -137,6 +139,7 @@ public enum GDBSession {
         @Override
         public CP[] get(Version mandrelVersion) {
             return new CP[]{
+                    SHOW_VERSION,
                     new CP("b ConfigTestController.java:33\n",
                             Pattern.compile(".*Breakpoint 1 at .*: file com/example/quarkus/config/ConfigTestController.java, line 33.*",
                                     Pattern.DOTALL)),
@@ -157,6 +160,7 @@ public enum GDBSession {
         @Override
         public CP[] get(Version mandrelVersion) {
             return new CP[]{
+                    SHOW_VERSION,
                     new CP("b Fruit.java:48\n",
                             Pattern.compile(".*Breakpoint 1.*file org/acme/vertx/Fruit.java,.*line 48.*", Pattern.DOTALL)),
                     new CP("c&\n",
@@ -172,6 +176,8 @@ public enum GDBSession {
             };
         }
     };
+
+    private static final CP SHOW_VERSION = new CP("show version\n", Pattern.compile(".*", Pattern.DOTALL));
 
     public abstract CP[] get(Version mandrelVersion);
 }
