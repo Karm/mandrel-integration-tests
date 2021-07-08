@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: ['1.11.7.Final', '2.0.0.CR3']
+        quarkus-version: ['1.11.7.Final', '2.0.0.Final']
         mandrel-builder-image: [
             '20.3-java11',
             '21.1-java11'
