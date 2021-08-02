@@ -50,7 +50,7 @@ public class Main {
         ays.forEach(i -> ba.writeBytes(i.toString().getBytes(UTF_8)));
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         digest.update(ba.toByteArray());
-        System.out.println(String.format("%064x", new BigInteger(1, digest.digest())));
+        System.out.printf("%064x%n", new BigInteger(1, digest.digest()));
         /* Used to verify the hash is what we think it is:
         $ sha256sum  /tmp/TEST.out
         b6951775b0375ea13fc977581e54eb36d483e95ed3bc1e62fcb8da59830f1ef9  /tmp/TEST.out

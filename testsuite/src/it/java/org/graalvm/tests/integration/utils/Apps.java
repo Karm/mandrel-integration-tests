@@ -98,6 +98,16 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.NONE,
             BuildAndRunCmds.DEBUG_SYMBOLS_SMOKE,
+            ContainerNames.NONE),
+    JFR_SMOKE("apps" + File.separator + "debug-symbols-smoke",
+            URLContent.NONE,
+            WhitelistLogLines.JFR,
+            BuildAndRunCmds.JFR_SMOKE,
+            ContainerNames.NONE),
+    JFR_OPTIONS("apps" + File.separator + "timezones",
+            URLContent.NONE,
+            WhitelistLogLines.JFR,
+            BuildAndRunCmds.JFR_OPTIONS,
             ContainerNames.NONE);
 
     public final String dir;

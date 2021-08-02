@@ -166,11 +166,11 @@ public class Logs {
         final Path destDir = getLogsDir(testClass, testMethod);
         Files.createDirectories(destDir);
         Files.write(Paths.get(destDir.toString(), "report.md"), text.getBytes(UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        final Path agregateReport = Paths.get(getLogsDir().toString(), "aggregated-report.md");
-        if (Files.notExists(agregateReport)) {
-            Files.write(agregateReport, ("# Aggregated Report\n\n").getBytes(UTF_8), StandardOpenOption.CREATE);
+        final Path aggregateReport = Paths.get(getLogsDir().toString(), "aggregated-report.md");
+        if (Files.notExists(aggregateReport)) {
+            Files.write(aggregateReport, ("# Aggregated Report\n\n").getBytes(UTF_8), StandardOpenOption.CREATE);
         }
-        Files.write(agregateReport, text.getBytes(UTF_8), StandardOpenOption.APPEND);
+        Files.write(aggregateReport, text.getBytes(UTF_8), StandardOpenOption.APPEND);
     }
 
     /**

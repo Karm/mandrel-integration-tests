@@ -74,7 +74,7 @@ public class Commands {
             getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
     public static final String QUARKUS_VERSION = getProperty(
             new String[]{"QUARKUS_VERSION", "quarkus.version"},
-            "2.0.0.Final");
+            "2.0.3.Final");
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
@@ -670,5 +670,19 @@ public class Commands {
             fail("Failed to find any executable in dir " + dir + ", matching regexp " + regexp.toString());
         }
         return f[0];
+    }
+
+    public static void cleanup(Process process, String cn, String mn, StringBuilder report, Apps app, File... log)
+            throws InterruptedException, IOException {
+        // Make sure processes are down even if there was an exception / failure
+        if (process != null) {
+            processStopper(process, true);
+        }
+        // Archive logs no matter what
+        for (File f : log) {
+            Logs.archiveLog(cn, mn, f);
+        }
+        Logs.writeReport(cn, mn, report.toString());
+        cleanTarget(app);
     }
 }
