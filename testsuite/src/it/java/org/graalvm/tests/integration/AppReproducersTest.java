@@ -253,6 +253,7 @@ public class AppReproducersTest {
                 FileUtils.cleanDirectory(metaINF);
             }
             new File(appDir, "dependency-reduced-pom.xml").delete();
+            FileUtils.forceDelete(new File(appDir,"?"));
             controlData.keySet().forEach(f -> new File(appDir, f).delete());
         }
     }

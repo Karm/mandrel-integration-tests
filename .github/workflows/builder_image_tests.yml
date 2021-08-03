@@ -22,15 +22,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: ['1.11.7.Final', '2.0.0.Final']
+        quarkus-version: ['1.11.7.Final', '2.1.0.Final']
         mandrel-builder-image: [
             '20.3-java11',
-            '21.1-java11'
+            '21.2-java11'
         ]
         os: [ubuntu-20.04]
         exclude:
           - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '21.1-java11'
+            mandrel-builder-image: '21.2-java11'
     steps:
       - uses: actions/checkout@v2
         with:

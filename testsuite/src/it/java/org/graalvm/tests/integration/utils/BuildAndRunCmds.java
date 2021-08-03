@@ -106,12 +106,12 @@ public enum BuildAndRunCmds {
             // TODO: Ad -u: Test access rights with -u on Windows, Docker Desktop Hyper-V backend vs. WSL2 backend.
             // Java from Builder image container is used for the sake of consistence.
             new String[]{CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
-                    "-t", "--entrypoint", "/opt/mandrel/bin/java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
+                    "-t", "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
                     BUILDER_IMAGE,
                     "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
             // Jar could be used locally, but we use the one from container too.
             new String[]{CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
-                    "-t", "--entrypoint", "/opt/mandrel/bin/jar", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
+                    "-t", "--entrypoint", "jar", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
                     BUILDER_IMAGE,
                     "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF"},
             // Native image build itself (jar was updated with properties in the previous step)

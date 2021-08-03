@@ -22,12 +22,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: ['1.11.7.Final', '2.0.0.Final']
-        mandrel-version: ['21.1.0.0-Final', '20.3.2.0-Final']
+        quarkus-version: ['1.11.7.Final', '2.1.0.Final']
+        mandrel-version: ['21.2.0.0-Final', '20.3.2.0-Final']
         os: [ubuntu-20.04, windows-2019]
         exclude:
           - quarkus-version: '1.11.7.Final'
-            mandrel-version: '21.1.0.0-Final'
+            mandrel-version: '21.2.0.0-Final'
     steps:
       - uses: actions/checkout@v2
         with:
