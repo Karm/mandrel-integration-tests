@@ -251,6 +251,10 @@ public class DebugSymbolsTest {
 
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
 
+            // Check the log now to make sure there are no install failures
+            // before gdb session starts.
+            Logs.checkLog(cn, mn, app, processLog);
+
             // GDB process
             // Note that Q 2.x and Mandrel 21.1.x work with /work/application too, while
             // Q 1.11.7.Final and Mandrel 20.3.2 needs work/application.debug

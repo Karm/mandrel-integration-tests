@@ -74,7 +74,7 @@ public class Commands {
             getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
     public static final String QUARKUS_VERSION = getProperty(
             new String[]{"QUARKUS_VERSION", "quarkus.version"},
-            "2.0.3.Final");
+            "2.1.0.Final");
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
