@@ -253,7 +253,10 @@ public class AppReproducersTest {
                 FileUtils.cleanDirectory(metaINF);
             }
             new File(appDir, "dependency-reduced-pom.xml").delete();
-            FileUtils.forceDelete(new File(appDir,"?"));
+            final File fontConfigDir = new File(appDir, "?");
+            if (fontConfigDir.exists()) {
+                FileUtils.forceDelete(fontConfigDir);
+            }
             controlData.keySet().forEach(f -> new File(appDir, f).delete());
         }
     }
@@ -412,7 +415,7 @@ public class AppReproducersTest {
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
-            validateDebugSmokeApp(processLog, cn, mn, process, app, jvmRunTookMs, nativeRunTookMs, report,null);
+            validateDebugSmokeApp(processLog, cn, mn, process, app, jvmRunTookMs, nativeRunTookMs, report, null);
 
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
