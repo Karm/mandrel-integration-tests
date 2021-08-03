@@ -29,7 +29,7 @@ import java.util.TimeZone;
  */
 public class Main {
     public static void main(String[] args) {
-        System.out.println(String.format("%tc", new Date()));
+        System.out.printf("%tc%n", new Date());
         final TimeZone tz = TimeZone.getTimeZone(ZoneId.of("Europe/Paris"));
         System.out.println(tz.getDisplayName());
     }

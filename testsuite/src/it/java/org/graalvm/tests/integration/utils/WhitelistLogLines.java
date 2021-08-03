@@ -109,6 +109,11 @@ public enum WhitelistLogLines {
             // Params quirk, harmless
             Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
             Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
+    }),
+
+    JFR(new Pattern[]{
+            // https://github.com/oracle/graal/issues/3636
+            Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
     });
 
     public final Pattern[] errs;
