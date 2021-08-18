@@ -26,15 +26,22 @@ import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.AppReproducersTest.validateDebugSmokeApp;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
@@ -52,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 @Tag("reproducers")
+@DisabledOnOs({OS.WINDOWS})
 public class JFRTest {
 
     private static final Logger LOGGER = Logger.getLogger(JFRTest.class.getName());
@@ -122,6 +130,9 @@ public class JFRTest {
      * https://github.com/oracle/graal/issues/3638
      * native-image, UX, JFR, -XX:StartFlightRecording flags/arguments units are not aligned with HotSpot convention
      *
+     * This is a basic smoke test using various options. It is not delving
+     * into whether they actually affect the recording.
+     *
      * @param testInfo
      * @throws IOException
      * @throws InterruptedException
@@ -132,7 +143,6 @@ public class JFRTest {
     public void jfrOptionsSmoke(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.JFR_OPTIONS;
         LOGGER.info("Testing app: " + app.toString());
-        Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
         final File appDir = new File(BASE_DIR + File.separator + app.dir);
@@ -148,30 +158,105 @@ public class JFRTest {
 
             builderRoutine(2, app, report, cn, mn, appDir, processLog);
 
-            final String archivedLogLocation = "See " + Path.of(BASE_DIR, "testsuite", "target", "archived-logs", cn, mn, processLog.getName());
+            final Map<String[], Pattern> cmdOutput = new HashMap<>();
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxsize=9.8kB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000c,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxsize=9.8kB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10M,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxsize=10.0MB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10m,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxsize=10.0MB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10k,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxsize=10.0kB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10g,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxsize=10.0GB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,maxage=10000ns,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxage=10us, maxsize=9.8kB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,maxage=30s,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxage=30s, maxsize=9.8kB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,maxage=10m,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxage=10m, maxsize=9.8kB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,maxage=11h,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Started recording .* \\{maxage=11h, maxsize=9.8kB.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,delay=1000000000ns,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,delay=5s,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,delay=5m,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,delay=5h,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
+            cmdOutput.put(new String[]{"./target/timezones",
+                            "-XX:+FlightRecorder",
+                            "-XX:StartFlightRecording=maxsize=10000,delay=5d,filename=logs/flight-native.jfr",
+                            "-XX:FlightRecorderLogging=jfr"},
+                    Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
 
-
-            for (int i = 2; i < app.buildAndRunCmds.cmds.length; i++) {
+            for (Map.Entry<String[], Pattern> co : cmdOutput.entrySet()) {
                 Path interimLog = null;
                 try {
-                    interimLog = Path.of(appDir.getAbsolutePath(), "logs", "interim_" + i + ".log");
-                    List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
+                    interimLog = Path.of(appDir.getAbsolutePath(), "logs", "interim.log");
+                    final List<String> cmd = getRunCommand(co.getKey());
                     Files.writeString(interimLog, String.join(" ", cmd) + "\n", StandardOpenOption.CREATE_NEW);
-                    Process p = runCommand(cmd, appDir, interimLog.toFile(), app);
+                    final Process p = runCommand(cmd, appDir, interimLog.toFile(), app);
                     p.waitFor(3, TimeUnit.SECONDS);
                     Logs.appendln(report, appDir.getAbsolutePath());
                     Logs.appendlnSection(report, String.join(" ", cmd));
                     Files.writeString(processLog.toPath(), Files.readString(interimLog) + "\n", StandardOpenOption.APPEND);
-
-                    /// Check interim log for expected output
-
-                    Logs.checkLog(cn, mn, app, interimLog.toFile());
+                    final String interimLogString = Files.readString(interimLog, StandardCharsets.US_ASCII);
+                    final Matcher m = co.getValue().matcher(interimLogString);
+                    assertTrue(m.matches(), "Command `" + String.join(" ", cmd) + "' " +
+                            "output did not match expected pattern `" + co.getValue().toString() + "', it was: " + interimLogString);
                 } finally {
                     if (interimLog != null) {
                         Files.delete(interimLog);
                     }
                 }
             }
+
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
