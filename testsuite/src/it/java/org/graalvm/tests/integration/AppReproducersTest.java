@@ -239,10 +239,16 @@ public class AppReproducersTest {
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
             //TODO: This might be too fragile... e.g. order shouldn't matter.
-            final String toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";
+            final String toFind;
+            // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
+            if(Runtime.version().feature() > 11 || Runtime.version().update() > 12) {
+                toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libfdlibm.a|libzip.a|libjvm.a";
+            } else {
+                toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";
+            }
             final byte[] match = toFind.getBytes(US_ASCII);
             // Given the structure of the file, we can skip the first n bytes.
-            boolean found = searchBinaryFile(executable, match, 1800);
+            final boolean found = searchBinaryFile(executable, match, 1800);
             assertTrue(found, "String: " + toFind + " was expected in the executable file: " + executable);
 
             processStopper(process, false);
@@ -316,7 +322,14 @@ public class AppReproducersTest {
 
             So we use UTF-8 on Linux and windows-1252 on Windows...and that corresponds to Charset.defaultCharset(). Went the full circle on this.
             */
-            final Pattern p = Pattern.compile(".*d.Europe centrale.*");
+            final Pattern p = Pattern.compile(".*heure normale.*Europe centrale.*");
+            /*
+            Ad the aforementioned regexp:
+            JDK 11 prints the same both for country=CA and country=FR, i.e.:
+                heure normale d’Europe centrale
+            JDK 17 prints this only for country=FR while it does something else for country=CA:
+                heure normale de l’Europe centrale
+             */
             assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log. " +
                     "There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
 
