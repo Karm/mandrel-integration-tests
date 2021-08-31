@@ -192,7 +192,8 @@ public class AppReproducersTest {
                     "mytest_toL.png",
                     "mytest_toP.png",
                     "mytest_toS.png",
-                    "mytest.wbmp"
+                    "mytest.wbmp",
+                    "mytest_Resized_Grace_M._Hopper.png"
             );
 
             pictures.forEach(f -> {
