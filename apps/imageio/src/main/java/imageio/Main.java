@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
@@ -38,7 +39,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
 import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
@@ -113,6 +113,22 @@ public class Main {
         ImageIO.write(imgBINARY, "WBMP", new File("mytest.wbmp"));
     }
 
+    private static void resizeImage() throws IOException {
+        final BufferedImage img = ImageIO.read(Main.class.getResourceAsStream("/Grace_M._Hopper.jp2"));
+        int height = 50;
+        int currentW = img.getWidth();
+        int currentH = img.getHeight();
+        int width = currentW * height / currentH;
+        if (currentH < height) {
+            width = currentW;
+            height = currentH;
+        }
+        final Image originalImage = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        final BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+        resizedImage.getGraphics().drawImage(originalImage, 0, 0, null);
+        ImageIO.write(resizedImage, "PNG", new File("mytest_Resized_Grace_M._Hopper.png"));
+    }
+
     private static void loadFonts() throws IOException, FontFormatException {
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         // Font source: https://ftp.gnu.org/gnu/freefont/
@@ -172,5 +188,6 @@ public class Main {
     public static void main(String[] args) throws IOException, FontFormatException {
         paintGrace();
         paintRectangles();
+        resizeImage();
     }
 }
