@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
+import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 
 /**
  * Supported `native-image --version' output:
@@ -55,12 +56,13 @@ public class UsedVersion {
                 .replace(".s", "-s"));
     }
 
-    public static Version getVersion(boolean inContainer) throws IOException {
+    public static Version getVersion(boolean inContainer) throws IOException, InterruptedException {
         if (inContainer) {
             if (versionInContainer == null) {
-                final List<String> cmd = List.of(CONTAINER_RUNTIME, "run", "-t", BUILDER_IMAGE, "native-image", "--version");
-                LOGGER.info("Running command " + cmd.toString() + " to determine Mandrel version used.");
+                final List<String> cmd = List.of(CONTAINER_RUNTIME, "run", "-t", "--name", "UsedVersion", BUILDER_IMAGE, "native-image", "--version");
+                LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
                 final String out = Commands.runCommand(cmd);
+                removeContainers("UsedVersion");
                 final String[] lines = out.split(System.lineSeparator());
                 final String lastLine = lines[lines.length - 1].trim();
                 if (!lastLine.contains("Mandrel")) {
@@ -74,14 +76,14 @@ public class UsedVersion {
                             "Output: '" + lastLine + "'");
                 }
                 versionInContainer = versionParse(m.group(1));
-                LOGGER.info("The test suite runs with Mandrel version " + versionInContainer.toString() + " in container.");
+                LOGGER.info("The test suite runs with Mandrel version " + versionInContainer + " in container.");
             }
             return versionInContainer;
         }
 
         if (version == null) {
             final List<String> cmd = getRunCommand("native-image", "--version");
-            LOGGER.info("Running command " + cmd.toString() + " to determine Mandrel version used.");
+            LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
             final String line = Commands.runCommand(cmd).trim();
             final Matcher m = versionPattern.matcher(line);
             if (!m.matches()) {
@@ -90,7 +92,7 @@ public class UsedVersion {
                         "Output: '" + line + "'");
             }
             version = versionParse(m.group(1));
-            LOGGER.info("The test suite runs with Mandrel version " + version.toString() + " installed locally on PATH.");
+            LOGGER.info("The test suite runs with Mandrel version " + version + " installed locally on PATH.");
         }
         return version;
     }

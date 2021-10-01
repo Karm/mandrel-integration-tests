@@ -64,8 +64,8 @@ public class MandrelVersionCondition implements ExecutionCondition {
             }
             return disabled(format(
                     "%s is disabled as Mandrel version %s does not satisfy constraints: minVersion: %s, maxVersion: %s",
-                    element, usedVersion.toString(), annotation.min(), annotation.max()));
-        } catch (IOException e) {
+                    element, usedVersion, annotation.min(), annotation.max()));
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Unable to get Mandrel version.", e);
         }
     }

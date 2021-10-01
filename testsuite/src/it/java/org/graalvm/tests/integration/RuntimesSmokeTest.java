@@ -75,7 +75,7 @@ public class RuntimesSmokeTest {
     public static final String BASE_DIR = getBaseDir();
 
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         Process process = null;
         final File appDir = new File(BASE_DIR + File.separator + app.dir);
         final File processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");

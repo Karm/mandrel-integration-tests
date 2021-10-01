@@ -104,11 +104,21 @@ public enum Apps {
             WhitelistLogLines.JFR,
             BuildAndRunCmds.JFR_SMOKE,
             ContainerNames.NONE),
+    JFR_SMOKE_BUILDER_IMAGE("apps" + File.separator + "debug-symbols-smoke",
+            URLContent.NONE,
+            WhitelistLogLines.JFR,
+            BuildAndRunCmds.JFR_SMOKE_BUILDER_IMAGE,
+            ContainerNames.JFR_SMOKE_BUILDER_IMAGE),
     JFR_OPTIONS("apps" + File.separator + "timezones",
             URLContent.NONE,
             WhitelistLogLines.JFR,
             BuildAndRunCmds.JFR_OPTIONS,
-            ContainerNames.NONE);
+            ContainerNames.NONE),
+    JFR_OPTIONS_BUILDER_IMAGE("apps" + File.separator + "timezones",
+            URLContent.NONE,
+            WhitelistLogLines.JFR,
+            BuildAndRunCmds.JFR_OPTIONS_BUILDER_IMAGE,
+            ContainerNames.JFR_SMOKE_BUILDER_IMAGE);
 
     public final String dir;
     public final URLContent urlContent;

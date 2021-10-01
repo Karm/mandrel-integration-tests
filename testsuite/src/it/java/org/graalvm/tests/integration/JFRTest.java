@@ -49,7 +49,9 @@ import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
+import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
+import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -67,11 +69,22 @@ public class JFRTest {
     public static final String BASE_DIR = getBaseDir();
 
     @Test
+    @Tag("builder-image")
+    @Tag("jfr")
+    @IfMandrelVersion(min = "21.2", inContainer = true)
+    public void jfrSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+        jfrSmoke(testInfo, Apps.JFR_SMOKE_BUILDER_IMAGE);
+    }
+
+    @Test
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2")
-    public void jfrSmoke(TestInfo testInfo) throws IOException, InterruptedException {
-        final Apps app = Apps.JFR_SMOKE;
-        LOGGER.info("Testing app: " + app.toString());
+    public void jfrSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
+        jfrSmoke(testInfo, Apps.JFR_SMOKE);
+    }
+
+    public void jfrSmoke(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -122,7 +135,26 @@ public class JFRTest {
             validateDebugSmokeApp(processLog, cn, mn, process, app, jvmRunTookMs, nativeRunTookMs, report, "jfr");
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
+            if (app == Apps.JFR_SMOKE_BUILDER_IMAGE) {
+                stopAllRunningContainers();
+                removeContainers(app.runtimeContainer.name + "-build", app.runtimeContainer.name + "-run");
+            }
         }
+    }
+
+    @Test
+    @Tag("builder-image")
+    @Tag("jfr")
+    @IfMandrelVersion(min = "21.2", inContainer = true)
+    public void jfrOptionsSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS_BUILDER_IMAGE);
+    }
+
+    @Test
+    @Tag("jfr")
+    @IfMandrelVersion(min = "21.2")
+    public void jfrOptionsSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
+        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS);
     }
 
     /**
@@ -137,12 +169,8 @@ public class JFRTest {
      * @throws IOException
      * @throws InterruptedException
      */
-    @Test
-    @Tag("jfr")
-    @IfMandrelVersion(min = "21.3")
-    public void jfrOptionsSmoke(TestInfo testInfo) throws IOException, InterruptedException {
-        final Apps app = Apps.JFR_OPTIONS;
-        LOGGER.info("Testing app: " + app.toString());
+    public void jfrOptionsSmoke(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
         final File appDir = new File(BASE_DIR + File.separator + app.dir);
@@ -260,6 +288,10 @@ public class JFRTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
+            if (app == Apps.JFR_OPTIONS_BUILDER_IMAGE) {
+                stopAllRunningContainers();
+                removeContainers(app.runtimeContainer.name + "-build");
+            }
         }
     }
 

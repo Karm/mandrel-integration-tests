@@ -85,7 +85,7 @@ public class DebugSymbolsTest {
     @DisabledOnOs({OS.WINDOWS})
     public void debugSymbolsSmokeGDB(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_SYMBOLS_SMOKE;
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
         final File appDir = new File(BASE_DIR + File.separator + app.dir);
@@ -129,8 +129,8 @@ public class DebugSymbolsTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        3000, 500, TimeUnit.MILLISECONDS),
+                                Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
+                                3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report, UsedVersion.getVersion(false));
@@ -152,7 +152,7 @@ public class DebugSymbolsTest {
     @DisabledOnOs({OS.WINDOWS})
     public void debugSymbolsQuarkus(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_QUARKUS_FULL_MICROPROFILE;
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
         final File appDir = new File(BASE_DIR + File.separator + app.dir);
@@ -199,8 +199,8 @@ public class DebugSymbolsTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        3000, 500, TimeUnit.MILLISECONDS),
+                                Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
+                                3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
                 writer.write("set confirm off\n");
@@ -232,7 +232,7 @@ public class DebugSymbolsTest {
     @DisabledOnOs({OS.WINDOWS})
     public void debugSymbolsQuarkusContainer(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX;
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
         final File appDir = new File(BASE_DIR + File.separator + app.dir);
@@ -286,8 +286,8 @@ public class DebugSymbolsTest {
                 Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
-                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        3000, 500, TimeUnit.MILLISECONDS),
+                                Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
+                                3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
                 writer.write("set confirm off\n");

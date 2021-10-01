@@ -154,9 +154,41 @@ public enum BuildAndRunCmds {
                     "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"}
     }),
+    JFR_SMOKE_BUILDER_IMAGE(new String[][]{
+            new String[]{"mvn", "package"},
+            new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
+            new String[]{
+                    CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
+                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
+                    BUILDER_IMAGE, "-H:+AllowVMInspection", "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+            new String[]{
+                    CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-i",
+                    "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
+                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run",
+                    BUILDER_IMAGE,
+                    "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
+                    "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{
+                    "./target/debug-symbols-smoke",
+                    "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
+                    "-XX:FlightRecorderLogging=jfr"}
+    }),
     JFR_OPTIONS(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-H:+AllowVMInspection", "-jar", "target/timezones.jar", "target/timezones"}
+            // @see JFRTest.java
+    }),
+    JFR_OPTIONS_BUILDER_IMAGE(new String[][]{
+            new String[]{"mvn", "package"},
+            new String[]{
+                    CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "timezones:/project:z",
+                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
+                    BUILDER_IMAGE, "-H:+AllowVMInspection", "-jar", "target/timezones.jar", "target/timezones"}
             // @see JFRTest.java
     });
 
