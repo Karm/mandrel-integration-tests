@@ -74,7 +74,10 @@ public enum WhitelistLogLines {
             // Windows specific warning, O.K.
             Pattern.compile(".*objcopy executable not found in PATH.*"),
             Pattern.compile(".*That will result in a larger native image.*"),
+            Pattern.compile(".*That also means that resulting native executable is larger*"),
             Pattern.compile(".*contain duplicate files, e.g. javax/activation/ActivationDataFlavor.class.*"),
+            Pattern.compile(".*contain duplicate files, e.g. javax/servlet/http/HttpUtils.class.*"),
+            Pattern.compile(".*contain duplicate files, e.g. javax/annotation/ManagedBean.class.*"),
             // Jaeger Opentracing initialization, Quarkus 2.x specific issue.
             Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException:.*"),
             // Jaeger Opentracing, Quarkus 2.x specific issue.
