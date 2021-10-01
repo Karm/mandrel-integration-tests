@@ -92,7 +92,8 @@ public class Logs {
                 long executableSizeThresholdKb = app.thresholdProperties.get(key);
                 assertTrue(executableSizeKb <= executableSizeThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " executable size is " +
-                                executableSizeKb + " kB, which is over " + executableSizeThresholdKb + " kB threshold.");
+                                executableSizeKb + " kB, which is over " +
+                                executableSizeThresholdKb + " kB threshold by " + percentageValOverTh(executableSizeKb, executableSizeThresholdKb) + "%.");
             } else {
                 LOGGER.error("executableSizeKb was to be checked, but there is no " + key + " in " +
                         Path.of(BASE_DIR, app.dir, "threshold.properties"));
@@ -106,7 +107,7 @@ public class Logs {
                 assertTrue(timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " took " + timeToFirstOKRequest + " ms to get the first OK request, which is over " +
-                                timeToFirstOKRequestThresholdMs + " ms threshold.");
+                                timeToFirstOKRequestThresholdMs + " ms threshold by " + percentageValOverTh(timeToFirstOKRequest, timeToFirstOKRequestThresholdMs) + "%.");
             } else {
                 LOGGER.error("timeToFirstOKRequest was to be checked, but there is no " + key + " in " +
                         Path.of(BASE_DIR, app.dir, "threshold.properties"));
@@ -119,7 +120,8 @@ public class Logs {
                 long rssThresholdKb = app.thresholdProperties.get(key);
                 assertTrue(rssKb <= rssThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
-                                " consumed " + rssKb + " kB or RSS memory, which is over " + rssThresholdKb + " kB threshold.");
+                                " consumed " + rssKb + " kB or RSS memory, which is over " +
+                                rssThresholdKb + " kB threshold by " + percentageValOverTh(rssKb, rssThresholdKb) + "%.");
             } else {
                 LOGGER.error("rssKb was to be checked, but there is no " + key + " in " +
                         Path.of(BASE_DIR, app.dir, "threshold.properties"));
@@ -133,12 +135,16 @@ public class Logs {
                 assertTrue(timeToFinishMs <= timeToFinishThresholdMs,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " took " +
                                 timeToFinishMs + " ms to finish, which is over " +
-                                timeToFinishThresholdMs + " ms threshold.");
+                                timeToFinishThresholdMs + " ms threshold by " + percentageValOverTh(timeToFinishMs, timeToFinishThresholdMs) + "%.");
             } else {
                 LOGGER.error("timeToFinishMs was to be checked, but there is no " + key + " in " +
                         Path.of(BASE_DIR, app.dir, "threshold.properties"));
             }
         }
+    }
+
+    public static int percentageValOverTh(float value, float threshold) {
+        return Math.round(value / (threshold / 100f)) - 100;
     }
 
     public static void checkThreshold(Apps app, long executableSizeKb, long rssKb, long timeToFirstOKRequest) {

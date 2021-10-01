@@ -81,7 +81,7 @@ public class AppReproducersTest {
     @Tag("randomNumbers")
     public void randomNumbersReinit(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.RANDOM_NUMBERS;
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -242,7 +242,7 @@ public class AppReproducersTest {
             //TODO: This might be too fragile... e.g. order shouldn't matter.
             final String toFind;
             // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
-            if(Runtime.version().feature() > 11 || Runtime.version().update() > 12) {
+            if (Runtime.version().feature() > 11 || Runtime.version().update() > 12) {
                 toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libfdlibm.a|libzip.a|libjvm.a";
             } else {
                 toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";
@@ -272,7 +272,7 @@ public class AppReproducersTest {
     @Tag("timezones")
     public void timezonesBakedIn(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.TIMEZONES;
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -345,7 +345,7 @@ public class AppReproducersTest {
     @Tag("versions")
     public void versionsParsingMandrel(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.VERSIONS;
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -390,7 +390,7 @@ public class AppReproducersTest {
     @Tag("nativeJVMTextProcessing")
     public void nativeJVMTextProcessing(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_SYMBOLS_SMOKE;
-        LOGGER.info("Testing app: " + app.toString());
+        LOGGER.info("Testing app: " + app);
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -469,11 +469,11 @@ public class AppReproducersTest {
         }
 
         LogBuilder.Log logJVM = new LogBuilder()
-                .app(app.toString() + "_JVM" + suffixUpper)
+                .app(app + "_JVM" + suffixUpper)
                 .timeToFinishMs(jvmRunTookMs)
                 .build();
         LogBuilder.Log logNative = new LogBuilder()
-                .app(app.toString() + "_NATIVE" + suffixUpper)
+                .app(app + "_NATIVE" + suffixUpper)
                 .timeToFinishMs(nativeRunTookMs)
                 .build();
         Logs.logMeasurements(logJVM, measurementsLog);
