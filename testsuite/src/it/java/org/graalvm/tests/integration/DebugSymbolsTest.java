@@ -206,7 +206,7 @@ public class DebugSymbolsTest {
                 writer.write("set confirm off\n");
                 writer.flush();
 
-                writer.write("set directories " + appDir.getAbsolutePath() + "/target/sources\n");
+                writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
                 writer.flush();
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report, UsedVersion.getVersion(false));

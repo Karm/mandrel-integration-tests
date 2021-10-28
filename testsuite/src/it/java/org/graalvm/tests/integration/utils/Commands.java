@@ -68,7 +68,7 @@ public class Commands {
             "docker");
     public static final String BUILDER_IMAGE = getProperty(
             new String[]{"QUARKUS_NATIVE_BUILDER_IMAGE", "quarkus.native.builder-image"},
-            "quay.io/quarkus/ubi-quarkus-mandrel:20.3-java11");
+            "quay.io/quarkus/ubi-quarkus-mandrel:21.3-java11");
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(
             getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
