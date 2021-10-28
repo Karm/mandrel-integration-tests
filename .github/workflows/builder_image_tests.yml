@@ -14,6 +14,7 @@ on:
 
 env:
   LANG: en_US.UTF-8
+  FAIL_ON_PERF_REGRESSION: false
 
 jobs:
   local-run:
@@ -22,15 +23,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: ['2.2.3.Final', '2.4.0.Final']
+        quarkus-version: ['1.11.7.Final', '2.2.3.Final', '2.4.0.Final']
         mandrel-builder-image: [
+            '20.3-java11',
             '21.2-java11',
             '21.3-java11'
         ]
         os: [ubuntu-20.04]
-        # exclude:
-        #   - quarkus-version: '2.2.3.Final'
-        #     mandrel-builder-image: '21.2-java11'
+        exclude:
+          - quarkus-version: '2.2.3.Final'
+            mandrel-builder-image: '20.3-java11'
+          - quarkus-version: '2.4.0.Final'
+            mandrel-builder-image: '20.3-java11'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-builder-image: '21.2-java11'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-builder-image: '21.3-java11'
     steps:
       - uses: actions/checkout@v2
         with:

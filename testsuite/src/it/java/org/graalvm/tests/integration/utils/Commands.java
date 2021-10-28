@@ -75,6 +75,8 @@ public class Commands {
     public static final String QUARKUS_VERSION = getProperty(
             new String[]{"QUARKUS_VERSION", "quarkus.version"},
             "2.2.3.Final");
+    public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(
+            getProperty(new String[]{"FAIL_ON_PERF_REGRESSION", "fail.on.perf.regression"}, "true"));
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");

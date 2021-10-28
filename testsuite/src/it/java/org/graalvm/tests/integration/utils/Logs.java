@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
+import static org.graalvm.tests.integration.utils.Commands.FAIL_ON_PERF_REGRESSION;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -90,7 +91,7 @@ public class Logs {
             final String key = propPrefix + ".executable.size.threshold.kB";
             if (app.thresholdProperties.containsKey(key)) {
                 long executableSizeThresholdKb = app.thresholdProperties.get(key);
-                assertTrue(executableSizeKb <= executableSizeThresholdKb,
+                assertThreshold(executableSizeKb <= executableSizeThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " executable size is " +
                                 executableSizeKb + " kB, which is over " +
                                 executableSizeThresholdKb + " kB threshold by " + percentageValOverTh(executableSizeKb, executableSizeThresholdKb) + "%.");
@@ -104,7 +105,7 @@ public class Logs {
             final String key = propPrefix + ".time.to.first.ok.request.threshold.ms";
             if (app.thresholdProperties.containsKey(key)) {
                 long timeToFirstOKRequestThresholdMs = app.thresholdProperties.get(key);
-                assertTrue(timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
+                assertThreshold(timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " took " + timeToFirstOKRequest + " ms to get the first OK request, which is over " +
                                 timeToFirstOKRequestThresholdMs + " ms threshold by " + percentageValOverTh(timeToFirstOKRequest, timeToFirstOKRequestThresholdMs) + "%.");
@@ -118,7 +119,7 @@ public class Logs {
             final String key = propPrefix + ".RSS.threshold.kB";
             if (app.thresholdProperties.containsKey(key)) {
                 long rssThresholdKb = app.thresholdProperties.get(key);
-                assertTrue(rssKb <= rssThresholdKb,
+                assertThreshold(rssKb <= rssThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " consumed " + rssKb + " kB or RSS memory, which is over " +
                                 rssThresholdKb + " kB threshold by " + percentageValOverTh(rssKb, rssThresholdKb) + "%.");
@@ -132,13 +133,23 @@ public class Logs {
             final String key = propPrefix + ".time.to.finish.threshold.ms";
             if (app.thresholdProperties.containsKey(key)) {
                 long timeToFinishThresholdMs = app.thresholdProperties.get(key);
-                assertTrue(timeToFinishMs <= timeToFinishThresholdMs,
+                assertThreshold(timeToFinishMs <= timeToFinishThresholdMs,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " took " +
                                 timeToFinishMs + " ms to finish, which is over " +
                                 timeToFinishThresholdMs + " ms threshold by " + percentageValOverTh(timeToFinishMs, timeToFinishThresholdMs) + "%.");
             } else {
                 LOGGER.error("timeToFinishMs was to be checked, but there is no " + key + " in " +
                         Path.of(BASE_DIR, app.dir, "threshold.properties"));
+            }
+        }
+    }
+
+    public static void assertThreshold(boolean condition, String message) {
+        if (FAIL_ON_PERF_REGRESSION) {
+            assertTrue(condition, message);
+        } else {
+            if (!condition) {
+                LOGGER.error(message);
             }
         }
     }

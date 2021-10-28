@@ -74,7 +74,7 @@ public enum WhitelistLogLines {
             // Windows specific warning, O.K.
             Pattern.compile(".*objcopy executable not found in PATH.*"),
             Pattern.compile(".*That will result in a larger native image.*"),
-            Pattern.compile(".*That also means that resulting native executable is larger*"),
+            Pattern.compile(".*That also means that resulting native executable is larger.*"),
             Pattern.compile(".*contain duplicate files, e.g. javax/activation/ActivationDataFlavor.class.*"),
             Pattern.compile(".*contain duplicate files, e.g. javax/servlet/http/HttpUtils.class.*"),
             Pattern.compile(".*contain duplicate files, e.g. javax/annotation/ManagedBean.class.*"),
@@ -87,6 +87,9 @@ public enum WhitelistLogLines {
             Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
             // GitHub workflow Windows executor flaw:
             Pattern.compile(".*Unable to make the Vert.x cache directory.*"),
+            // Not sure, definitely not Mandrel related though
+            Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
+            Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*")
     }),
 
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
@@ -100,7 +103,10 @@ public enum WhitelistLogLines {
             // Specific Podman version warning about the way we start gdb in an already running container; harmless.
             Pattern.compile(".*The --tty and --interactive flags might not work properly.*"),
             // Expected part of the app log
-            Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*")
+            Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*"),
+            // Not sure, definitely not Mandrel related though
+            Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
+            Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*")
     }),
 
     HELIDON_QUICKSTART_SE(new Pattern[]{
