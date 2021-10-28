@@ -621,10 +621,29 @@ public class Commands {
             Logs.appendln(report, (new Date()).toString());
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
-            buildService.shutdown();
-            buildService.awaitTermination(10, TimeUnit.MINUTES); // Native image build might take a long time....
+            shutdownAndAwaitTermination(buildService, 10, TimeUnit.MINUTES); // Native image build might take a long time....
         }
         assertTrue(processLog.exists());
+    }
+
+    // Copied from
+    // https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ExecutorService.html
+    private static void shutdownAndAwaitTermination(ExecutorService pool, int timeout, TimeUnit unit) {
+        pool.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait for existing tasks to terminate
+            if (!pool.awaitTermination(timeout, unit)) {
+                pool.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!pool.awaitTermination(1, TimeUnit.MINUTES))
+                    fail("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            pool.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
     }
 
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
