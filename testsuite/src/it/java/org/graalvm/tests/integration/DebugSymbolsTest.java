@@ -206,7 +206,14 @@ public class DebugSymbolsTest {
                 writer.write("set confirm off\n");
                 writer.flush();
 
-                writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
+                // See https://github.com/quarkusio/quarkus/pull/20355
+                // TODO: Introduce QuarkusVersion comparable as this "startsWith nonsense won't scale, e.g. 2.5...
+                if (QUARKUS_VERSION.startsWith("2.4")) {
+                    writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
+                } else {
+                    writer.write("set directories " + appDir.getAbsolutePath() + "/target/sources\n");
+                }
+
                 writer.flush();
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report, UsedVersion.getVersion(false));
@@ -244,6 +251,11 @@ public class DebugSymbolsTest {
             cleanTarget(app);
             stopAllRunningContainers();
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            if (QUARKUS_VERSION.startsWith("2.4")) {
+                runCommand(getRunCommand("git", "apply", "quarkus_2.4.x.patch"),
+                        Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
+            }
 
             // Build & Run
             processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
@@ -314,6 +326,10 @@ public class DebugSymbolsTest {
             cleanup(null, cn, mn, report, app, processLog);
             stopAllRunningContainers();
             removeContainers(app.runtimeContainer.name, "quarkus_test_db");
+            if (QUARKUS_VERSION.startsWith("2.4")) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_2.4.x.patch"),
+                        Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
+            }
         }
     }
 
