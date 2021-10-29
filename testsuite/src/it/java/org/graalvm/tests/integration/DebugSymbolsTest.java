@@ -206,7 +206,7 @@ public class DebugSymbolsTest {
                 writer.write("set confirm off\n");
                 writer.flush();
 
-                writer.write("set directories " + appDir.getAbsolutePath() + "/target/sources\n");
+                writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
                 writer.flush();
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report, UsedVersion.getVersion(false));
@@ -346,7 +346,7 @@ public class DebugSymbolsTest {
                             Logs.appendln(report, stringBuffer.toString());
                             if (!m) {
                                 errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern '" +
-                                        cp.p.pattern() + "'. Output was: " + stringBuffer.toString());
+                                        cp.p.pattern() + "'.\nOutput was:\n" + stringBuffer.toString());
                             }
                         }
                     } catch (IOException e) {
