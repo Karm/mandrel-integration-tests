@@ -255,6 +255,9 @@ public class DebugSymbolsTest {
             if (QUARKUS_VERSION.startsWith("2.4")) {
                 runCommand(getRunCommand("git", "apply", "quarkus_2.4.x.patch"),
                         Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
+            } else if (QUARKUS_VERSION.contains("SNAPSHOT")) {
+                runCommand(getRunCommand("git", "apply", "quarkus_main.patch"),
+                        Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
             }
 
             // Build & Run
