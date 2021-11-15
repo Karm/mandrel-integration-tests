@@ -59,10 +59,9 @@ public class UsedVersion {
     public static Version getVersion(boolean inContainer) throws IOException, InterruptedException {
         if (inContainer) {
             if (versionInContainer == null) {
-                final List<String> cmd = List.of(CONTAINER_RUNTIME, "run", "-t", "--name", "UsedVersion", BUILDER_IMAGE, "native-image", "--version");
+                final List<String> cmd = List.of(CONTAINER_RUNTIME, "run", "-t", BUILDER_IMAGE, "native-image", "--version");
                 LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
                 final String out = Commands.runCommand(cmd);
-                removeContainers("UsedVersion");
                 final String[] lines = out.split(System.lineSeparator());
                 final String lastLine = lines[lines.length - 1].trim();
                 if (!lastLine.contains("Mandrel")) {
