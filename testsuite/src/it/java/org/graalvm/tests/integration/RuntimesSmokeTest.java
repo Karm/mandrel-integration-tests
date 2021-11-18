@@ -202,7 +202,6 @@ public class RuntimesSmokeTest {
         }
     }
 
-
     @Test
     @Tag("builder-image")
     @Tag("quarkus")
