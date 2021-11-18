@@ -25,6 +25,7 @@ import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -218,13 +219,29 @@ public class AppReproducersTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             // Test output
+            final boolean inContainer = app == Apps.IMAGEIO_BUILDER_IMAGE;
             controlData.forEach((fileName, hash) -> {
                 final File picture = new File(appDir, fileName);
                 if (picture.exists() && picture.isFile()) {
                     try {
-                        final String sha256hex = DigestUtils.sha256Hex(FileUtils.readFileToByteArray(picture));
-                        if (!hash.equals(sha256hex)) {
-                            errors.add(fileName + "'s sha256 hash was " + sha256hex + ", expected hash: " + hash);
+                        // Depending on the way the builder image is produced, it might use
+                        // a different version e.g. of fontconfig in HotSpot mode (.so system shared) and
+                        // in native-image mode (.a static built-in from JDK),
+                        // so especially font render could affect hashsum, despite being indistinguishable to the naked eye.
+
+                        // Sanity check size
+                        if (inContainer && UsedVersion.jdkUsesSysLibs(true)) {
+                            final long expected = 5500;
+                            final long actual = FileUtils.sizeOf(picture);
+                            if (actual < expected) {
+                                errors.add(fileName + "'s length was " + actual + ", expected was at least: " + expected + "bytes");
+                            }
+                            // Verify actual hashsums
+                        } else {
+                            final String sha256hex = DigestUtils.sha256Hex(FileUtils.readFileToByteArray(picture));
+                            if (!hash.equals(sha256hex)) {
+                                errors.add(fileName + "'s sha256 hash was " + sha256hex + ", expected hash: " + hash);
+                            }
                         }
                     } catch (IOException e) {
                         errors.add(fileName + " cannot be loaded.");
@@ -242,7 +259,7 @@ public class AppReproducersTest {
             //TODO: This might be too fragile... e.g. order shouldn't matter.
             final String toFind;
             // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
-            if (Runtime.version().feature() > 11 || Runtime.version().update() > 12) {
+            if (UsedVersion.jdkFeature(inContainer) > 11 || UsedVersion.jdkUpdate(inContainer) > 12) {
                 toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libfdlibm.a|libzip.a|libjvm.a";
             } else {
                 toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";

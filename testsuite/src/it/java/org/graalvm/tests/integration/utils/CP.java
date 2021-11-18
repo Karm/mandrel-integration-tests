@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 /**
  * Utility struct
+ *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 public class CP {

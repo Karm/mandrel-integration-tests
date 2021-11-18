@@ -24,7 +24,6 @@ import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import java.io.IOException;
 import java.lang.reflect.AnnotatedElement;
 
 import static java.lang.String.format;
@@ -38,8 +37,7 @@ import static org.junit.platform.commons.support.AnnotationSupport.findAnnotatio
 public class MandrelVersionCondition implements ExecutionCondition {
 
     private static final ConditionEvaluationResult ENABLED_BY_DEFAULT =
-            enabled(
-                    "@IfMandrelVersion is not present");
+            enabled("@IfMandrelVersion is not present");
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(
@@ -53,20 +51,16 @@ public class MandrelVersionCondition implements ExecutionCondition {
     }
 
     private ConditionEvaluationResult disableIfVersionMismatch(IfMandrelVersion annotation, AnnotatedElement element) {
-        try {
-            final Version usedVersion = UsedVersion.getVersion(annotation.inContainer());
-            if (annotation.min().isBlank() || usedVersion.compareTo(Version.parse(annotation.min())) >= 0) {
-                if (annotation.max().isBlank() || usedVersion.compareTo(Version.parse(annotation.max())) <= 0) {
-                    return enabled(format(
-                            "%s is enabled as Mandrel version %s does satisfy constraints: minVersion: %s, maxVersion: %s",
-                            element, usedVersion.toString(), annotation.min(), annotation.max()));
-                }
+        final Version usedVersion = UsedVersion.getVersion(annotation.inContainer());
+        if (annotation.min().isBlank() || usedVersion.compareTo(Version.parse(annotation.min())) >= 0) {
+            if (annotation.max().isBlank() || usedVersion.compareTo(Version.parse(annotation.max())) <= 0) {
+                return enabled(format(
+                        "%s is enabled as Mandrel version %s does satisfy constraints: minVersion: %s, maxVersion: %s",
+                        element, usedVersion.toString(), annotation.min(), annotation.max()));
             }
-            return disabled(format(
-                    "%s is disabled as Mandrel version %s does not satisfy constraints: minVersion: %s, maxVersion: %s",
-                    element, usedVersion, annotation.min(), annotation.max()));
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Unable to get Mandrel version.", e);
         }
+        return disabled(format(
+                "%s is disabled as Mandrel version %s does not satisfy constraints: minVersion: %s, maxVersion: %s",
+                element, usedVersion, annotation.min(), annotation.max()));
     }
 }

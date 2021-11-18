@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  *
  * e.g. closed interval [20.1, 20.3.2], as in 20.1 <= GRAALVM_VERSION <= 20.3.2
  * translates to @IfMandrelVersion(min = "20.1", max="20.3.2").
- *
+ * //@formatter:off
  * Examples:
  *
  *     IfMandrelVersion(min = "20.1", max="20.3.2")
@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  *
  *     IfMandrelVersion(min = "21.1", inContainer = true)
  *     i.e. [21.1, +∞)
- *
+ * //@formatter:on
  * Note that versions 21.1.0.0-final and 21.1.0.0-snapshot and 21.1.0.0 are all considered equal.
  *
  * The actual comparator comes from Graal's own org.graalvm.home.Version.
