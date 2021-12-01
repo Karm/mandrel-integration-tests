@@ -89,7 +89,9 @@ public enum WhitelistLogLines {
             Pattern.compile(".*Unable to make the Vert.x cache directory.*"),
             // Not sure, definitely not Mandrel related though
             Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-            Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*")
+            Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
+            // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
+            Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*")
     }),
 
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
