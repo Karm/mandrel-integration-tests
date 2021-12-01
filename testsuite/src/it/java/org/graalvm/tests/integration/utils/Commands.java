@@ -529,10 +529,11 @@ public class Commands {
                 if (!log.exists()) {
                     Files.createFile(log.toPath());
                 }
-                Files.write(log.toPath(),
-                        ("Command: " + String.join(" ", command) + "\n").getBytes(), StandardOpenOption.APPEND);
-                pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
+                String command = "Command: " + String.join(" ", this.command) + "\n";
+                System.out.println(command);
+                Files.write(log.toPath(), command.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
                 p = pb.start();
+                dumpAndLogProcessOutput(log, p, timeoutMinutes);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -544,6 +545,26 @@ public class Commands {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    private static void dumpAndLogProcessOutput(File logFile, Process pA, long timeoutMinutes) {
+        // We use an executor service and set a timeout to avoid getting stuck in case the underlying process
+        // gets stuck and doesn't terminate
+        final ExecutorService dumpService = Executors.newSingleThreadExecutor();
+        dumpService.submit(() -> {
+            InputStream output = pA.getInputStream();
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(output))) {
+                String line = bufferedReader.readLine();
+                while (line != null) {
+                    System.out.println(line);
+                    Files.writeString(logFile.toPath(), line + "\n", StandardOpenOption.APPEND);
+                    line = bufferedReader.readLine();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        shutdownAndAwaitTermination(dumpService, timeoutMinutes, TimeUnit.MINUTES); // Native image build might take a long time....
     }
 
     public static boolean searchBinaryFile(File binaryFile, byte[] match, long skipBytes) throws IOException {
@@ -630,7 +651,7 @@ public class Commands {
 
     // Copied from
     // https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ExecutorService.html
-    private static void shutdownAndAwaitTermination(ExecutorService pool, int timeout, TimeUnit unit) {
+    private static void shutdownAndAwaitTermination(ExecutorService pool, long timeout, TimeUnit unit) {
         pool.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait for existing tasks to terminate
