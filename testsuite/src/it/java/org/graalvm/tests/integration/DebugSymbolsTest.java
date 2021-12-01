@@ -208,7 +208,7 @@ public class DebugSymbolsTest {
 
                 // See https://github.com/quarkusio/quarkus/pull/20355
                 // TODO: Introduce QuarkusVersion comparable as this "startsWith nonsense won't scale, e.g. 2.5...
-                if (QUARKUS_VERSION.startsWith("2.4")) {
+                if (QUARKUS_VERSION.startsWith("2.5")) {
                     writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
                 } else {
                     writer.write("set directories " + appDir.getAbsolutePath() + "/target/sources\n");
@@ -252,8 +252,8 @@ public class DebugSymbolsTest {
             stopAllRunningContainers();
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
-            if (QUARKUS_VERSION.startsWith("2.4")) {
-                runCommand(getRunCommand("git", "apply", "quarkus_2.4.x.patch"),
+            if (QUARKUS_VERSION.startsWith("2.5")) {
+                runCommand(getRunCommand("git", "apply", "quarkus_2.5.x.patch"),
                         Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
             } else if (QUARKUS_VERSION.contains("SNAPSHOT")) {
                 runCommand(getRunCommand("git", "apply", "quarkus_main.patch"),
@@ -329,8 +329,8 @@ public class DebugSymbolsTest {
             cleanup(null, cn, mn, report, app, processLog);
             stopAllRunningContainers();
             removeContainers(app.runtimeContainer.name, "quarkus_test_db");
-            if (QUARKUS_VERSION.startsWith("2.4")) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_2.4.x.patch"),
+            if (QUARKUS_VERSION.startsWith("2.5")) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_2.5.x.patch"),
                         Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
             }
         }
