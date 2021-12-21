@@ -25,6 +25,7 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
@@ -164,7 +165,7 @@ public class DebugSymbolsTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Patch for compatibility
-            if (QUARKUS_VERSION.startsWith("1.")) {
+            if (QUARKUS_VERSION.majorIs(1)) {
                 runCommand(getRunCommand("git", "apply", "quarkus_1.x.patch"),
                         Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
             }
@@ -206,9 +207,7 @@ public class DebugSymbolsTest {
                 writer.write("set confirm off\n");
                 writer.flush();
 
-                // See https://github.com/quarkusio/quarkus/pull/20355
-                // TODO: Introduce QuarkusVersion comparable as this "startsWith nonsense won't scale, e.g. 2.5...
-                if (QUARKUS_VERSION.startsWith("2.5")) {
+                if (applySourcesPatch()) {
                     writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
                 } else {
                     writer.write("set directories " + appDir.getAbsolutePath() + "/target/sources\n");
@@ -226,11 +225,20 @@ public class DebugSymbolsTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
-            if (QUARKUS_VERSION.startsWith("1.")) {
+            if (QUARKUS_VERSION.majorIs(1)) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_1.x.patch"),
                         Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
             }
         }
+    }
+
+    // See https://github.com/quarkusio/quarkus/pull/20355
+    private boolean applySourcesPatch() {
+        QuarkusVersion v224 = new QuarkusVersion("2.2.4");
+        QuarkusVersion v230 = new QuarkusVersion("2.3.0");
+        QuarkusVersion v240 = new QuarkusVersion("2.4.0");
+        return (QUARKUS_VERSION.compareTo(v224) >= 0 && QUARKUS_VERSION.compareTo(v230) < 0) ||
+                QUARKUS_VERSION.compareTo(v240) >= 0 || QUARKUS_VERSION.isSnapshot();
     }
 
     @Test
@@ -252,11 +260,12 @@ public class DebugSymbolsTest {
             stopAllRunningContainers();
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
-            if (QUARKUS_VERSION.startsWith("2.5")) {
-                runCommand(getRunCommand("git", "apply", "quarkus_2.5.x.patch"),
+            if (applySourcesPatch()) {
+                runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"),
                         Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
-            } else if (QUARKUS_VERSION.contains("SNAPSHOT")) {
-                runCommand(getRunCommand("git", "apply", "quarkus_main.patch"),
+            }
+            if (QUARKUS_VERSION.isSnapshot()) {
+                runCommand(getRunCommand("git", "apply", "quarkus_snapshot.patch"),
                         Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
             }
 
@@ -329,8 +338,8 @@ public class DebugSymbolsTest {
             cleanup(null, cn, mn, report, app, processLog);
             stopAllRunningContainers();
             removeContainers(app.runtimeContainer.name, "quarkus_test_db");
-            if (QUARKUS_VERSION.startsWith("2.5")) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_2.5.x.patch"),
+            if (applySourcesPatch()) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"),
                         Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
             }
         }

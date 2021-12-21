@@ -40,18 +40,18 @@ public enum BuildAndRunCmds {
     // Note that at least 2 command are expected. One or more to build. The last one to run the app.
     // Make sure you use an explicit --name when running the app as a container. It is used throughout the TS.
     QUARKUS_FULL_MICROPROFILE(new String[][]{
-            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION},
+            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
     }),
     DEBUG_QUARKUS_FULL_MICROPROFILE(new String[][]{
-            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION},
-            new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION},
+            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
+            new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
     }),
     QUARKUS_BUILDER_IMAGE_ENCODING(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                     "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
-                    "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION},
+                    "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{CONTAINER_RUNTIME, "build", "-f", "src/main/docker/Dockerfile.native", "-t", "my-quarkus-mandrel-app", "."},
             new String[]{CONTAINER_RUNTIME, "run", "-i", "--rm", "-p", "8080:8080",
                     "--name", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "my-quarkus-mandrel-app"}
@@ -60,7 +60,7 @@ public enum BuildAndRunCmds {
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                     "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                     "-Dquarkus.native.builder-image=" + BUILDER_IMAGE,
-                    "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION},
+                    "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{"mvn", "dependency:sources"},
             new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-f", "src/main/docker/Dockerfile.native", "-t", "my-quarkus-mandrel-app", "."},
             new String[]{CONTAINER_RUNTIME, "run", "--network=host", "--ulimit", "memlock=-1:-1", "-it", "-d", "--rm=true", "--memory-swappiness=0",
