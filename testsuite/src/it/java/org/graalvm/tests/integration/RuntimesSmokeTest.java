@@ -188,7 +188,7 @@ public class RuntimesSmokeTest {
     @Test
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
-        if (QUARKUS_VERSION.startsWith("1.")) {
+        if (QUARKUS_VERSION.majorIs(1)) {
             try {
                 runCommand(getRunCommand("git", "apply", "quarkus_1.x.patch"),
                         Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());

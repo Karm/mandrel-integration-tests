@@ -33,9 +33,9 @@ public enum URLContent {
             new String[]{"http://localhost:8080/hello", "Hello World"}}),
 
     QUARKUS_FULL_MICROPROFILE(new String[][]{
-            new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.startsWith("1.") ? "" : "q/") + "health", "\"UP\""},
-            new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.startsWith("1.") ? "" : "q/") + "metrics", "ontroller_timed_request_seconds_count"},
-            new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.startsWith("1.") ? "" : "q/") + "openapi", "/resilience"},
+            new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.majorIs(1) ? "" : "q/") + "health", "\"UP\""},
+            new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.majorIs(1) ? "" : "q/") + "metrics", "ontroller_timed_request_seconds_count"},
+            new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.majorIs(1) ? "" : "q/") + "openapi", "/resilience"},
             new String[]{"http://localhost:8080", "Hello from a full MicroProfile suite"},
             new String[]{"http://localhost:8080/data/hello", "Hello World"},
             new String[]{"http://localhost:8080/data/config/injected", "Config value as Injected by CDI Injected value"},

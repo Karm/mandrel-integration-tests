@@ -22,6 +22,7 @@ package org.graalvm.tests.integration.utils;
 import com.sun.security.auth.module.UnixSystem;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.jboss.logging.Logger;
 
 import java.io.BufferedInputStream;
@@ -72,9 +73,10 @@ public class Commands {
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(
             getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
-    public static final String QUARKUS_VERSION = getProperty(
-            new String[]{"QUARKUS_VERSION", "quarkus.version"},
-            "2.2.3.Final");
+    public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(
+                getProperty(
+                new String[]{"QUARKUS_VERSION", "quarkus.version"},
+                "2.2.3.Final"));
     public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(
             getProperty(new String[]{"FAIL_ON_PERF_REGRESSION", "fail.on.perf.regression"}, "true"));
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
