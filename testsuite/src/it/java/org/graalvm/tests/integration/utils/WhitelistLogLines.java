@@ -99,6 +99,8 @@ public enum WhitelistLogLines {
             Pattern.compile(".*GR-10238.*"),
             // Container image build
             Pattern.compile(".*lib.*-WARNING .*"),
+            // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
+            Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"),
             // Params quirk, harmless
             Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
             Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
@@ -117,6 +119,8 @@ public enum WhitelistLogLines {
     }),
 
     QUARKUS_BUILDER_IMAGE_ENCODING(new Pattern[]{
+            // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
+            Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"),
             // Params quirk, harmless
             Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
             Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
