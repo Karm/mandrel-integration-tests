@@ -64,7 +64,8 @@ jobs:
         env:
           MAVEN_OPTS: -Xmx1g
         run:   |
-          sudo apt install gdb
+          sudo apt-get update -y
+          sudo apt-get install -y gdb
           pushd ts
           mvn clean verify -Ptestsuite-builder-image -Dquarkus.version=${{ matrix.quarkus-version }} -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:${{ matrix.mandrel-builder-image }}
         shell: bash
