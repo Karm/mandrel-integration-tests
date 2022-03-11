@@ -104,7 +104,8 @@ jobs:
         env:
           MAVEN_OPTS: -Xmx1g
         run:   |
-          sudo apt install gdb
+          sudo apt-get update -y
+          sudo apt-get install -y gdb
           export JAVA_HOME=${{ github.workspace }}/${{ matrix.mandrel-version }}
           export GRAALVM_HOME="${JAVA_HOME}"
           export PATH="${JAVA_HOME}/bin:$PATH"
