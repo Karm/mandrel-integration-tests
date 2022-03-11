@@ -115,7 +115,13 @@ public enum WhitelistLogLines {
 
     HELIDON_QUICKSTART_SE(new Pattern[]{
             // Unused argument on new Graal
-            Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*")
+            Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
+            // --allow-incomplete-classpath not available in new GraalVM https://github.com/Karm/mandrel-integration-tests/issues/76
+            Pattern.compile(".*Using a deprecated option --allow-incomplete-classpath from " +
+                    "jar:file:.*mandrel-integration-tests/apps/helidon-quickstart-se/target/libs/helidon-webserver-2.2.2.jar" +
+                    "!/META-INF/native-image/io.helidon.webserver/helidon-webserver/native-image.properties. " +
+                    "Allowing an incomplete classpath is now the default. " +
+                    "Use --link-at-build-time to report linking errors at image build time for a class or package.*")
     }),
 
     QUARKUS_BUILDER_IMAGE_ENCODING(new Pattern[]{
