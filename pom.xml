@@ -81,7 +81,7 @@
         <profile>
             <id>ide</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <jdk>11</jdk>
             </activation>
             <properties>
                 <excludeTags>none</excludeTags>
@@ -98,6 +98,19 @@
                 <module>apps/debug-symbols-smoke</module>
                 <module>builder-image-apps/quarkus-spöklik-encoding</module>
                 <module>builder-image-apps/quarkus-vertx</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>ide17</id>
+            <activation>
+                <jdk>17</jdk>
+            </activation>
+            <properties>
+                <excludeTags>none</excludeTags>
+            </properties>
+            <modules>
+                <module>testsuite</module>
+                <module>apps/recordannotations</module>
             </modules>
         </profile>
     </profiles>

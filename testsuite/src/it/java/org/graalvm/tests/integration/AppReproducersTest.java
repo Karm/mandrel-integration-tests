@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.DisabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
@@ -350,6 +352,51 @@ public class AppReproducersTest {
              */
             assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log. " +
                     "There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
+
+            processStopper(process, false);
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            cleanup(process, cn, mn, report, app, processLog);
+        }
+    }
+    
+    @Test
+    @Tag("jdk-17")
+    @Tag("recordannotations")
+    @DisabledOnJre(JRE.JAVA_11)
+    public void recordAnnotationsWork(TestInfo testInfo) throws IOException, InterruptedException {
+        final Apps app = Apps.RECORDANNOTATIONS;
+        LOGGER.info("Testing app: " + app);
+        Process process = null;
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        try {
+            // Cleanup
+            cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // Build
+            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+
+            builderRoutine(app, report, cn, mn, appDir, processLog);
+
+            LOGGER.info("Running...");
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+
+            final Pattern p = Pattern.compile(".*RCA annotation: @recordannotations\\.RCA.*");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+            final Pattern p2 = Pattern.compile(".*annotation: @recordannotations\\.RCA.*");
+            assertTrue(searchLogLines(p2, processLog, Charset.defaultCharset()), "Expected pattern " + p2.toString() + " was not found in the log.");
+            final Pattern p3 = Pattern.compile(".*annotation: @recordannotations\\.RCA2.*");
+            assertTrue(searchLogLines(p3, processLog, Charset.defaultCharset()), "Expected pattern " + p3.toString() + " was not found in the log.");
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
