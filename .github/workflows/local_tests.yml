@@ -7,7 +7,7 @@ on:
       - 'LICENSE'
       - '**.md'
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [ opened, synchronize, reopened, ready_for_review ]
     paths-ignore:
       - 'LICENSE'
       - '**.md'
@@ -18,25 +18,67 @@ env:
 
 jobs:
   local-run:
-    name: ${{ matrix.os }} - ${{ matrix.mandrel-version }} - ${{ matrix.quarkus-version }}
+    name: ${{ matrix.os }} - ${{ matrix.java-version }} - ${{ matrix.mandrel-version }} - ${{ matrix.quarkus-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: ['1.11.7.Final', '2.2.3.Final', '2.5.4.Final']
-        mandrel-version: ['20.3.3.0-Final', '21.2.0.2-Final', '21.3.0.0-Final']
-        os: [ubuntu-20.04, windows-2019]
+        quarkus-version: [ '1.11.7.Final', '2.5.4.Final', '2.7.5.Final' ]
+        mandrel-version: [ '20.3.3.0-Final', '21.2.0.2-Final', '21.3.1.1-Final', '22.0.0.2-Final' ]
+        java-version: [ '11', '17' ]
+        os: [ ubuntu-20.04, windows-2019 ]
         exclude:
           - quarkus-version: '1.11.7.Final'
-            mandrel-version: '21.2.0.2-Final'
+            mandrel-version: '20.3.3.0-Final'
+            java-version: '17'
           - quarkus-version: '1.11.7.Final'
-            mandrel-version: '21.3.0.0-Final'
-          - quarkus-version: '2.2.3.Final'
-            mandrel-version: '20.3.3.0-Final'
+            mandrel-version: '21.2.0.2-Final'
+            java-version: '11'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-version: '21.2.0.2-Final'
+            java-version: '17'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-version: '21.3.1.1-Final'
+            java-version: '11'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-version: '21.3.1.1-Final'
+            java-version: '17'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-version: '22.0.0.2-Final'
+            java-version: '11'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-version: '22.0.0.2-Final'
+            java-version: '17'
           - quarkus-version: '2.5.4.Final'
             mandrel-version: '20.3.3.0-Final'
+            java-version: '11'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-version: '20.3.3.0-Final'
+            java-version: '17'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-version: '22.0.0.2-Final'
+            java-version: '11'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-version: '22.0.0.2-Final'
+            java-version: '17'
           - quarkus-version: '2.5.4.Final'
             mandrel-version: '21.2.0.2-Final'
+            java-version: '17'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-version: '21.3.1.1-Final'
+            java-version: '17'
+          - quarkus-version: '2.7.5.Final'
+            mandrel-version: '20.3.3.0-Final'
+            java-version: '11'
+          - quarkus-version: '2.7.5.Final'
+            mandrel-version: '20.3.3.0-Final'
+            java-version: '17'
+          - quarkus-version: '2.7.5.Final'
+            mandrel-version: '21.2.0.2-Final'
+            java-version: '11'
+          - quarkus-version: '2.7.5.Final'
+            mandrel-version: '21.2.0.2-Final'
+            java-version: '17'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -58,8 +100,8 @@ jobs:
           key: ${{ matrix.os }}-${{ matrix.mandrel-version }}
       - name: Install Mandrel Windows
         if: startsWith(matrix.os, 'windows') && steps.cache_mandrel.outputs.cache-hit != 'true'
-        run:   |
-          $url= "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java11-windows-amd64-${{ matrix.mandrel-version }}.zip"
+        run: |
+          $url= "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-windows-amd64-${{ matrix.mandrel-version }}.zip"
           $wc = New-Object System.Net.WebClient
           $file = $(Split-Path -Path $url -Leaf)
           Write-Host "Downloading $url to $Env:temp\$file"
@@ -70,18 +112,18 @@ jobs:
         shell: powershell
       - name: Install Mandrel Linux
         if: startsWith(matrix.os, 'ubuntu') && steps.cache_mandrel.outputs.cache-hit != 'true'
-        run:   |
-          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java11-linux-amd64-${{ matrix.mandrel-version }}.tar.gz"
-          tar -xf mandrel-java11-linux-amd64-${{ matrix.mandrel-version }}.tar.gz
+        run: |
+          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-amd64-${{ matrix.mandrel-version }}.tar.gz"
+          tar -xf mandrel-java${{ matrix.java-version }}-linux-amd64-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
-          mv $( echo mandrel-java11*-*/ ) ${{ github.workspace }}/${{ matrix.mandrel-version }}
+          mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.mandrel-version }}
         shell: bash
       - name: Windows test
         if: startsWith(matrix.os, 'windows')
         timeout-minutes: 55
         env:
           MAVEN_OPTS: -Xmx1g
-        run:   |
+        run: |
           set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\;%PATH%
           call vcvars64
           IF NOT %ERRORLEVEL% == 0 ( exit 1 )
@@ -103,7 +145,7 @@ jobs:
         timeout-minutes: 55
         env:
           MAVEN_OPTS: -Xmx1g
-        run:   |
+        run: |
           sudo apt-get update -y
           sudo apt-get install -y gdb
           export JAVA_HOME=${{ github.workspace }}/${{ matrix.mandrel-version }}
@@ -124,5 +166,5 @@ jobs:
         uses: actions/upload-artifact@v2
         if: failure()
         with:
-          name: reports-${{ matrix.mandrel-version }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
+          name: reports-${{ matrix.mandrel-version }}-${{ matrix.java-version }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
           path: 'test-reports-mandrel-it.tgz'
