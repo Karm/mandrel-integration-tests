@@ -7,7 +7,7 @@ on:
       - 'LICENSE'
       - '**.md'
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [ opened, synchronize, reopened, ready_for_review ]
     paths-ignore:
       - 'LICENSE'
       - '**.md'
@@ -23,24 +23,41 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: ['1.11.7.Final', '2.2.3.Final', '2.5.4.Final']
+        quarkus-version: [ '1.11.7.Final', '2.5.4.Final', '2.7.5.Final' ]
         mandrel-builder-image: [
             '20.3-java11',
             '21.2-java11',
-            '21.3-java11'
+            '21.3-java11',
+            '21.3-java17',
+            '22.0-java11',
+            '22.0-java17'
         ]
-        os: [ubuntu-20.04]
+        os: [ ubuntu-20.04 ]
         exclude:
-          - quarkus-version: '2.2.3.Final'
-            mandrel-builder-image: '20.3-java11'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-builder-image: '20.3-java11'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-builder-image: '21.2-java11'
           - quarkus-version: '1.11.7.Final'
             mandrel-builder-image: '21.2-java11'
           - quarkus-version: '1.11.7.Final'
             mandrel-builder-image: '21.3-java11'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-builder-image: '21.3-java17'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-builder-image: '22.0-java11'
+          - quarkus-version: '1.11.7.Final'
+            mandrel-builder-image: '22.0-java17'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-builder-image: '20.3-java11'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-builder-image: '21.2-java11'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-builder-image: '21.3-java17'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-builder-image: '22.0-java11'
+          - quarkus-version: '2.5.4.Final'
+            mandrel-builder-image: '22.0-java17'
+          - quarkus-version: '2.7.5.Final'
+            mandrel-builder-image: '20.3-java11'
+          - quarkus-version: '2.7.5.Final'
+            mandrel-builder-image: '21.2-java11'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -63,10 +80,11 @@ jobs:
         timeout-minutes: 55
         env:
           MAVEN_OPTS: -Xmx1g
-        run:   |
+        run: |
           sudo apt-get update -y
           sudo apt-get install -y gdb
           pushd ts
+          cp .github/mvn-settings.xml ~/.m2/settings.xml
           mvn clean verify -Ptestsuite-builder-image -Dquarkus.version=${{ matrix.quarkus-version }} -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:${{ matrix.mandrel-builder-image }}
         shell: bash
       - name: Prepare failure archive (if maven failed)

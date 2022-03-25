@@ -374,7 +374,7 @@ public class DebugSymbolsTest {
                             Logs.appendln(report, stringBuffer.toString());
                             if (!m) {
                                 errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern '" +
-                                        cp.p.pattern() + "'.\nOutput was:\n" + stringBuffer.toString());
+                                        cp.p.pattern() + "'.\nOutput was:\n" + stringBuffer);
                             }
                         }
                     } catch (IOException e) {
