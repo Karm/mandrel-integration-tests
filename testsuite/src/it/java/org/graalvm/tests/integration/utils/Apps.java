@@ -123,7 +123,12 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.JFR,
             BuildAndRunCmds.JFR_OPTIONS_BUILDER_IMAGE,
-            ContainerNames.JFR_SMOKE_BUILDER_IMAGE);
+            ContainerNames.JFR_SMOKE_BUILDER_IMAGE),
+    RESLOCATIONS("apps" + File.separator + "reslocations",
+            URLContent.NONE,
+            WhitelistLogLines.RESLOCATIONS,
+            BuildAndRunCmds.RESLOCATIONS,
+            ContainerNames.NONE);
 
     public final String dir;
     public final URLContent urlContent;

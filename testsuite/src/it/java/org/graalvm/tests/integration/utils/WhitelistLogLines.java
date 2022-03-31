@@ -139,6 +139,10 @@ public enum WhitelistLogLines {
             Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*"),
             // Deprecation
             Pattern.compile(".*Option FlightRecorder was deprecated.*"),
+    }),
+
+    RESLOCATIONS(new Pattern[]{
+            Pattern.compile(".*com\\.sun\\.imageio\\.plugins\\.common.*is internal proprietary API and may be removed in a future release.*")
     });
 
     public final Pattern[] errs;

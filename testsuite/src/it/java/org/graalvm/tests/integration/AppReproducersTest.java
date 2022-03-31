@@ -51,6 +51,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -136,6 +137,214 @@ public class AppReproducersTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
+        }
+    }
+
+    @Test
+    @Tag("resources")
+    @IfMandrelVersion(min = "21.3", max = "21.999")
+    public void resLocationsA(TestInfo testInfo) throws IOException, InterruptedException {
+        final String expectedOutput = "" +
+                "Resources folders:\n" +
+                "0:  N/A\n" +
+                "1:  N/A\n" +
+                "2:  N/A\n" +
+                "3:  N/A\n" +
+                "4:  NO_SLASH FOLDER\n" +
+                "5:  NO_SLASH FOLDER\n" +
+                "6:  NO_SLASH FOLDER\n" +
+                "7:  NO_SLASH FOLDER\n" +
+                "8:  N/A\n" +
+                "9:  N/A\n" +
+                "10: N/A\n" +
+                "11: N/A\n" +
+                "\n" +
+                "iio-plugin.properties:\n" +
+                "0:  N/A\n" +
+                "1:  APP\n" +
+                "2:  N/A\n" +
+                "3:  JDK\n" +
+                "4:  JDK\n" +
+                "5:  APP\n" +
+                "6:  N/A\n" +
+                "7:  JDK\n" +
+                "8:  JDK\n" +
+                "9:  APP\n" +
+                "10: N/A\n" +
+                "11: JDK\n" +
+                "12: APP\n" +
+                "13: N/A\n" +
+                "14: JDK\n" +
+                "15: N/A\n" +
+                "16: JDK\n" +
+                "17: APP\n" +
+                "18: N/A\n" +
+                "19: JDK\n" +
+                "20: JDK\n" +
+                "21: APP\n" +
+                "22: N/A\n" +
+                "23: JDK\n" +
+                "24: JDK\n" +
+                "25: APP\n" +
+                "26: N/A\n" +
+                "27: JDK\n" +
+                "28: APP\n" +
+                "29: N/A\n" +
+                "30: JDK\n" +
+                "31: N/A\n";
+        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
+    }
+
+    @Test
+    @Tag("resources")
+    @IfMandrelVersion(min = "22.0", max = "22.1")
+    public void resLocationsB(TestInfo testInfo) throws IOException, InterruptedException {
+        final String expectedOutput = "" +
+                "Resources folders:\n" +
+                "0:  N/A\n" +
+                "1:  N/A\n" +
+                "2:  N/A\n" +
+                "3:  N/A\n" +
+                "4:  NO_SLASH FOLDER\n" +
+                "5:  NO_SLASH FOLDER\n" +
+                "6:  NO_SLASH FOLDER\n" +
+                "7:  NO_SLASH FOLDER\n" +
+                "8:  N/A\n" +
+                "9:  N/A\n" +
+                "10: N/A\n" +
+                "11: N/A\n" +
+                "\n" +
+                "iio-plugin.properties:\n" +
+                "0:  N/A\n" +
+                "1:  APP\n" +
+                "2:  N/A\n" +
+                "3:  N/A\n" +
+                "4:  JDK\n" +
+                "5:  N/A\n" +
+                "6:  N/A\n" +
+                "7:  JDK\n" +
+                "8:  JDK\n" +
+                "9:  N/A\n" +
+                "10: N/A\n" +
+                "11: JDK\n" +
+                "12: APP\n" +
+                "13: N/A\n" +
+                "14: N/A\n" +
+                "15: N/A\n" +
+                "16: JDK\n" +
+                "17: N/A\n" +
+                "18: N/A\n" +
+                "19: JDK\n" +
+                "20: JDK\n" +
+                "21: N/A\n" +
+                "22: N/A\n" +
+                "23: JDK\n" +
+                "24: JDK\n" +
+                "25: N/A\n" +
+                "26: N/A\n" +
+                "27: JDK\n" +
+                "28: N/A\n" +
+                "29: N/A\n" +
+                "30: JDK\n" +
+                "31: N/A\n";
+        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
+    }
+
+    @Test
+    @Tag("resources")
+    @IfMandrelVersion(min = "22.2")
+    public void resLocationsC(TestInfo testInfo) throws IOException, InterruptedException {
+        final String expectedOutput = "" +
+                "Resources folders:\n" +
+                "0:  N/A\n" +
+                "1:  N/A\n" +
+                "2:  N/A\n" +
+                "3:  N/A\n" +
+                "4:  NO_SLASH FOLDER\n" +
+                "5:  SLASH FOLDER\n" +
+                "6:  N/A\n" +
+                "7:  N/A\n" +
+                "8:  N/A\n" +
+                "9:  N/A\n" +
+                "10: N/A\n" +
+                "11: N/A\n" +
+                "\n" +
+                "iio-plugin.properties:\n" +
+                "0:  N/A\n" +
+                "1:  APP\n" +
+                "2:  N/A\n" +
+                "3:  N/A\n" +
+                "4:  JDK\n" +
+                "5:  N/A\n" +
+                "6:  N/A\n" +
+                "7:  JDK\n" +
+                "8:  JDK\n" +
+                "9:  N/A\n" +
+                "10: N/A\n" +
+                "11: JDK\n" +
+                "12: APP\n" +
+                "13: N/A\n" +
+                "14: N/A\n" +
+                "15: N/A\n" +
+                "16: JDK\n" +
+                "17: N/A\n" +
+                "18: N/A\n" +
+                "19: JDK\n" +
+                "20: JDK\n" +
+                "21: N/A\n" +
+                "22: N/A\n" +
+                "23: JDK\n" +
+                "24: JDK\n" +
+                "25: N/A\n" +
+                "26: N/A\n" +
+                "27: JDK\n" +
+                "28: N/A\n" +
+                "29: N/A\n" +
+                "30: JDK\n" +
+                "31: N/A\n";
+        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
+    }
+
+    public void resLocations(TestInfo testInfo, Apps app, String expectedOutput) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        try {
+            // Cleanup
+            cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // Build
+            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+
+            builderRoutine(app, report, cn, mn, appDir, processLog);
+
+            LOGGER.info("Running...");
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            final String output = runCommand(cmd, appDir).trim();
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            final Map<String, String> errors = new HashMap<>();
+            List<String> expected = expectedOutput.trim().lines().collect(Collectors.toList());
+            List<String> actual = output.lines().collect(Collectors.toList());
+            assertEquals(expected.size(), actual.size(),
+                    "Expected output and actual output have a different number of lines. Actual was: " + output);
+            for (int i = 0; i < expected.size(); i++) {
+                if (!expected.get(i).equals(actual.get(i))) {
+                    errors.put(expected.get(i), actual.get(i));
+                }
+            }
+            assertTrue(errors.isEmpty(), "Something changed in how the resources are handled. " +
+                    "Check comments on https://github.com/oracle/graal/issues/4326 and https://github.com/quarkusio/quarkus/pull/22403. " +
+                    "See discrepancies: " + errors.keySet().stream()
+                    .map(key -> "Expected: " + key + ", Actual: " + errors.get(key))
+                    .collect(Collectors.joining("\n", "\n", "\n")));
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            cleanup(null, cn, mn, report, app, processLog);
         }
     }
 
