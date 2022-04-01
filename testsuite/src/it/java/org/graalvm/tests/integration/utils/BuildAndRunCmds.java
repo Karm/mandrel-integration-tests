@@ -195,6 +195,14 @@ public enum BuildAndRunCmds {
                     "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
                     BUILDER_IMAGE, "-H:+AllowVMInspection", "-jar", "target/timezones.jar", "target/timezones"}
             // @see JFRTest.java
+    }),
+    RESLOCATIONS(new String[][]{
+            new String[]{"mvn", "package"},
+            new String[]{"native-image", "--initialize-at-build-time=.", "--no-fallback",
+                    "-J--add-opens=java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED",
+                    "-J--add-exports=java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED",
+                    "-jar", "./target/reslocations.jar", "target/reslocations"},
+            new String[]{IS_THIS_WINDOWS ? "target\\reslocations.exe" : "./target/reslocations"}
     });
 
     public final String[][] cmds;

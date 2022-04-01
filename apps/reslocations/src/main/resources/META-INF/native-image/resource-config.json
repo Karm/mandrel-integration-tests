@@ -1,0 +1,17 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": ".*/iio-plugin.*properties$"
+      },
+      {
+        "pattern": "iio-plugin.properties"
+      }
+    ,
+      {
+        "pattern": "\\Qfolder/\\E"
+      }
+    ]
+  },
+  "bundles": []
+}
