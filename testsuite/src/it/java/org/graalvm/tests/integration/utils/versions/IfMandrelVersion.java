@@ -40,12 +40,24 @@ import java.lang.annotation.Target;
  *
  *     IfMandrelVersion(min = "21.1", inContainer = true)
  *     i.e. [21.1, +∞)
+ *
+ *     IfMandrelVersion(min = "21.3.1", minJDK = "17")
+ *     i.e. [21.3.1, +∞) and [17, +∞)
+ *
+ *     IfMandrelVersion(min = "22", minJDK = "17", maxJDK = "17.0.2")
+ *     i.e. [22, +∞) and [17, 17.0.2]
+ *
  * //@formatter:on
  * Note that versions 21.1.0.0-final and 21.1.0.0-snapshot and 21.1.0.0 are all considered equal.
  *
  * The actual comparator comes from Graal's own org.graalvm.home.Version.
  *
  * inContainer: Whether the version should be pulled from a builder image container.
+ *
+ * JDK versions comparator uses feature.interim.update, the fourth, patch number or
+ * any other qualifiers following that are not used, i.e.
+ * 17.0.3-beta+5-202203292328 and 17.0.3-beta+6 are the same and
+ * 11.0.14.1+1-LTS and 11.0.14 are the same.
  *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
@@ -57,6 +69,10 @@ public @interface IfMandrelVersion {
     String min() default "";
 
     String max() default "";
+
+    String minJDK() default "";
+
+    String maxJDK() default "";
 
     boolean inContainer() default false;
 }

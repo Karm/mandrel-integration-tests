@@ -84,6 +84,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y gdb
           pushd ts
+          mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
           mvn clean verify -Ptestsuite-builder-image -Dquarkus.version=${{ matrix.quarkus-version }} -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:${{ matrix.mandrel-builder-image }}
         shell: bash
