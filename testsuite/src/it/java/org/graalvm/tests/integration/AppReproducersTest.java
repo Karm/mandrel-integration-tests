@@ -30,9 +30,7 @@ import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.condition.DisabledOnJre;
 import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
@@ -572,8 +570,7 @@ public class AppReproducersTest {
     @Test
     @Tag("jdk-17")
     @Tag("recordannotations")
-    @DisabledOnJre(JRE.JAVA_11)
-    @IfMandrelVersion(min = "21.3.1.1")
+    @IfMandrelVersion(min = "21.3.1.1", minJDK = "17")
     public void recordAnnotationsWork(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.RECORDANNOTATIONS;
         LOGGER.info("Testing app: " + app);

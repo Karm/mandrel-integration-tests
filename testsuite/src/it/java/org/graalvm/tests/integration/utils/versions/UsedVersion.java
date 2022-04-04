@@ -49,6 +49,7 @@ import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 public class UsedVersion {
+    private static final int UNDEFINED = -1;
 
     public static Version getVersion(boolean inContainer) {
         return inContainer ? InContainer.mVersion.version : Locally.mVersion.version;
@@ -75,8 +76,8 @@ public class UsedVersion {
      */
     private static final class MVersion {
         private static final Logger LOGGER = Logger.getLogger(MVersion.class.getName());
-        private static final Pattern VERSION_PATTERN =
-                Pattern.compile("(?:GraalVM|native-image)(?: Version)? ([^ ]*).*Java Version ([\\d]+)\\.([\\d]+)\\.([\\d]+).*");
+        private static final Pattern VERSION_PATTERN = Pattern.compile(
+                "(?:GraalVM|native-image)(?: Version)? (?<version>[^ ]*).*Java Version (?<jfeature>[\\d]+)\\.(?<jinterim>[\\d]+)\\.(?<jupdate>[\\d]+).*");
 
         private final Version version;
         private final boolean jdkUsesSysLibs;
@@ -98,7 +99,8 @@ public class UsedVersion {
                 final String[] lines = out.split(System.lineSeparator());
                 lastLine = lines[lines.length - 1].trim();
             } else {
-                final List<String> cmd = getRunCommand("native-image", "--version");
+                final String TEST_TESTSUITE_ABSOLUTE_PATH = System.getProperty("FAKE_NATIVE_IMAGE_DIR", "");
+                final List<String> cmd = getRunCommand(TEST_TESTSUITE_ABSOLUTE_PATH + "native-image", "--version");
                 LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
                 try {
                     lastLine = Commands.runCommand(cmd).trim();
@@ -124,10 +126,17 @@ public class UsedVersion {
                             "Output: '" + lastLine + "'");
                 }
             }
-            version = versionParse(m.group(1));
-            jdkFeature = Integer.parseInt(m.group(2));
-            jdkInterim = Integer.parseInt(m.group(3));
-            jdkUpdate = Integer.parseInt(m.group(4));
+            version = versionParse(m.group("version"));
+            final String jFeature = m.group("jfeature");
+            final String jInterim = m.group("jinterim");
+            final String jUpdate = m.group("jupdate");
+            jdkFeature = jFeature == null ? UNDEFINED : Integer.parseInt(jFeature);
+            jdkInterim = jInterim == null ? UNDEFINED : Integer.parseInt(jInterim);
+            jdkUpdate = jUpdate == null ? UNDEFINED : Integer.parseInt(jUpdate);
+            if (jdkFeature == UNDEFINED) {
+                LOGGER.warn("Failed to correctly parse Java feature (major) version from native-image version command output. " +
+                        "JDK version constraints in tests won't work reliably.");
+            }
             LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d.",
                     version.toString(), inContainer ? "in container" : " installed locally on PATH", jdkFeature, jdkInterim, jdkUpdate);
         }
@@ -149,4 +158,31 @@ public class UsedVersion {
         private static final MVersion mVersion = new MVersion(false);
     }
 
+    public static int[] featureInterimUpdate(Pattern pattern, String version, int defaultValue) {
+        final Matcher m = pattern.matcher(version);
+        if (!m.matches()) {
+            return new int[]{defaultValue, defaultValue, defaultValue};
+        }
+        final String jFeature = m.group("jfeature");
+        final String jInterim = m.group("jinterim");
+        final String jUpdate = m.group("jupdate");
+        return new int[]{
+                jFeature == null ? defaultValue : Integer.parseInt(jFeature),
+                jInterim == null ? defaultValue : Integer.parseInt(jInterim),
+                jUpdate == null ? defaultValue : Integer.parseInt(jUpdate)
+        };
+    }
+
+    public static int compareJDKVersion(int[] a, int[] b) {
+        if (a.length != 3 || b.length != 3) {
+            throw new IllegalArgumentException("3 version elements expected: feature, interim, update");
+        }
+        for (int i = 0; i < 3; i++) {
+            int compare = Integer.compare(a[i], b[i]);
+            if (compare != 0) {
+                return compare;
+            }
+        }
+        return 0;
+    }
 }

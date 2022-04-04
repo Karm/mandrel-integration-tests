@@ -25,7 +25,7 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     private final int major;
     private final int minor;
     private final int patch;
-    private boolean snapshot;
+    private final boolean snapshot;
 
     public QuarkusVersion(String version) {
         this.version = version;

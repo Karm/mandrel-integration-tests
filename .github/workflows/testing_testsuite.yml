@@ -1,4 +1,4 @@
-name: Mandrel Locally
+name: Testing testsuite
 
 on:
   workflow_dispatch:
@@ -14,71 +14,17 @@ on:
 
 env:
   LANG: en_US.UTF-8
-  FAIL_ON_PERF_REGRESSION: false
 
 jobs:
   local-run:
-    name: ${{ matrix.os }} - ${{ matrix.java-version }} - ${{ matrix.mandrel-version }} - ${{ matrix.quarkus-version }}
+    name: ${{ matrix.os }} - ${{ matrix.java-version }} - ${{ matrix.mandrel-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: [ '1.11.7.Final', '2.5.4.Final', '2.7.5.Final' ]
-        mandrel-version: [ '20.3.3.0-Final', '21.2.0.2-Final', '21.3.1.1-Final', '22.0.0.2-Final' ]
+        mandrel-version: [ '21.3.1.1-Final', '22.0.0.2-Final' ]
         java-version: [ '11', '17' ]
         os: [ ubuntu-20.04, windows-2019 ]
-        exclude:
-          - quarkus-version: '1.11.7.Final'
-            mandrel-version: '20.3.3.0-Final'
-            java-version: '17'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-version: '21.2.0.2-Final'
-            java-version: '11'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-version: '21.2.0.2-Final'
-            java-version: '17'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-version: '21.3.1.1-Final'
-            java-version: '11'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-version: '21.3.1.1-Final'
-            java-version: '17'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-version: '22.0.0.2-Final'
-            java-version: '11'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-version: '22.0.0.2-Final'
-            java-version: '17'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-version: '20.3.3.0-Final'
-            java-version: '11'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-version: '20.3.3.0-Final'
-            java-version: '17'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-version: '22.0.0.2-Final'
-            java-version: '11'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-version: '22.0.0.2-Final'
-            java-version: '17'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-version: '21.2.0.2-Final'
-            java-version: '17'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-version: '21.3.1.1-Final'
-            java-version: '17'
-          - quarkus-version: '2.7.5.Final'
-            mandrel-version: '20.3.3.0-Final'
-            java-version: '11'
-          - quarkus-version: '2.7.5.Final'
-            mandrel-version: '20.3.3.0-Final'
-            java-version: '17'
-          - quarkus-version: '2.7.5.Final'
-            mandrel-version: '21.2.0.2-Final'
-            java-version: '11'
-          - quarkus-version: '2.7.5.Final'
-            mandrel-version: '21.2.0.2-Final'
-            java-version: '17'
     steps:
       - uses: actions/checkout@v2
         with:
@@ -88,9 +34,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ matrix.quarkus-version }}-${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ matrix.quarkus-version }}-${{ matrix.os }}-
+            ${{ matrix.os }}-
       - uses: actions/cache@v2
         name: Mandrel installation cached
         id: cache_mandrel
@@ -138,9 +84,9 @@ jobs:
             cmd /C native-image --version
           )
           pushd ts
-          mkdir ~/.m2
+          mkdir ~/.m2/
           copy .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite -Dquarkus.version=${{ matrix.quarkus-version }}
+          mvn clean verify -Ptestsuite -DexcludeTags=all -DincludeTags=testing-testsuite
         shell: cmd
       - name: Linux test
         if: startsWith(matrix.os, 'ubuntu')
@@ -161,7 +107,7 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite -Dquarkus.version=${{ matrix.quarkus-version }}
+          mvn clean verify -Ptestsuite -DexcludeTags=all -DincludeTags=testing-testsuite
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()
@@ -170,5 +116,5 @@ jobs:
         uses: actions/upload-artifact@v2
         if: failure()
         with:
-          name: reports-${{ matrix.mandrel-version }}-${{ matrix.java-version }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
+          name: reports-${{ matrix.mandrel-version }}-${{ matrix.java-version }}-${{ matrix.os }}
           path: 'test-reports-mandrel-it.tgz'
