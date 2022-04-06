@@ -21,6 +21,7 @@ package org.graalvm.tests.integration;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
@@ -467,8 +468,11 @@ public class AppReproducersTest {
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
             //TODO: This might be too fragile... e.g. order shouldn't matter.
             final String toFind;
-            // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
-            if (UsedVersion.jdkFeature(inContainer) > 11 || UsedVersion.jdkUpdate(inContainer) > 12) {
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 2, 0)) >= 0) {
+                // libmanagement_ext.a added in 22.2 with https://github.com/oracle/graal/commit/a0e6a3aeb8b63f6c06dc3554c342075534d90796
+                toFind = "libnet.a|libjavajpeg.a|libnio.a|libmanagement_ext.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libfdlibm.a|libzip.a|libjvm.a";
+            } else if (UsedVersion.jdkFeature(inContainer) > 11 || UsedVersion.jdkUpdate(inContainer) > 12) {
+                // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
                 toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libfdlibm.a|libzip.a|libjvm.a";
             } else {
                 toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";
