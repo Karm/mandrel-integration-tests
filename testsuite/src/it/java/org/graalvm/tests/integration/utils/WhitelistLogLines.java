@@ -110,7 +110,8 @@ public enum WhitelistLogLines {
             Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*"),
             // Not sure, definitely not Mandrel related though
             Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-            Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*")
+            Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
+            Pattern.compile(".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead.")
     }),
 
     HELIDON_QUICKSTART_SE(new Pattern[]{
