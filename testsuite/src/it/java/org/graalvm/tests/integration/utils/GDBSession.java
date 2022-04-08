@@ -20,6 +20,7 @@
 package org.graalvm.tests.integration.utils;
 
 import org.graalvm.home.Version;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 
 import java.util.regex.Pattern;
 
@@ -31,14 +32,62 @@ import java.util.regex.Pattern;
 public enum GDBSession {
     NONE {
         @Override
-        public CP[] get(Version mandrelVersion) {
+        public CP[] get(boolean inContainer) {
             return new CP[]{};
         }
     },
     DEBUG_SYMBOLS_SMOKE {
         @Override
-        public CP[] get(Version mandrelVersion) {
-            if (mandrelVersion.compareTo(Version.create(21, 1, 0)) >= 0) {
+        public CP[] get(boolean inContainer) {
+            if (UsedVersion.jdkFeature(inContainer) == 17 && UsedVersion.jdkInterim(inContainer) == 0 && UsedVersion.jdkUpdate(inContainer) < 4) {
+                // workaround graalvm/mandrel#355
+                return new CP[]{
+                        SHOW_VERSION,
+                        new CP("run < ./test_data_small.txt\n",
+                                Pattern.compile(".*fdc7c50f390c145bc58a0bedbe5e6d2e35177ac73d12e2b23df149ce496a5572.*exited normally.*",
+                                        Pattern.DOTALL)),
+                        new CP("info functions .*smoke.*\n",
+                                Pattern.compile(
+                                        ".*File debug_symbols_smoke/ClassA.java:.*" +
+                                                "java.lang.String \\*debug_symbols_smoke.ClassA::toString\\(void\\).*" +
+                                                "File debug_symbols_smoke/Main\\$\\$Lambda.*.java:.*" +
+                                                "void debug_symbols_smoke.Main..Lambda..*::accept\\(java.lang.Object.*" +
+                                                "File debug_symbols_smoke/Main.java:.*" +
+                                                "void debug_symbols_smoke.Main::lambda\\$thisIsTheEnd\\$0\\(java.io.ByteArrayOutputStream \\*, debug_symbols_smoke.ClassA \\*\\).*" +
+                                                "void debug_symbols_smoke.Main::main\\(java.lang.String\\[\\] \\*\\).*" +
+                                                "void debug_symbols_smoke.Main::thisIsTheEnd\\(java.util.List \\*\\).*"
+                                        , Pattern.DOTALL)),
+                        new CP("break Main.java:70\n",
+                                Pattern.compile(".*Breakpoint 1 at .*: file debug_symbols_smoke/Main.java, line 70.*",
+                                        Pattern.DOTALL)),
+                        new CP("break Main.java:71\n",
+                                Pattern.compile(".*Breakpoint 2 at .*: file debug_symbols_smoke/Main.java, line 71.*",
+                                        Pattern.DOTALL)),
+                        new CP("break Main.java:76\n",
+                                Pattern.compile(".*Breakpoint 3 at .*: file debug_symbols_smoke/Main.java, line 76.*",
+                                        Pattern.DOTALL)),
+                        new CP("run < ./test_data_small.txt\n",
+                                Pattern.compile(".*Breakpoint 1, .*while \\(sc.hasNextLine\\(\\)\\).*",
+                                        Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*Breakpoint 3, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:76.*String l = sc.nextLine\\(\\);.*",
+                                        Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*Breakpoint 2, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:71.* if \\(myString != null.*",
+                                        Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*Breakpoint 2, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:71.* if \\(myString != null.*",
+                                        Pattern.DOTALL)),
+                        new CP("d 2\n",
+                                Pattern.compile(".*", Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*fdc7c50f390c145bc58a0bedbe5e6d2e35177ac73d12e2b23df149ce496a5572.*exited normally.*",
+                                        Pattern.DOTALL)),
+                        new CP("list ClassA.java:30\n",
+                                Pattern.compile(".*ClassA\\(int myNumber, String myString\\).*",
+                                        Pattern.DOTALL)),
+                };
+            } else if (UsedVersion.getVersion(inContainer).compareTo(Version.create(21, 1, 0)) >= 0) {
                 return new CP[]{
                         SHOW_VERSION,
                         new CP("run < ./test_data_small.txt\n",
@@ -136,7 +185,7 @@ public enum GDBSession {
     },
     DEBUG_QUARKUS_FULL_MICROPROFILE {
         @Override
-        public CP[] get(Version mandrelVersion) {
+        public CP[] get(boolean inContainer) {
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b ConfigTestController.java:33\n",
@@ -157,7 +206,7 @@ public enum GDBSession {
     },
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {
         @Override
-        public CP[] get(Version mandrelVersion) {
+        public CP[] get(boolean inContainer) {
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b Fruit.java:48\n",
@@ -178,5 +227,5 @@ public enum GDBSession {
 
     private static final CP SHOW_VERSION = new CP("show version\n", Pattern.compile(".*", Pattern.DOTALL));
 
-    public abstract CP[] get(Version mandrelVersion);
+    public abstract CP[] get(boolean inContainer);
 }
