@@ -19,7 +19,6 @@
  */
 package org.graalvm.tests.integration;
 
-import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
@@ -134,7 +133,7 @@ public class DebugSymbolsTest {
                                 3000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
-                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report, UsedVersion.getVersion(false));
+                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report, false);
 
                 writer.write("q\n");
                 writer.flush();
@@ -215,7 +214,7 @@ public class DebugSymbolsTest {
 
                 writer.flush();
 
-                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report, UsedVersion.getVersion(false));
+                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_FULL_MICROPROFILE, esvc, writer, report, false);
 
                 writer.write("q\n");
                 writer.flush();
@@ -319,7 +318,7 @@ public class DebugSymbolsTest {
 
                 writer.write("set directories /work/sources\n");
                 writer.flush();
-                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX, esvc, writer, report, UsedVersion.getVersion(true));
+                carryOutGDBSession(stringBuffer, GDBSession.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX, esvc, writer, report, true);
                 writer.write("q\n");
                 writer.flush();
             }
@@ -346,9 +345,9 @@ public class DebugSymbolsTest {
     }
 
     public static void carryOutGDBSession(StringBuffer stringBuffer, GDBSession gdbSession, ExecutorService esvc,
-                                          BufferedWriter writer, StringBuilder report, Version mandrelVersion) {
+                                          BufferedWriter writer, StringBuilder report, boolean inContainer) {
         final ConcurrentLinkedQueue<String> errorQueue = new ConcurrentLinkedQueue<>();
-        Stream.of(gdbSession.get(mandrelVersion)).forEach(cp -> {
+        Stream.of(gdbSession.get(inContainer)).forEach(cp -> {
                     stringBuffer.delete(0, stringBuffer.length());
                     try {
                         if (cp.c.startsWith("GOTO URL")) {
