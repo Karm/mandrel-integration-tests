@@ -196,7 +196,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("resources")
-    @IfMandrelVersion(min = "22.0", max = "22.1")
+    @IfMandrelVersion(min = "22.0", max = "22.0")
     public void resLocationsB(TestInfo testInfo) throws IOException, InterruptedException {
         final String expectedOutput = "" +
                 "Resources folders:\n" +
@@ -251,7 +251,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("resources")
-    @IfMandrelVersion(min = "22.2")
+    @IfMandrelVersion(min = "22.1")
     public void resLocationsC(TestInfo testInfo) throws IOException, InterruptedException {
         final String expectedOutput = "" +
                 "Resources folders:\n" +
