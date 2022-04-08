@@ -574,7 +574,19 @@ public class AppReproducersTest {
     @Test
     @Tag("jdk-17")
     @Tag("recordannotations")
-    @IfMandrelVersion(min = "21.3.1.1", minJDK = "17")
+    @IfMandrelVersion(min = "21.3.1.1", max = "21.3.999", minJDK = "17")
+    public void recordAnnotationsWork21_3(TestInfo testInfo) throws IOException, InterruptedException {
+        recordAnnotationsWork(testInfo);
+    }
+
+    @Test
+    @Tag("jdk-17")
+    @Tag("recordannotations")
+    @IfMandrelVersion(min = "22.1", minJDK = "17")
+    public void recordAnnotationsWorkPost22_1(TestInfo testInfo) throws IOException, InterruptedException {
+        recordAnnotationsWork(testInfo);
+    }
+
     public void recordAnnotationsWork(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.RECORDANNOTATIONS;
         LOGGER.info("Testing app: " + app);
