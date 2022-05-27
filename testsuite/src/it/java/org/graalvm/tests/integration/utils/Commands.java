@@ -64,28 +64,30 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class Commands {
     private static final Logger LOGGER = Logger.getLogger(Commands.class.getName());
-    public static final String CONTAINER_RUNTIME = getProperty(
-            new String[]{"QUARKUS_NATIVE_CONTAINER_RUNTIME", "quarkus.native.container-runtime"},
-            "docker");
-    public static final String BUILDER_IMAGE = getProperty(
-            new String[]{"QUARKUS_NATIVE_BUILDER_IMAGE", "quarkus.native.builder-image"},
+    public static final String CONTAINER_RUNTIME = getProperty("quarkus.native.container-runtime", "docker");
+    public static final String BUILDER_IMAGE = getProperty("quarkus.native.builder-image",
             "quay.io/quarkus/ubi-quarkus-mandrel:21.3-java11");
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
-    public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(
-            getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
+    public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(getProperty("podman.with.sudo", "true"));
     public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(
-                getProperty(
-                new String[]{"QUARKUS_VERSION", "quarkus.version"},
-                "2.2.3.Final"));
+            getProperty("quarkus.version", "2.2.3.Final"));
     public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(
-            getProperty(new String[]{"FAIL_ON_PERF_REGRESSION", "fail.on.perf.regression"}, "true"));
+            getProperty("fail.on.perf.regression", "true"));
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
     private static final Pattern CONTAINER_STATS_MEMORY = Pattern.compile("(?:table)?[ \t]*([0-9\\.]+)([a-zA-Z]+).*");
 
-    public static String getProperty(String[] alternatives, String defaultValue) {
+    public static String getProperty(String key) {
+        return getProperty(key, null);
+    }
+
+    public static String getProperty(String key, String defaultValue) {
         String prop = null;
+        final String[] alternatives = new String[] {
+                key.toUpperCase().replaceAll("[\\.-]+", "_"),
+                key.toLowerCase().replaceAll("_+", ".")
+        };
         for (String p : alternatives) {
             String env = System.getenv().get(p);
             if (StringUtils.isNotBlank(env)) {
@@ -165,7 +167,8 @@ public class Commands {
         return runCmd;
     }
 
-    public static boolean waitForTcpClosed(String host, int port, long loopTimeoutS) throws InterruptedException, UnknownHostException {
+    public static boolean waitForTcpClosed(String host, int port, long loopTimeoutS)
+            throws InterruptedException, UnknownHostException {
         final InetAddress address = InetAddress.getByName(host);
         long now = System.currentTimeMillis();
         final long startTime = now;
@@ -197,7 +200,7 @@ public class Commands {
      * There might be this weird glitch where native-image command completes
      * but the FS does not appear to have the resulting binary ready and executable for the
      * next process *immediately*. Hence this small wait that mitigates this glitch.
-     *
+     * <p>
      * Note that nothing happens at the end of the timeout and the TS hopes for the best.
      *
      * @param command
@@ -220,9 +223,10 @@ public class Commands {
         }
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input, Map<String, String> env) {
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input,
+            Map<String, String> env) {
         // Skip the wait if the app runs as a container
-        if (app.runtimeContainer == ContainerNames.NONE) {
+        if (app != null && app.runtimeContainer == ContainerNames.NONE) {
             waitForExecutable(command, directory);
         }
         final ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -274,21 +278,23 @@ public class Commands {
         try {
             if (IS_THIS_WINDOWS) {
                 if (!force) {
-                    final Process p = Runtime.getRuntime().exec(new String[]{
-                            BASE_DIR + File.separator + "testsuite" + File.separator + "src" + File.separator + "it" + File.separator + "resources" + File.separator +
-                                    "CtrlC.exe ", Long.toString(pid)});
+                    final Process p = Runtime.getRuntime().exec(new String[] {
+                            BASE_DIR + File.separator + "testsuite" + File.separator + "src" + File.separator + "it"
+                                    + File.separator + "resources" + File.separator +
+                                    "CtrlC.exe ", Long.toString(pid) });
                     p.waitFor(1, TimeUnit.MINUTES);
                 }
-                Runtime.getRuntime().exec(new String[]{"cmd", "/C", "taskkill", "/PID", Long.toString(pid), "/F", "/T"});
+                Runtime.getRuntime().exec(new String[] { "cmd", "/C", "taskkill", "/PID", Long.toString(pid), "/F", "/T" });
             } else {
-                Runtime.getRuntime().exec(new String[]{"kill", force ? "-9" : "-15", Long.toString(pid)});
+                Runtime.getRuntime().exec(new String[] { "kill", force ? "-9" : "-15", Long.toString(pid) });
             }
         } catch (IOException | InterruptedException e) {
             LOGGER.error(e.getMessage(), e);
         }
     }
 
-    public static boolean waitForContainerLogToMatch(String containerName, Pattern pattern, long timeout, long sleep, TimeUnit unit) throws IOException, InterruptedException {
+    public static boolean waitForContainerLogToMatch(String containerName, Pattern pattern, long timeout, long sleep,
+            TimeUnit unit) throws IOException, InterruptedException {
         long timeoutMillis = unit.toMillis(timeout);
         long sleepMillis = unit.toMillis(sleep);
         long startMillis = System.currentTimeMillis();
@@ -299,7 +305,7 @@ public class Commands {
         while (System.currentTimeMillis() - startMillis < timeoutMillis) {
             Process p = processBuilder.start();
             try (BufferedReader processOutputReader =
-                         new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                    new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
                 String l;
                 while ((l = processOutputReader.readLine()) != null) {
                     if (pattern.matcher(l).matches()) {
@@ -326,7 +332,7 @@ public class Commands {
         final Process p = processBuilder.start();
         final List<String> ids = new ArrayList<>();
         try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l = processOutputReader.readLine();
             // Skip the first line
             if (l == null || !l.startsWith("CONTAINER ID")) {
@@ -393,7 +399,7 @@ public class Commands {
         pa.redirectErrorStream(true);
         final Process p = pa.start();
         try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             while ((l = processOutputReader.readLine()) != null) {
                 final Matcher m = CONTAINER_STATS_MEMORY.matcher(l);
@@ -431,7 +437,7 @@ public class Commands {
         pa.redirectErrorStream(true);
         final Process p = pa.start();
         try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             while ((l = processOutputReader.readLine()) != null) {
                 if (NUM_PATTERN.matcher(l).matches()) {
@@ -461,7 +467,7 @@ public class Commands {
         pa.redirectErrorStream(true);
         final Process p = pa.start();
         try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             if (IS_THIS_WINDOWS) {
                 String l;
                 // TODO: We just get a magical number with all FDs... Is it O.K.?
@@ -510,7 +516,8 @@ public class Commands {
             this.envProps = null;
         }
 
-        public ProcessRunner(File directory, File log, List<String> command, long timeoutMinutes, Map<String, String> envProps) {
+        public ProcessRunner(File directory, File log, List<String> command, long timeoutMinutes,
+                Map<String, String> envProps) {
             this.directory = directory;
             this.log = log;
             this.command = command;
@@ -568,7 +575,8 @@ public class Commands {
                 e.printStackTrace();
             }
         });
-        shutdownAndAwaitTermination(dumpService, timeoutMinutes, TimeUnit.MINUTES); // Native image build might take a long time....
+        shutdownAndAwaitTermination(dumpService, timeoutMinutes,
+                TimeUnit.MINUTES); // Native image build might take a long time....
     }
 
     public static boolean searchBinaryFile(File binaryFile, byte[] match, long skipBytes) throws IOException {
@@ -618,7 +626,8 @@ public class Commands {
         return false;
     }
 
-    public static boolean waitForBufferToMatch(StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
+    public static boolean waitForBufferToMatch(StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep,
+            TimeUnit unit) {
         long timeoutMillis = unit.toMillis(timeout);
         long sleepMillis = unit.toMillis(sleep);
         long startMillis = System.currentTimeMillis();
@@ -636,7 +645,8 @@ public class Commands {
         return false;
     }
 
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws InterruptedException {
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,
+            File processLog, Map<String, String> env) throws InterruptedException {
         // The last command is reserved for running it
         assertTrue(app.buildAndRunCmds.cmds.length > 1);
         Logs.appendln(report, "# " + cn + ", " + mn);
@@ -673,21 +683,25 @@ public class Commands {
         }
     }
 
-    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog)
+            throws InterruptedException {
         builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null);
     }
 
-    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws InterruptedException {
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog,
+            Map<String, String> env) throws InterruptedException {
         builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env);
     }
 
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,
+            File processLog) throws InterruptedException {
         builderRoutine(steps, app, report, cn, mn, appDir, processLog, null);
     }
 
     public static void replaceInSmallTextFile(Pattern search, String replace, Path file, Charset charset) throws IOException {
         final String data = Files.readString(file, charset);
-        Files.writeString(file, search.matcher(data).replaceAll(replace), charset, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.writeString(file, search.matcher(data).replaceAll(replace), charset, StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     public static void replaceInSmallTextFile(Pattern search, String replace, Path file) throws IOException {
