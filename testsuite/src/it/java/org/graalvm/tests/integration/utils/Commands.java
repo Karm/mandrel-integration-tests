@@ -74,9 +74,9 @@ public class Commands {
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(
             getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
     public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(
-                getProperty(
-                new String[]{"QUARKUS_VERSION", "quarkus.version"},
-                "2.2.3.Final"));
+            getProperty(
+                    new String[]{"QUARKUS_VERSION", "quarkus.version"},
+                    "2.7.5.Final"));
     public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(
             getProperty(new String[]{"FAIL_ON_PERF_REGRESSION", "fail.on.perf.regression"}, "true"));
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
@@ -246,16 +246,23 @@ public class Commands {
         return pA;
     }
 
-    public static String runCommand(List<String> command, File directory) throws IOException {
+    public static String runCommand(List<String> command, File directory, Map<String, String> env) throws IOException {
         final ProcessBuilder processBuilder = new ProcessBuilder(command);
         final Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
+        if (env != null) {
+            envA.putAll(env);
+        }
         processBuilder.redirectErrorStream(true)
                 .directory(directory);
         final Process p = processBuilder.start();
         try (InputStream is = p.getInputStream()) {
             return new String(is.readAllBytes(), StandardCharsets.UTF_8); // note that UTF-8 would mingle glyphs on Windows
         }
+    }
+
+    public static String runCommand(List<String> command, File directory) throws IOException {
+        return runCommand(command, directory, null);
     }
 
     public static String runCommand(List<String> command) throws IOException {
