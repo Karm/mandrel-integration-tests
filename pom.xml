@@ -29,7 +29,7 @@
         <!-- Quarkus apps -->
         <!-- Note that the TS switches Quarkus version at test run,
              see Commands.java, QUARKUS_VERSION -->
-        <global.quarkus.version>2.2.3.Final</global.quarkus.version>
+        <global.quarkus.version>2.7.6.Final</global.quarkus.version>
 
         <!-- Micronaut minimal app -->
         <micronaut.version>2.3.0</micronaut.version>

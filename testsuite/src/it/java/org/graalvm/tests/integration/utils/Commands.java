@@ -45,16 +45,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -76,7 +79,7 @@ public class Commands {
     public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(
             getProperty(
                     new String[]{"QUARKUS_VERSION", "quarkus.version"},
-                    "2.7.5.Final"));
+                    "2.7.6.Final"));
     public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(
             getProperty(new String[]{"FAIL_ON_PERF_REGRESSION", "fail.on.perf.regression"}, "true"));
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
@@ -578,26 +581,73 @@ public class Commands {
         shutdownAndAwaitTermination(dumpService, timeoutMinutes, TimeUnit.MINUTES); // Native image build might take a long time....
     }
 
-    public static boolean searchBinaryFile(File binaryFile, byte[] match, long skipBytes) throws IOException {
-        try (InputStream inputStream = new BufferedInputStream(
+    /**
+     * The purpose of this method is to read a potentially
+     * large binary file of a known structure and to find and to parse a string within it.
+     *
+     * @param binaryFile, native-image made executable
+     * @return list of statically linked libs in native image
+     * @throws IOException
+     */
+    public static Set<String> listStaticLibs(File binaryFile) throws IOException {
+        // We cca know the structure of the file. We can skip the start.
+        final long skipBytes = 1800;
+        // The buffer size window might cut the header in half and miss it. Circular buffer...
+        final int bufferSize = 16384;
+        final int bufferTail = 1024;
+        final byte[] header = "StaticLibraries=".getBytes(US_ASCII);
+        try (InputStream is = new BufferedInputStream(
                 new FileInputStream(binaryFile))
         ) {
-            final byte[] buffer = new byte[16384];
-            boolean found = false;
-            inputStream.skip(skipBytes);
-            while (inputStream.read(buffer) != -1) {
-                if (contains(buffer, match)) {
-                    found = true;
+            is.skip(skipBytes);
+            final byte[] buffer = new byte[bufferSize + bufferTail];
+            int start = -1;
+            while ((is.read(buffer, 0, bufferSize)) != -1) {
+                if ((start = indexOf(buffer, header)) != -1) {
+                    if (bufferSize - start < bufferTail) {
+                        //Read some more. The header was at the end of the buffer window.
+                        is.read(buffer, bufferSize, bufferTail);
+                    }
                     break;
                 }
             }
-            return found;
+            final Set<String> results = new HashSet<>();
+            if (start != -1) {
+                final byte[] lib = new byte[64];
+                int libc = 0;
+                boolean reading = false;
+                for (int i = start; i < buffer.length; i++) {
+                    if (buffer[i] == 0) {
+                        results.add(new String(Arrays.copyOfRange(lib, 0, libc), US_ASCII));
+                        break;
+                    }
+                    if (buffer[i] == '=') {
+                        reading = true;
+                        continue;
+                    }
+                    if (reading && buffer[i] != '|') {
+                        lib[libc] = buffer[i];
+                        libc++;
+                        continue;
+                    }
+                    if (buffer[i] == '|') {
+                        results.add(new String(Arrays.copyOfRange(lib, 0, libc), US_ASCII));
+                        libc = 0;
+                    }
+                }
+            }
+            return results;
         }
     }
 
-    public static boolean contains(byte[] one, byte[] theOther) {
+    /**
+     * @param one
+     * @param theOther
+     * @return -1 if one doesn't contain theOther, start index otherwise
+     */
+    public static int indexOf(byte[] one, byte[] theOther) {
         if (one.length < theOther.length || theOther.length == 0) {
-            return false;
+            return -1;
         }
         for (int i = 0; i < one.length; i++) {
             int j = 0;
@@ -607,10 +657,10 @@ public class Commands {
                 }
             }
             if (j == theOther.length) {
-                return true;
+                return i;
             }
         }
-        return false;
+        return -1;
     }
 
     public static boolean searchLogLines(Pattern p, File processLog, Charset charset) throws IOException {

@@ -52,16 +52,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
+import static org.graalvm.tests.integration.utils.Commands.listStaticLibs;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
-import static org.graalvm.tests.integration.utils.Commands.searchBinaryFile;
 import static org.graalvm.tests.integration.utils.Commands.searchLogLines;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -367,13 +366,11 @@ public class AppReproducersTest {
         LOGGER.info("Testing app: " + app.toString());
 
         final Map<String, String> controlData = new HashMap<>(12);
-
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
-        final File metaINF = new File(appDir,
-                "src" + File.separator + "main" + File.separator + "resources" + File.separator + "META-INF" + File.separator + "native-image");
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final File metaINF = Path.of(BASE_DIR, app.dir, "src", "main", "resources", "META-INF", "native-image").toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -466,21 +463,26 @@ public class AppReproducersTest {
 
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
-            //TODO: This might be too fragile... e.g. order shouldn't matter.
-            final String toFind;
+            final Set<String> expected;
+            //@formatter:off
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 2, 0)) >= 0) {
-                // libmanagement_ext.a added in 22.2 with https://github.com/oracle/graal/commit/a0e6a3aeb8b63f6c06dc3554c342075534d90796
-                toFind = "libnet.a|libjavajpeg.a|libnio.a|libmanagement_ext.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libfdlibm.a|libzip.a|libjvm.a";
-            } else if (UsedVersion.jdkFeature(inContainer) > 11 || UsedVersion.jdkUpdate(inContainer) > 12) {
+             // libmanagement_ext.a added in 22.2 with https://github.com/oracle/graal/commit/a0e6a3aeb8b63f6c06dc3554c342075534d90796
+             // expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a",                  "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libmanagement_ext.a", "libnet.a", "libnio.a", "libzip.a");
+             // libmanagement_ext.a removed again: https://github.com/oracle/graal/pull/4383
+                expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a",                  "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a",                         "libnet.a", "libnio.a", "libzip.a");
+            } else if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
                 // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
-                toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libfdlibm.a|libzip.a|libjvm.a";
+                expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a",                  "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a",                         "libnet.a", "libnio.a", "libzip.a");
             } else {
-                toFind = "libnet.a|libjavajpeg.a|libnio.a|liblibchelper.a|libjava.a|liblcms.a|libfontmanager.a|libawt_headless.a|libawt.a|libharfbuzz.a|libfdlibm.a|libzip.a|libjvm.a";
+                expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libharfbuzz.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a",                         "libnet.a", "libnio.a", "libzip.a");
             }
-            final byte[] match = toFind.getBytes(US_ASCII);
-            // Given the structure of the file, we can skip the first n bytes.
-            final boolean found = searchBinaryFile(executable, match, 1800);
-            assertTrue(found, "String: " + toFind + " was expected in the executable file: " + executable);
+            //@formatter:on
+
+            final Set<String> actual = listStaticLibs(executable);
+
+            assertTrue(expected.equals(actual), "A different set of static libraries was expected. \n" +
+                    "Expected: " + expected.stream().sorted().collect(Collectors.toList()) + "\n" +
+                    "Actual:   " + actual.stream().sorted().collect(Collectors.toList()));
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
