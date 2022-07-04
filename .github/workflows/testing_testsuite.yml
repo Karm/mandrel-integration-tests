@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mandrel-version: [ '21.3.1.1-Final', '22.0.0.2-Final' ]
+        mandrel-version: [ '21.3.2.0-Final', '22.1.0.0-Final' ]
         java-version: [ '11', '17' ]
         os: [ ubuntu-20.04, windows-2019 ]
     steps:
