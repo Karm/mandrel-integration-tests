@@ -463,20 +463,18 @@ public class AppReproducersTest {
 
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
-            final Set<String> expected;
-            //@formatter:off
+            final Set<String> expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libnet.a", "libnio.a", "libzip.a");
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 2, 0)) >= 0) {
-             // libmanagement_ext.a added in 22.2 with https://github.com/oracle/graal/commit/a0e6a3aeb8b63f6c06dc3554c342075534d90796
-             // expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a",                  "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libmanagement_ext.a", "libnet.a", "libnio.a", "libzip.a");
-             // libmanagement_ext.a removed again: https://github.com/oracle/graal/pull/4383
-                expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a",                  "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a",                         "libnet.a", "libnio.a", "libzip.a");
+                // libmanagement_ext.a added in 22.2 with https://github.com/oracle/graal/commit/a0e6a3aeb8b63f6c06dc3554c342075534d90796
+                // expected.add("libmanagement_ext.a");
+                // libmanagement_ext.a removed again: https://github.com/oracle/graal/pull/4383
+                // NO-OP
             } else if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
                 // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
-                expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a",                  "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a",                         "libnet.a", "libnio.a", "libzip.a");
+                // NO-OP
             } else {
-                expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libharfbuzz.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a",                         "libnet.a", "libnio.a", "libzip.a");
+                expected.add("libharfbuzz.a");
             }
-            //@formatter:on
 
             final Set<String> actual = listStaticLibs(executable);
 
