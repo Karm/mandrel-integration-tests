@@ -40,7 +40,8 @@ public enum WhitelistLogLines {
             // JDK:
             Pattern.compile("WARNING.* reflective access.*"),
             Pattern.compile("WARNING: All illegal access operations.*"),
-            Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*")
+            Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"),
+            Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*")
     }),
 
     NONE(new Pattern[]{}),
