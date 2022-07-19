@@ -91,7 +91,7 @@ public enum Apps {
             ContainerNames.NONE),
     IMAGEIO("apps" + File.separator + "imageio",
             URLContent.NONE,
-            WhitelistLogLines.NONE,
+            WhitelistLogLines.IMAGEIO,
             BuildAndRunCmds.IMAGEIO,
             ContainerNames.NONE),
     IMAGEIO_BUILDER_IMAGE("apps" + File.separator + "imageio",
