@@ -26,6 +26,7 @@ import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
+import static org.graalvm.tests.integration.utils.Commands.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
 
 /**
@@ -149,7 +150,7 @@ public enum BuildAndRunCmds {
                     new String[]{"powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\""}
                     :
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
-            new String[]{"native-image", "-H:+AllowVMInspection", "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+            new String[]{"native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java",
                     "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
@@ -166,7 +167,7 @@ public enum BuildAndRunCmds {
                     CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
                     "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
-                    BUILDER_IMAGE, "-H:+AllowVMInspection", "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+                    BUILDER_IMAGE, JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{
                     CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-i",
@@ -184,7 +185,7 @@ public enum BuildAndRunCmds {
     }),
     JFR_OPTIONS(new String[][]{
             new String[]{"mvn", "package"},
-            new String[]{"native-image", "-H:+AllowVMInspection", "-jar", "target/timezones.jar", "target/timezones"}
+            new String[]{"native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/timezones.jar", "target/timezones"}
             // @see JFRTest.java
     }),
     JFR_OPTIONS_BUILDER_IMAGE(new String[][]{
@@ -193,7 +194,7 @@ public enum BuildAndRunCmds {
                     CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "timezones:/project:z",
                     "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
-                    BUILDER_IMAGE, "-H:+AllowVMInspection", "-jar", "target/timezones.jar", "target/timezones"}
+                    BUILDER_IMAGE, JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/timezones.jar", "target/timezones"}
             // @see JFRTest.java
     }),
     RESLOCATIONS(new String[][]{

@@ -23,6 +23,7 @@ import com.sun.security.auth.module.UnixSystem;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
+import org.graalvm.home.Version;
 import org.jboss.logging.Logger;
 
 import java.io.BufferedInputStream;
@@ -66,7 +67,25 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 public class Commands {
+
+    public enum JFROption {
+        MONITOR_22("--enable-monitoring"),
+        MONITOR_21("-H:+AllowVMInspection"),
+        NONE("");
+
+        private String replacement;
+
+        JFROption(String rep) {
+            this.replacement = rep;
+        }
+
+        String replacement() {
+            return this.replacement;
+        }
+    }
+
     private static final Logger LOGGER = Logger.getLogger(Commands.class.getName());
+    public static final String JFR_MONITORING_SWITCH_TOKEN = "<ALLOW_VM_INSPECTION>";
     public static final String CONTAINER_RUNTIME = getProperty(
             new String[]{"QUARKUS_NATIVE_CONTAINER_RUNTIME", "quarkus.native.container-runtime"},
             "docker");
@@ -107,6 +126,13 @@ public class Commands {
             return defaultValue;
         }
         return prop;
+    }
+
+    public static boolean isVersion22_3OrBetter(String version) {
+        if (version == null) {
+            return false;
+        }
+        return Version.parse(version).compareTo(22, 3) >= 0;
     }
 
     public static String getUnixUIDGID() {
@@ -694,6 +720,10 @@ public class Commands {
     }
 
     public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws InterruptedException {
+        builderRoutine(steps, app, report, cn, mn, appDir, processLog, env, JFROption.NONE);
+    }
+
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env, JFROption jfrOpt) throws InterruptedException {
         // The last command is reserved for running it
         assertTrue(app.buildAndRunCmds.cmds.length > 1);
         Logs.appendln(report, "# " + cn + ", " + mn);
@@ -701,6 +731,11 @@ public class Commands {
             // We cannot run commands in parallel, we need them to follow one after another
             final ExecutorService buildService = Executors.newFixedThreadPool(1);
             final List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[i]);
+            // Replace actual option for JFR enabled builds so that the appropriate command option
+            // gets passed and doesn't produce a deprecation warning
+            if (jfrOpt != JFROption.NONE) {
+                replaceMonitoringSwitch(cmd, jfrOpt.replacement);
+            }
             buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 10, env)); // might take a long time....
             Logs.appendln(report, (new Date()).toString());
             Logs.appendln(report, appDir.getAbsolutePath());
@@ -709,6 +744,15 @@ public class Commands {
         }
         assertTrue(processLog.exists());
     }
+
+    private static void replaceMonitoringSwitch(List<String> cmd, String replacement) {
+        for (int i = 0; i < cmd.size(); i++) {
+            if (cmd.get(i).trim().equals(JFR_MONITORING_SWITCH_TOKEN)) {
+                cmd.set(i, replacement);
+            }
+        }
+    }
+
 
     // Copied from
     // https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ExecutorService.html
@@ -731,15 +775,19 @@ public class Commands {
     }
 
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
-        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null);
+        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, JFROption.NONE);
     }
 
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws InterruptedException {
-        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env);
+        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env, JFROption.NONE);
     }
 
     public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
-        builderRoutine(steps, app, report, cn, mn, appDir, processLog, null);
+        builderRoutine(steps, app, report, cn, mn, appDir, processLog, null, JFROption.NONE);
+    }
+
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, JFROption jfrOpt) throws InterruptedException {
+        builderRoutine(steps, app, report, cn, mn, appDir, processLog, null, jfrOpt);
     }
 
     public static void replaceInSmallTextFile(Pattern search, String replace, Path file, Charset charset) throws IOException {
