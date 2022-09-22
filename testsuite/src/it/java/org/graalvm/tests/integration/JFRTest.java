@@ -22,6 +22,8 @@ package org.graalvm.tests.integration;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.GraalVersionProperty;
+import org.graalvm.tests.integration.utils.Commands;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,7 @@ import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
+import static org.graalvm.tests.integration.utils.Commands.isVersion22_3OrBetter;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -72,18 +75,20 @@ public class JFRTest {
     @Tag("builder-image")
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2", inContainer = true)
+    @GraalVersionProperty(inContainer = true)
     public void jfrSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrSmoke(testInfo, Apps.JFR_SMOKE_BUILDER_IMAGE);
+        jfrSmoke(testInfo, Apps.JFR_SMOKE_BUILDER_IMAGE, System.getProperty(GraalVersionProperty.NAME));
     }
 
     @Test
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2")
+    @GraalVersionProperty
     public void jfrSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrSmoke(testInfo, Apps.JFR_SMOKE);
+        jfrSmoke(testInfo, Apps.JFR_SMOKE, System.getProperty(GraalVersionProperty.NAME));
     }
 
-    public void jfrSmoke(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+    public void jfrSmoke(TestInfo testInfo, Apps app, String graalVersion) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         Process process = null;
         File processLog = null;
@@ -101,7 +106,11 @@ public class JFRTest {
 
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog);
+            Commands.JFROption jfrOpt = Commands.JFROption.MONITOR_21;
+            if (isVersion22_3OrBetter(graalVersion)) {
+                jfrOpt = Commands.JFROption.MONITOR_22;
+            }
+            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, jfrOpt);
 
             final File inputData = new File(BASE_DIR + File.separator + app.dir + File.separator + "target" + File.separator + "test_data.txt");
 
@@ -146,15 +155,17 @@ public class JFRTest {
     @Tag("builder-image")
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2", inContainer = true)
+    @GraalVersionProperty(inContainer = true)
     public void jfrOptionsSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS_BUILDER_IMAGE);
+        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS_BUILDER_IMAGE, System.getProperty(GraalVersionProperty.NAME));
     }
 
     @Test
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2")
+    @GraalVersionProperty
     public void jfrOptionsSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS);
+        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS, System.getProperty(GraalVersionProperty.NAME));
     }
 
     /**
@@ -169,7 +180,7 @@ public class JFRTest {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void jfrOptionsSmoke(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+    public void jfrOptionsSmoke(TestInfo testInfo, Apps app, String graalVersion) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -184,7 +195,11 @@ public class JFRTest {
             // Build and run
             processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
 
-            builderRoutine(2, app, report, cn, mn, appDir, processLog);
+            Commands.JFROption jfrOpt = Commands.JFROption.MONITOR_21;
+            if (isVersion22_3OrBetter(graalVersion)) {
+                jfrOpt = Commands.JFROption.MONITOR_22;
+            }
+            builderRoutine(2, app, report, cn, mn, appDir, processLog, jfrOpt);
 
             final Map<String[], Pattern> cmdOutput = new HashMap<>();
             cmdOutput.put(new String[]{"./target/timezones",
