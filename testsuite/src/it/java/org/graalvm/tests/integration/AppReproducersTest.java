@@ -41,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -463,17 +464,21 @@ public class AppReproducersTest {
 
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
-            final Set<String> expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libnet.a", "libnio.a", "libzip.a");
+            Set<String> expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libnet.a", "libnio.a", "libzip.a");
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) >= 0) {
                 // libmanagement_ext.a added in 22.2+ with https://github.com/oracle/graal/commit/a0e6a3aeb8b63f6c06dc3554c342075534d90796
                 // but it wasn't deemed reachable until by the later commit https://github.com/oracle/graal/commit/2e3a0ae220f202be8f92f8738b9ba3aea57aea7d
                 // Therefore we expect it only for 22.3+
-                expected.add("libmanagement_ext.a");
+                Set<String> modifiable = new HashSet<>(expected);
+                modifiable.add("libmanagement_ext.a");
+                expected = Collections.unmodifiableSet(modifiable);
             } else if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
                 // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
                 // NO-OP
             } else {
-                expected.add("libharfbuzz.a");
+                Set<String> modifiable = new HashSet<>(expected);
+                modifiable.add("libharfbuzz.a");
+                expected = Collections.unmodifiableSet(modifiable);
             }
 
             final Set<String> actual = listStaticLibs(executable);
