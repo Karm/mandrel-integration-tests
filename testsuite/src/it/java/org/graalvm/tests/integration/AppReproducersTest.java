@@ -303,6 +303,15 @@ public class AppReproducersTest {
         resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
     }
 
+    /**
+     * Resources handling changed:
+     *     3: N/A -> JDK
+     *    14: N/A -> JDK
+     * In https://github.com/oracle/graal/commit/8faf577
+     * @param testInfo
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Test
     @Tag("resources")
     @IfMandrelVersion(min = "22.3")
