@@ -23,41 +23,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: [ '1.11.7.Final', '2.5.4.Final', '2.7.6.Final' ]
+        quarkus-version: [ '1.11.7.Final', '2.7.6.Final', '2.13.0.Final' ]
         mandrel-builder-image: [
             '20.3-java11',
-            '21.2-java11',
             '21.3-java11',
             '21.3-java17',
-            '22.0-java11',
-            '22.0-java17'
+            '22.2-java11',
+            '22.2-java17'
         ]
         os: [ ubuntu-20.04 ]
         exclude:
-          - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '21.2-java11'
           - quarkus-version: '1.11.7.Final'
             mandrel-builder-image: '21.3-java11'
           - quarkus-version: '1.11.7.Final'
             mandrel-builder-image: '21.3-java17'
           - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '22.0-java11'
+            mandrel-builder-image: '22.2-java11'
           - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '22.0-java17'
-          - quarkus-version: '2.5.4.Final'
+            mandrel-builder-image: '22.2-java17'
+            
+          - quarkus-version: '2.7.6.Final'
             mandrel-builder-image: '20.3-java11'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-builder-image: '21.2-java11'
-          - quarkus-version: '2.5.4.Final'
+          - quarkus-version: '2.7.6.Final'
             mandrel-builder-image: '21.3-java17'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-builder-image: '22.0-java11'
-          - quarkus-version: '2.5.4.Final'
-            mandrel-builder-image: '22.0-java17'
           - quarkus-version: '2.7.6.Final'
+            mandrel-builder-image: '22.2-java11'
+          - quarkus-version: '2.7.6.Final'
+            mandrel-builder-image: '22.2-java17'
+
+          - quarkus-version: '2.13.0.Final'
             mandrel-builder-image: '20.3-java11'
-          - quarkus-version: '2.7.6.Final'
-            mandrel-builder-image: '21.2-java11'
+          - quarkus-version: '2.13.0.Final'
+            mandrel-builder-image: '21.3-java11'
+          - quarkus-version: '2.13.0.Final'
+            mandrel-builder-image: '21.3-java17'
     steps:
       - uses: actions/checkout@v2
         with:

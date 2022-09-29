@@ -22,11 +22,11 @@ package org.graalvm.tests.integration.utils;
 import java.io.File;
 
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
+import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
-import static org.graalvm.tests.integration.utils.Commands.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
 
 /**
