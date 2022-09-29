@@ -102,9 +102,9 @@ public enum BuildAndRunCmds {
     }),
     IMAGEIO(new String[][]{
             new String[]{"mvn", "clean", "package"},
-            new String[]{"java", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
+            new String[]{"java", "-Djava.awt.headless=true", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
             new String[]{"jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF"},
-            new String[]{"native-image", "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
+            new String[]{"native-image", "-J-Djava.awt.headless=true", "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
             new String[]{IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio"}
     }),
     IMAGEIO_BUILDER_IMAGE(new String[][]{
@@ -113,7 +113,7 @@ public enum BuildAndRunCmds {
             // TODO: Ad -u: Test access rights with -u on Windows, Docker Desktop Hyper-V backend vs. WSL2 backend.
             // Java from Builder image container is used for the sake of consistence.
             new String[]{CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
-                    "-t", "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
+                    "-t", "--entrypoint", "java", "-Djava.awt.headless=true", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
                     BUILDER_IMAGE,
                     "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
             // Jar could be used locally, but we use the one from container too.
@@ -125,7 +125,7 @@ public enum BuildAndRunCmds {
             new String[]{CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
                     BUILDER_IMAGE,
-                    "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
+                    "-J-Djava.awt.headless=true", "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
             // We build a runtime image, ubi 8 minimal based, runtime dependencies installed
             new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-t", ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "."},
             // We have to run int the same env as we run the java part above, i.e. in the same container base.
