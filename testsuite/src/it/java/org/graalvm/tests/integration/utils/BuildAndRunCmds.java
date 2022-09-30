@@ -22,6 +22,7 @@ package org.graalvm.tests.integration.utils;
 import java.io.File;
 
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
+import static org.graalvm.tests.integration.JFRTest.JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN;
 import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
@@ -127,7 +128,7 @@ public enum BuildAndRunCmds {
                     "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
             // We build a runtime image, ubi 8 minimal based, runtime dependencies installed
             new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-t", ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "."},
-            // We have to run int he same env as we run the java part above, i.e. in the same container base.
+            // We have to run int the same env as we run the java part above, i.e. in the same container base.
             // Hashsums of font rotations would differ otherwise as your linux host might have different freetype native libs.
             new String[]{CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/work:z",
@@ -152,7 +153,7 @@ public enum BuildAndRunCmds {
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
             new String[]{"native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java",
-                    "-XX:+FlightRecorder",
+                    JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
                     "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
                     "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke",
@@ -174,7 +175,7 @@ public enum BuildAndRunCmds {
                     "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
                     "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run",
                     BUILDER_IMAGE,
-                    "-XX:+FlightRecorder",
+                    JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
                     "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
                     "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{

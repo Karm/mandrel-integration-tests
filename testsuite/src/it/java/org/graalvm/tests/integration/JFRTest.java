@@ -53,6 +53,7 @@ import static org.graalvm.tests.integration.utils.Commands.cleanup;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
+import static org.graalvm.tests.integration.utils.Commands.replaceSwitchesInCmd;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -73,7 +74,9 @@ public class JFRTest {
 
     public enum JFROption {
         MONITOR_22("--enable-monitoring"),
-        MONITOR_21("-H:+AllowVMInspection");
+        MONITOR_21("-H:+AllowVMInspection"),
+        HOTSPOT_17_FLIGHT_RECORDER(""),
+        HOTSPOT_11_FLIGHT_RECORDER("-XX:+FlightRecorder");
 
         public final String replacement;
 
@@ -82,7 +85,10 @@ public class JFRTest {
         }
     }
 
+    // https://github.com/oracle/graal/pull/4823
     public static final String JFR_MONITORING_SWITCH_TOKEN = "<ALLOW_VM_INSPECTION>";
+    // https://bugs.openjdk.org/browse/JDK-8225312
+    public static final String JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN = "<FLIGHT_RECORDER>";
 
     @Test
     @Tag("builder-image")
@@ -115,7 +121,8 @@ public class JFRTest {
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
             final Map<String, String> switches;
-            if (UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE).compareTo(Version.create(22, 3, 0)) >= 0) {
+            final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) >= 0) {
                 switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_22.replacement);
             } else {
                 switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
@@ -128,6 +135,11 @@ public class JFRTest {
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();
             List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            if (UsedVersion.jdkFeature(inContainer) >= 17) {
+                replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_17_FLIGHT_RECORDER.replacement));
+            } else {
+                replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_11_FLIGHT_RECORDER.replacement));
+            }
             process = runCommand(cmd, appDir, processLog, app, inputData);
             process.waitFor(30, TimeUnit.SECONDS);
             long jvmRunTookMs = System.currentTimeMillis() - start;
