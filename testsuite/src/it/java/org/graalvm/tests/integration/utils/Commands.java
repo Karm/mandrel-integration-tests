@@ -702,10 +702,12 @@ public class Commands {
         for (int i = 0; i < steps; i++) {
             // We cannot run commands in parallel, we need them to follow one after another
             final ExecutorService buildService = Executors.newFixedThreadPool(1);
-            final List<String> cmd = Commands.getRunCommand(app.buildAndRunCmds.cmds[i]);
+            final List<String> cmd;
             // Replace possible placeholders with actual switches
             if (switchReplacements != null && !switchReplacements.isEmpty()) {
-                replaceSwitchesInCmd(cmd, switchReplacements);
+                cmd = replaceSwitchesInCmd(getRunCommand(app.buildAndRunCmds.cmds[i]), switchReplacements);
+            } else {
+                cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
             }
             buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 10, env)); // might take a long time....
             Logs.appendln(report, (new Date()).toString());
@@ -737,12 +739,20 @@ public class Commands {
         replaceInSmallTextFile(search, replace, file, Charset.defaultCharset());
     }
 
-    public static void replaceSwitchesInCmd(List<String> cmd, Map<String, String> switchReplacements) {
-        for (int i = 0; i < cmd.size(); i++) {
-            if (switchReplacements.containsKey(cmd.get(i).trim())) {
-                cmd.set(i, switchReplacements.get(cmd.get(i).trim()));
+    public static List<String> replaceSwitchesInCmd(List<String> cmd, Map<String, String> switchReplacements) {
+        final List<String> l = new ArrayList<>(cmd.size());
+        cmd.forEach(c -> {
+            final String k = c.trim();
+            if (switchReplacements.containsKey(k)) {
+                final String replacement = switchReplacements.get(k);
+                if (!replacement.isEmpty()) {
+                    l.add(replacement);
+                }
+            } else {
+                l.add(c);
             }
-        }
+        });
+        return l;
     }
 
     // Copied from
