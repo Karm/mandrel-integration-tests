@@ -149,8 +149,6 @@ public enum WhitelistLogLines {
             Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
             // https://github.com/oracle/graal/issues/4431
             Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*"),
-            // Deprecation
-            Pattern.compile(".*Option FlightRecorder was deprecated.*"),
     }),
 
     RESLOCATIONS(new Pattern[]{

@@ -19,11 +19,12 @@
  */
 package org.graalvm.tests.integration;
 
+import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
+import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
-import org.graalvm.tests.integration.utils.versions.GraalVersionProperty;
-import org.graalvm.tests.integration.utils.Commands;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -52,9 +53,9 @@ import static org.graalvm.tests.integration.utils.Commands.cleanup;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
+import static org.graalvm.tests.integration.utils.Commands.replaceSwitchesInCmd;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
-import static org.graalvm.tests.integration.utils.Commands.isVersion22_3OrBetter;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -71,24 +72,40 @@ public class JFRTest {
 
     public static final String BASE_DIR = getBaseDir();
 
+    public enum JFROption {
+        MONITOR_22("--enable-monitoring"),
+        MONITOR_21("-H:+AllowVMInspection"),
+        HOTSPOT_17_FLIGHT_RECORDER(""),
+        HOTSPOT_11_FLIGHT_RECORDER("-XX:+FlightRecorder");
+
+        public final String replacement;
+
+        JFROption(String replacement) {
+            this.replacement = replacement;
+        }
+    }
+
+    // https://github.com/oracle/graal/pull/4823
+    public static final String JFR_MONITORING_SWITCH_TOKEN = "<ALLOW_VM_INSPECTION>";
+    // https://bugs.openjdk.org/browse/JDK-8225312
+    public static final String JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN = "<FLIGHT_RECORDER>";
+
     @Test
     @Tag("builder-image")
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2", inContainer = true)
-    @GraalVersionProperty(inContainer = true)
     public void jfrSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrSmoke(testInfo, Apps.JFR_SMOKE_BUILDER_IMAGE, System.getProperty(GraalVersionProperty.NAME));
+        jfrSmoke(testInfo, Apps.JFR_SMOKE_BUILDER_IMAGE);
     }
 
     @Test
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2")
-    @GraalVersionProperty
     public void jfrSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrSmoke(testInfo, Apps.JFR_SMOKE, System.getProperty(GraalVersionProperty.NAME));
+        jfrSmoke(testInfo, Apps.JFR_SMOKE);
     }
 
-    public void jfrSmoke(TestInfo testInfo, Apps app, String graalVersion) throws IOException, InterruptedException {
+    public void jfrSmoke(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         Process process = null;
         File processLog = null;
@@ -102,21 +119,27 @@ public class JFRTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build and run
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
-
-            // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
-            // We should somehow capture this semantically in an Enum or something. This is fragile...
-            Commands.JFROption jfrOpt = Commands.JFROption.MONITOR_21;
-            if (isVersion22_3OrBetter(graalVersion)) {
-                jfrOpt = Commands.JFROption.MONITOR_22;
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+            final Map<String, String> switches;
+            final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) >= 0) {
+                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_22.replacement);
+            } else {
+                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
             }
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, jfrOpt);
+            // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
+            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
 
-            final File inputData = new File(BASE_DIR + File.separator + app.dir + File.separator + "target" + File.separator + "test_data.txt");
+            final File inputData = Path.of(BASE_DIR, app.dir, "target", "test_data.txt").toFile();
 
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();
             List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            if (UsedVersion.jdkFeature(inContainer) >= 17) {
+                cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_17_FLIGHT_RECORDER.replacement));
+            } else {
+                cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_11_FLIGHT_RECORDER.replacement));
+            }
             process = runCommand(cmd, appDir, processLog, app, inputData);
             process.waitFor(30, TimeUnit.SECONDS);
             long jvmRunTookMs = System.currentTimeMillis() - start;
@@ -144,9 +167,9 @@ public class JFRTest {
             validateDebugSmokeApp(processLog, cn, mn, process, app, jvmRunTookMs, nativeRunTookMs, report, "jfr");
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
-            if (app == Apps.JFR_SMOKE_BUILDER_IMAGE) {
+            if (app.runtimeContainer != ContainerNames.NONE) {
                 stopAllRunningContainers();
-                removeContainers(app.runtimeContainer.name + "-build", app.runtimeContainer.name + "-run");
+                removeContainers(app.runtimeContainer.name, app.runtimeContainer.name + "-build", app.runtimeContainer.name + "-run");
             }
         }
     }
@@ -155,17 +178,15 @@ public class JFRTest {
     @Tag("builder-image")
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2", inContainer = true)
-    @GraalVersionProperty(inContainer = true)
     public void jfrOptionsSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS_BUILDER_IMAGE, System.getProperty(GraalVersionProperty.NAME));
+        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS_BUILDER_IMAGE);
     }
 
     @Test
     @Tag("jfr")
     @IfMandrelVersion(min = "21.2")
-    @GraalVersionProperty
     public void jfrOptionsSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
-        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS, System.getProperty(GraalVersionProperty.NAME));
+        jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS);
     }
 
     /**
@@ -180,7 +201,7 @@ public class JFRTest {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void jfrOptionsSmoke(TestInfo testInfo, Apps app, String graalVersion) throws IOException, InterruptedException {
+    public void jfrOptionsSmoke(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -193,13 +214,15 @@ public class JFRTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build and run
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            Commands.JFROption jfrOpt = Commands.JFROption.MONITOR_21;
-            if (isVersion22_3OrBetter(graalVersion)) {
-                jfrOpt = Commands.JFROption.MONITOR_22;
+            final Map<String, String> switches;
+            if (UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE).compareTo(Version.create(22, 3, 0)) >= 0) {
+                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_22.replacement);
+            } else {
+                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
             }
-            builderRoutine(2, app, report, cn, mn, appDir, processLog, jfrOpt);
+            builderRoutine(2, app, report, cn, mn, appDir, processLog, null, switches);
 
             final Map<String[], Pattern> cmdOutput = new HashMap<>();
             cmdOutput.put(new String[]{"./target/timezones",
@@ -303,11 +326,10 @@ public class JFRTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
-            if (app == Apps.JFR_OPTIONS_BUILDER_IMAGE) {
+            if (app.runtimeContainer != ContainerNames.NONE) {
                 stopAllRunningContainers();
-                removeContainers(app.runtimeContainer.name + "-build");
+                removeContainers(app.runtimeContainer.name, app.runtimeContainer.name + "-build", app.runtimeContainer.name + "-run");
             }
         }
     }
-
 }
