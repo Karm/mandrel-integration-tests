@@ -25,7 +25,6 @@ import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
-import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -64,6 +63,7 @@ import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContain
 import static org.graalvm.tests.integration.utils.Commands.stopRunningContainers;
 import static org.graalvm.tests.integration.utils.Commands.waitForBufferToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -109,6 +109,7 @@ public class DebugSymbolsTest {
             processBuilder.directory(appDir)
                     .redirectErrorStream(true);
             final Process process = processBuilder.start();
+            assertNotNull(process, "GDB process failed to start.");
             final ExecutorService esvc = Executors.newCachedThreadPool();
             final StringBuffer stringBuffer = new StringBuffer();
             final Runnable reader = () -> {
@@ -179,6 +180,7 @@ public class DebugSymbolsTest {
             processBuilder.directory(appDir)
                     .redirectErrorStream(true);
             final Process process = processBuilder.start();
+            assertNotNull(process, "GDB process failed to start.");
             final ExecutorService esvc = Executors.newCachedThreadPool();
             final StringBuffer stringBuffer = new StringBuffer();
             final Runnable reader = () -> {
@@ -289,6 +291,7 @@ public class DebugSymbolsTest {
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
             final Process gdbProcess = processBuilder.start();
+            assertNotNull(gdbProcess, "GDB process in container failed to start.");
             final ExecutorService esvc = Executors.newCachedThreadPool();
             final StringBuffer stringBuffer = new StringBuffer();
             final Runnable reader = () -> {
