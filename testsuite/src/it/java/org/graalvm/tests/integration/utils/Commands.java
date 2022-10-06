@@ -176,7 +176,7 @@ public class Commands {
         final InetSocketAddress socketAddr = new InetSocketAddress(address, port);
         while (now - startTime < 1000 * loopTimeoutS) {
             try (Socket socket = new Socket()) {
-                // If it let's you write something there, it is still ready.
+                // If it lets you write something there, it is still ready.
                 socket.connect(socketAddr, 1000);
                 socket.setSendBufferSize(1);
                 socket.getOutputStream().write(1);
@@ -200,7 +200,7 @@ public class Commands {
     /**
      * There might be this weird glitch where native-image command completes
      * but the FS does not appear to have the resulting binary ready and executable for the
-     * next process *immediately*. Hence this small wait that mitigates this glitch.
+     * next process *immediately*. Hence, this small wait that mitigates this glitch.
      *
      * Note that nothing happens at the end of the timeout and the TS hopes for the best.
      *

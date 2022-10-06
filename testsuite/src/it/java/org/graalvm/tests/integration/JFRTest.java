@@ -56,6 +56,8 @@ import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.replaceSwitchesInCmd;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
+import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -141,6 +143,7 @@ public class JFRTest {
                 cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_11_FLIGHT_RECORDER.replacement));
             }
             process = runCommand(cmd, appDir, processLog, app, inputData);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
             long jvmRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
@@ -150,6 +153,7 @@ public class JFRTest {
             start = System.currentTimeMillis();
             cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
             long nativeRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
@@ -308,6 +312,7 @@ public class JFRTest {
                     final List<String> cmd = getRunCommand(co.getKey());
                     Files.writeString(interimLog, String.join(" ", cmd) + "\n", StandardOpenOption.CREATE_NEW);
                     final Process p = runCommand(cmd, appDir, interimLog.toFile(), app);
+                    assertNotNull(p, "Process failed to run.");
                     p.waitFor(3, TimeUnit.SECONDS);
                     Logs.appendln(report, appDir.getAbsolutePath());
                     Logs.appendlnSection(report, String.join(" ", cmd));

@@ -104,6 +104,7 @@ public class AppReproducersTest {
             LOGGER.info("Running...#1");
             List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -111,6 +112,7 @@ public class AppReproducersTest {
             LOGGER.info("Running...#2");
             cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -486,6 +488,7 @@ public class AppReproducersTest {
             LOGGER.info("Running...");
             final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(15, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -591,6 +594,7 @@ public class AppReproducersTest {
             LOGGER.info("Running...");
             List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -771,6 +775,7 @@ public class AppReproducersTest {
             long start = System.currentTimeMillis();
             List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
             long jvmRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
@@ -780,6 +785,7 @@ public class AppReproducersTest {
             start = System.currentTimeMillis();
             cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
             long nativeRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
