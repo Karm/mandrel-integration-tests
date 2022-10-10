@@ -87,7 +87,8 @@ public enum GDBSession {
                                 Pattern.compile(".*ClassA\\(int myNumber, String myString\\).*",
                                         Pattern.DOTALL)),
                 };
-            } else if (UsedVersion.getVersion(inContainer).compareTo(Version.create(21, 1, 0)) >= 0) {
+            } else if (UsedVersion.getVersion(inContainer).compareTo(Version.create(21, 1, 0)) >= 0 &&
+                       UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 2, 0)) <= 0) {
                 return new CP[]{
                         SHOW_VERSION,
                         new CP("run < ./test_data_small.txt\n",
@@ -133,6 +134,52 @@ public enum GDBSession {
                                 Pattern.compile(".*ClassA\\(int myNumber, String myString\\).*",
                                         Pattern.DOTALL)),
                 };
+            } else if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) >= 0) {
+                return new CP[]{
+                        SHOW_VERSION,
+                        new CP("run < ./test_data_small.txt\n",
+                                Pattern.compile(".*fdc7c50f390c145bc58a0bedbe5e6d2e35177ac73d12e2b23df149ce496a5572.*exited normally.*",
+                                        Pattern.DOTALL)),
+                        new CP("info functions .*smoke.*\n",
+                                Pattern.compile(
+                                        ".*File debug_symbols_smoke/ClassA.java:.*" +
+                                                "java.lang.String \\*debug_symbols_smoke.ClassA::toString\\(\\).*" +
+                                                "File debug_symbols_smoke/Main.java:.*" +
+                                                "void debug_symbols_smoke.Main\\$\\$Lambda\\$.*::accept\\(java.lang.Object\\*\\).*" +
+                                                "void debug_symbols_smoke.Main::lambda\\$thisIsTheEnd\\$0\\(java.io.ByteArrayOutputStream\\*, debug_symbols_smoke.ClassA\\*\\).*" +
+                                                "void debug_symbols_smoke.Main::main\\(java.lang.String\\[\\]\\*\\).*" +
+                                                "void debug_symbols_smoke.Main::thisIsTheEnd\\(java.util.List\\*\\).*"
+                                        , Pattern.DOTALL)),
+                        new CP("break Main.java:70\n",
+                                Pattern.compile(".*Breakpoint 1 at .*: file debug_symbols_smoke/Main.java, line 70.*",
+                                        Pattern.DOTALL)),
+                        new CP("break Main.java:71\n",
+                                Pattern.compile(".*Breakpoint 2 at .*: file debug_symbols_smoke/Main.java, line 71.*",
+                                        Pattern.DOTALL)),
+                        new CP("break Main.java:76\n",
+                                Pattern.compile(".*Breakpoint 3 at .*: file debug_symbols_smoke/Main.java, line 76.*",
+                                        Pattern.DOTALL)),
+                        new CP("run < ./test_data_small.txt\n",
+                                Pattern.compile(".*Breakpoint 1, .*while \\(sc.hasNextLine\\(\\)\\).*",
+                                        Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*Breakpoint 3, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:76.*String l = sc.nextLine\\(\\);.*",
+                                        Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*Breakpoint 2, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:71.* if \\(myString != null.*",
+                                        Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*Breakpoint 2, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:71.* if \\(myString != null.*",
+                                        Pattern.DOTALL)),
+                        new CP("d 2\n",
+                                Pattern.compile(".*", Pattern.DOTALL)),
+                        new CP("c\n",
+                                Pattern.compile(".*fdc7c50f390c145bc58a0bedbe5e6d2e35177ac73d12e2b23df149ce496a5572.*exited normally.*",
+                                        Pattern.DOTALL)),
+                        new CP("list ClassA.java:30\n",
+                                Pattern.compile(".*ClassA\\(int myNumber, String myString\\).*",
+                                        Pattern.DOTALL)),
+                };
             } else {
                 return new CP[]{
                         SHOW_VERSION,
@@ -142,7 +189,7 @@ public enum GDBSession {
                         new CP("info functions .*smoke.*\n",
                                 Pattern.compile(
                                         ".*File debug_symbols_smoke/ClassA.java:.*" +
-                                                "void debug_symbols_smoke.ClassA::toString.*void.*" +
+                                                "void debug_symbols_smoke.ClassA::toString.*" +
                                                 "File debug_symbols_smoke/Main\\$\\$Lambda.*.java:.*" +
                                                 "void debug_symbols_smoke.Main..Lambda..*::accept\\(java.lang.Object.*void.*" +
                                                 "File debug_symbols_smoke/Main.java:.*" +
