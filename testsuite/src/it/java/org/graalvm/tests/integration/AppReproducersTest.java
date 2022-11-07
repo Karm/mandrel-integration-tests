@@ -317,7 +317,7 @@ public class AppReproducersTest {
      */
     @Test
     @Tag("resources")
-    @IfMandrelVersion(min = "22.3")
+    @IfMandrelVersion(min = "22.3", max = "22.3")
     public void resLocationsD(TestInfo testInfo) throws IOException, InterruptedException {
         final String expectedOutput = "" +
                 "Resources folders:\n" +
@@ -367,6 +367,69 @@ public class AppReproducersTest {
                 "29: N/A\n" +
                 "30: JDK\n" +
                 "31: N/A\n";
+        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
+    }
+
+    /**
+     * Resources handling changed:
+     *    31: N/A -> JDK
+     * In https://github.com/oracle/graal/commit/3e9313ec2f41e96dcd1a3a621675adc2e9e3f8ac
+     * @param testInfo
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Test
+    @Tag("resources")
+    @IfMandrelVersion(min = "23.0")
+    public void resLocationsE(TestInfo testInfo) throws IOException, InterruptedException {
+        final String expectedOutput = "" +
+                "Resources folders:\n" +
+                "0:  N/A\n" +
+                "1:  N/A\n" +
+                "2:  N/A\n" +
+                "3:  N/A\n" +
+                "4:  NO_SLASH FOLDER\n" +
+                "5:  SLASH FOLDER\n" +
+                "6:  N/A\n" +
+                "7:  N/A\n" +
+                "8:  N/A\n" +
+                "9:  N/A\n" +
+                "10: N/A\n" +
+                "11: N/A\n" +
+                "\n" +
+                "iio-plugin.properties:\n" +
+                "0:  N/A\n" +
+                "1:  APP\n" +
+                "2:  N/A\n" +
+                "3:  JDK\n" +
+                "4:  JDK\n" +
+                "5:  N/A\n" +
+                "6:  N/A\n" +
+                "7:  JDK\n" +
+                "8:  JDK\n" +
+                "9:  N/A\n" +
+                "10: N/A\n" +
+                "11: JDK\n" +
+                "12: APP\n" +
+                "13: N/A\n" +
+                "14: JDK\n" +
+                "15: N/A\n" +
+                "16: JDK\n" +
+                "17: N/A\n" +
+                "18: N/A\n" +
+                "19: JDK\n" +
+                "20: JDK\n" +
+                "21: N/A\n" +
+                "22: N/A\n" +
+                "23: JDK\n" +
+                "24: JDK\n" +
+                "25: N/A\n" +
+                "26: N/A\n" +
+                "27: JDK\n" +
+                "28: N/A\n" +
+                "29: N/A\n" +
+                "30: JDK\n" +
+                "31: JDK\n";
         resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
     }
 
