@@ -24,8 +24,10 @@ import java.io.File;
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
 import static org.graalvm.tests.integration.JFRTest.JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN;
 import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
+import static org.graalvm.tests.integration.PerfCheckTest.MX_HEAP_MB;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
@@ -36,19 +38,82 @@ import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
  * The last command is used to run the final binary.
  * All previous commands are used to build it.
  *
+ * Hints:
+ * Tempted to use e.g. UsedVersion.getVersion(... here? Might not work.
+ * Builder image tests do not require the host env to have native-image installed.
+ *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 public enum BuildAndRunCmds {
-    // Note that at least 2 command are expected. One or more to build. The last one to run the app.
+    // Note that at least 2 commands are expected. One or more to build. The last one to run the app.
     // Make sure you use an explicit --name when running the app as a container. It is used throughout the TS.
     QUARKUS_FULL_MICROPROFILE(new String[][]{
-            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
+            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.native.additional-build-args=" +
+                            "-H:Log=registerResource:," +
+                            "--trace-object-instantiation=java.util.Random," +
+                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT"
+            },
             new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
     }),
     DEBUG_QUARKUS_FULL_MICROPROFILE(new String[][]{
-            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
+            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.native.additional-build-args=" +
+                            "-H:Log=registerResource:," +
+                            "--trace-object-instantiation=java.util.Random," +
+                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT"
+            },
             new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
+    }),
+    QUARKUS_FULL_MICROPROFILE_PERF(new String[][]{
+            new String[]{"mvn", "clean", "compile", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.native.additional-build-args=" +
+                            "-H:Log=registerResource:," +
+                            "--trace-object-instantiation=java.util.Random," +
+                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT," +
+                            "-R:MaxHeapSize=" + MX_HEAP_MB + "m" +
+                            GRAALVM_BUILD_OUTPUT_JSON_FILE
+            },
+            // GC: https://github.com/Karm/mandrel-integration-tests/pull/127#discussion_r1066802872
+            // -XX:+UseShenandoahGC
+            // -XX:+UseSerialGC
+            // -XX:+UseG1GC
+            // Profile capture:
+            // No "--delay", "2000",  for perf o capture startup too...
+            new String[]{"perf", "stat", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar"},
+            new String[]{"perf", "stat", "./target/quarkus-runner", "-XX:+PrintGC"}
+    }),
+    QUARKUS_JSON_PERF_PARSEONCE(new String[][]{
+            // TODO tune and report: https://www.graalvm.org/22.0/reference-manual/native-image/MemoryManagement/
+            new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.native.additional-build-args=" +
+                            "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
+                            "-H:-ParseOnce" +
+                            GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
+                    "-Dfinal.name=quarkus-json_-ParseOnce"},
+            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.native.additional-build-args=" +
+                            "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
+                            "-H:+ParseOnce" +
+                            GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce",
+                    "-Dfinal.name=quarkus-json_+ParseOnce"},
+            //-XX:+UseShenandoahGC
+            //-XX:+UseSerialGC
+            //-XX:+UseG1GC
+            new String[]{"perf", "stat", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar"},
+            new String[]{"perf", "stat", "--delay", "1000", "./target/quarkus-json_-ParseOnce-runner", "-XX:+PrintGC"},
+            new String[]{"perf", "stat", "--delay", "1000", "./target/quarkus-json_+ParseOnce-runner", "-XX:+PrintGC"}
+    }),
+    QUARKUS_JSON_PERF(new String[][]{
+            // TODO tune and report: https://www.graalvm.org/22.0/reference-manual/native-image/MemoryManagement/
+            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.native.additional-build-args=" +
+                            "-R:MaxHeapSize=" + MX_HEAP_MB + "m" +
+                            GRAALVM_BUILD_OUTPUT_JSON_FILE,
+                    "-Dfinal.name=quarkus-json"},
+            new String[]{"perf", "stat", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar"},
+            new String[]{"perf", "stat", "--delay", "1000", "./target/quarkus-json-runner", "-XX:+PrintGC"},
     }),
     QUARKUS_BUILDER_IMAGE_ENCODING(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",

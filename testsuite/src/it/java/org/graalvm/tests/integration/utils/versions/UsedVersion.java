@@ -105,7 +105,9 @@ public class UsedVersion {
                 try {
                     lastLine = Commands.runCommand(cmd).trim();
                 } catch (IOException e) {
-                    throw new RuntimeException("Is native-image command available?", e);
+                    throw new RuntimeException("Is native-image command available? Check if you are not trying " +
+                            "to run tests expecting locally installed native-image without having one. -Ptestsuite-builder-image is the " +
+                            "correct profile for running without locally installed native-image.", e);
                 }
             }
 
