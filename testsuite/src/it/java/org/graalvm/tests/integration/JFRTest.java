@@ -75,7 +75,7 @@ public class JFRTest {
     public static final String BASE_DIR = getBaseDir();
 
     public enum JFROption {
-        MONITOR_22("--enable-monitoring"),
+        MONITOR_22("--enable-monitoring=jfr"),
         MONITOR_21("-H:+AllowVMInspection"),
         HOTSPOT_17_FLIGHT_RECORDER(""),
         HOTSPOT_11_FLIGHT_RECORDER("-XX:+FlightRecorder");
