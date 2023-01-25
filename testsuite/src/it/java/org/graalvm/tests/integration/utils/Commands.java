@@ -73,14 +73,14 @@ public class Commands {
             "docker");
     public static final String BUILDER_IMAGE = getProperty(
             new String[]{"QUARKUS_NATIVE_BUILDER_IMAGE", "quarkus.native.builder-image"},
-            "quay.io/quarkus/ubi-quarkus-mandrel:21.3-java11");
+            "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(
             getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
     public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(
             getProperty(
                     new String[]{"QUARKUS_VERSION", "quarkus.version"},
-                    "2.7.6.Final"));
+                    "2.13.7.Final"));
     public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(
             getProperty(new String[]{"FAIL_ON_PERF_REGRESSION", "fail.on.perf.regression"}, "true"));
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");

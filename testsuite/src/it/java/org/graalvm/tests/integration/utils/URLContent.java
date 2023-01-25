@@ -29,9 +29,6 @@ import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 public enum URLContent {
     NONE(new String[][]{}),
 
-    MICRONAUT_HELLOWORLD(new String[][]{
-            new String[]{"http://localhost:8080/hello", "Hello World"}}),
-
     QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.majorIs(1) ? "" : "q/") + "health", "\"UP\""},
             new String[]{"http://localhost:8080/" + (QUARKUS_VERSION.majorIs(1) ? "" : "q/") + "metrics", "ontroller_timed_request_seconds_count"},

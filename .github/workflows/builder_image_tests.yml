@@ -23,39 +23,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: [ '1.11.7.Final', '2.7.6.Final', '2.13.0.Final' ]
+        quarkus-version: [ '2.7.6.Final', '2.13.7.Final', '2.16.0.Final' ]
         mandrel-builder-image: [
-            '20.3-java11',
             '21.3-java11',
             '21.3-java17',
-            '22.2-java11',
-            '22.2-java17'
+            '22.3-java17'
         ]
         os: [ ubuntu-20.04 ]
         exclude:
-          - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '21.3-java11'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '21.3-java17'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '22.2-java11'
-          - quarkus-version: '1.11.7.Final'
-            mandrel-builder-image: '22.2-java17'
-            
-          - quarkus-version: '2.7.6.Final'
-            mandrel-builder-image: '20.3-java11'
           - quarkus-version: '2.7.6.Final'
             mandrel-builder-image: '21.3-java17'
           - quarkus-version: '2.7.6.Final'
-            mandrel-builder-image: '22.2-java11'
-          - quarkus-version: '2.7.6.Final'
-            mandrel-builder-image: '22.2-java17'
+            mandrel-builder-image: '22.3-java17'
 
-          - quarkus-version: '2.13.0.Final'
-            mandrel-builder-image: '20.3-java11'
-          - quarkus-version: '2.13.0.Final'
+          - quarkus-version: '2.13.7.Final'
             mandrel-builder-image: '21.3-java11'
-          - quarkus-version: '2.13.0.Final'
+          - quarkus-version: '2.13.7.Final'
+            mandrel-builder-image: '21.3-java17'
+
+          - quarkus-version: '2.16.0.Final'
+            mandrel-builder-image: '21.3-java11'
+          - quarkus-version: '2.16.0.Final'
             mandrel-builder-image: '21.3-java17'
     steps:
       - uses: actions/checkout@v2
@@ -72,7 +60,7 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: '11'
+          java-version: '17'
           check-latest: true
       - name: Linux test
         if: startsWith(matrix.os, 'ubuntu')
@@ -85,7 +73,7 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite-builder-image -Dquarkus.version=${{ matrix.quarkus-version }} -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel:${{ matrix.mandrel-builder-image }}
+          mvn clean verify -Ptestsuite-builder-image -Dquarkus.version=${{ matrix.quarkus-version }} -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-image }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()

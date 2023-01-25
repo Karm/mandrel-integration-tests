@@ -25,7 +25,6 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
-import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -46,7 +45,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.findExecutable;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
@@ -188,18 +186,7 @@ public class RuntimesSmokeTest {
     @Test
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
-        if (QUARKUS_VERSION.majorIs(1)) {
-            try {
-                runCommand(getRunCommand("git", "apply", "quarkus_1.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
-                testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
-            } finally {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_1.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
-            }
-        } else {
-            testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
-        }
+        testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
     }
 
     @Test
@@ -207,13 +194,6 @@ public class RuntimesSmokeTest {
     @Tag("quarkus")
     public void quarkusEncodingIssues(TestInfo testInfo) throws IOException, InterruptedException {
         testRuntime(testInfo, Apps.QUARKUS_BUILDER_IMAGE_ENCODING);
-    }
-
-    @Test
-    @Tag("micronaut")
-    @IfMandrelVersion(min = "20.1.0.4", max = "20.3.2")
-    public void micronautHelloWorld(TestInfo testInfo) throws IOException, InterruptedException {
-        testRuntime(testInfo, Apps.MICRONAUT_HELLOWORLD);
     }
 
     @Test
