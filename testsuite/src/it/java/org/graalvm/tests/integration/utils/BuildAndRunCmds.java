@@ -71,11 +71,6 @@ public enum BuildAndRunCmds {
             new String[]{CONTAINER_RUNTIME, "run", "--network=host", "--cap-add=SYS_PTRACE", "--security-opt=seccomp=unconfined",
                     "-i", "-d", "--rm", "--name", ContainerNames.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.name, "my-quarkus-mandrel-app"}
     }),
-    MICRONAUT_HELLOWORLD(new String[][]{
-            new String[]{"mvn", "package"},
-            new String[]{"native-image", "-jar", "target/helloworld.jar", "target/helloWorld"},
-            new String[]{IS_THIS_WINDOWS ? "target\\helloWorld.exe" : "./target/helloWorld"}
-    }),
     RANDOM_NUMBERS(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "-jar", "target/random-numbers.jar", "target/random-numbers"},

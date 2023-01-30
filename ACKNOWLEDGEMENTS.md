@@ -10,10 +10,6 @@ by Michal Karm Babacek <karm@redhat.com> and licensed under Apache 2 license.
 Furthermore, some parts of the TS design were derived from [https://github.com/quarkus-qe/quarkus-startstop](https://github.com/quarkus-qe/quarkus-startstop)
 The original work was authored by Michal Karm Babacek <karm@redhat.com> and licensed under Apache 2 license.
 
-## Micronaut
-Micronaut Hello World application was adapted from a generated quickstart project on [https://micronaut.io/launch/](https://micronaut.io/launch/) 
-and from the Micronaut's cli tool generated `mn create-app hello-world --build maven` project.
-
 ## Helidon
 Helidon example app was adapted from a Helidon SE QuickStart archetype. See [QuickStart](https://helidon.io/docs/latest/#/se/guides/02_quickstart).
 

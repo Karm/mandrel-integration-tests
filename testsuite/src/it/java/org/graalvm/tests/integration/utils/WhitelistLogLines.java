@@ -30,8 +30,6 @@ public enum WhitelistLogLines {
 
     // This is appended to all undermentioned listings
     ALL(new Pattern[]{
-            // https://github.com/graalvm/mandrel/issues/125
-            Pattern.compile(".*Using an older version of the labsjdk-11.*"),
             // Harmless download, e.g.
             // Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-error-diagnostics...
             Pattern.compile(".*maven-error-diagnostics.*"),
@@ -45,15 +43,6 @@ public enum WhitelistLogLines {
     }),
 
     NONE(new Pattern[]{}),
-
-    MICRONAUT_HELLOWORLD(new Pattern[]{
-            // Maven shade plugin warning, harmless.
-            Pattern.compile(".*Discovered module-info.class. Shading will break its strong encapsulation.*"),
-            // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
-            Pattern.compile(".*GR-10238.*"),
-            // A Windows specific warning
-            Pattern.compile(".*Failed to create WindowsAnsiOutputStream.*")
-    }),
 
     IMAGEIO(new Pattern[]{
             // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
@@ -70,9 +59,6 @@ public enum WhitelistLogLines {
     }),
 
     QUARKUS_FULL_MICROPROFILE(new Pattern[]{
-            // Some artifacts names...
-            Pattern.compile(".*maven-error-diagnostics.*"),
-            Pattern.compile(".*errorprone.*"),
             // Well, the RestClient demo probably should do some cleanup before shutdown...?
             Pattern.compile(".*Closing a class org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient.*"),
             // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
@@ -101,7 +87,9 @@ public enum WhitelistLogLines {
             Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
             Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
             // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
-            Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*")
+            Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"),
+            // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
+            Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
     }),
 
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
@@ -122,7 +110,9 @@ public enum WhitelistLogLines {
             // Not sure, definitely not Mandrel related though
             Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
             Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
-            Pattern.compile(".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead.")
+            Pattern.compile(".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead."),
+            // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
+            Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
     }),
 
     HELIDON_QUICKSTART_SE(new Pattern[]{
@@ -142,13 +132,15 @@ public enum WhitelistLogLines {
             // Params quirk, harmless
             Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
             Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
+            // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
+            Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
+            // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
+            Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
     }),
 
     JFR(new Pattern[]{
             // https://github.com/oracle/graal/issues/3636
             Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
-            // https://github.com/oracle/graal/issues/4431
-            Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*"),
     }),
 
     RESLOCATIONS(new Pattern[]{

@@ -164,12 +164,6 @@ public class DebugSymbolsTest {
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
-            // Patch for compatibility
-            if (QUARKUS_VERSION.majorIs(1)) {
-                runCommand(getRunCommand("git", "apply", "quarkus_1.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
-            }
-
             // Build
             processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
@@ -226,10 +220,6 @@ public class DebugSymbolsTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
-            if (QUARKUS_VERSION.majorIs(1)) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_1.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
-            }
         }
     }
 

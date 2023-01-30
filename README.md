@@ -1,6 +1,6 @@
 # Native image integration tests
 Builds Native image executables for small applications based on some Native image capable runtimes such
-as Quarkus, Micronaut and Helidon. It also provides a convenient way of building small test apps for Native image backbox testing.
+as Quarkus and Helidon. It also provides a convenient way of building small test apps for Native image backbox testing.
 
 ## Prerequisites
 
@@ -30,13 +30,13 @@ mvn clean verify -Ptestsuite
 ```
 
 One can fine-tune excluded test cases or tests with `excludeTags`, e.g. `-DexcludeTags=runtimes`
-to exclude all `runtimes` tests or `-DexcludeTags=micronaut` to exclude just one of them. 
+to exclude all `runtimes` tests or `-DexcludeTags=helidon` to exclude just one of them. 
 You can also exclude everything and include just `reproducers` suite: `-DexcludeTags=all -DincludeTags=reproducers`
 
 ## Downloading a lot of data
 
 While the testsuite itself doesn't have many dependencies, it downloads all that is needed
-to build enclosed Quarkus, Micronaut and Helidon projects.
+to build enclosed Quarkus and Helidon projects.
 
 ## RuntimesSmokeTest
 
@@ -144,9 +144,9 @@ For logs checking, see an example failure before we whitelisted the particular w
 
 ```
 [ERROR] Failures: 
-[ERROR]   RuntimesSmokeTest.micronautHelloWorld:154->testRuntime:91 
+[ERROR]   RuntimesSmokeTest.helidonHelloWorld:154->testRuntime:91 
   build-and-run.log log should not contain error or warning lines that are not whitelisted.
-  See testsuite/target/archived-logs/org.graalvm.tests.integration.RuntimesSmokeTest/micronautHelloWorld/build-and-run.log
+  See testsuite/target/archived-logs/org.graalvm.tests.integration.RuntimesSmokeTest/helidonHelloWorld/build-and-run.log
   and check these offending lines: 
     [WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
 ```
