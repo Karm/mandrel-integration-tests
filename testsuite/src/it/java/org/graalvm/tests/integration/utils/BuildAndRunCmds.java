@@ -136,6 +136,7 @@ public enum BuildAndRunCmds {
                     :
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
             new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
+                    "-H:+TrackNodeSourcePosition", // Explicitly added as it is no longer enabled by default starting with GraalVM 23.0
                     "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
