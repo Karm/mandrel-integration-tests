@@ -149,7 +149,7 @@ public class PerfCheckTest {
                         GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", ""
                 );
             }
-            builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(3, app, null, null, null, appDir, processLog, null, switches);
             assertTrue(processLog.exists());
 
             int line = 0;
@@ -277,7 +277,7 @@ public class PerfCheckTest {
             } else {
                 switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
             }
-            builderRoutine(1, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
 
             int line = 0;
             for (int i = 2; i >= 1; i--) {
@@ -399,7 +399,7 @@ public class PerfCheckTest {
             } else {
                 switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
             }
-            builderRoutine(1, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
 
             int line = 0;
             for (int i = 2; i >= 1; i--) {
