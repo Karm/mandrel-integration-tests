@@ -45,6 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.findExecutable;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
@@ -186,14 +187,36 @@ public class RuntimesSmokeTest {
     @Test
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
-        testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+        if (QUARKUS_VERSION.majorIs(3)) {
+            try {
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+                testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+            } finally {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+            }
+        } else {
+            testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+        }
     }
 
     @Test
     @Tag("builder-image")
     @Tag("quarkus")
     public void quarkusEncodingIssues(TestInfo testInfo) throws IOException, InterruptedException {
-        testRuntime(testInfo, Apps.QUARKUS_BUILDER_IMAGE_ENCODING);
+        if (QUARKUS_VERSION.majorIs(3)) {
+            try {
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_BUILDER_IMAGE_ENCODING.dir).toFile());
+                testRuntime(testInfo, Apps.QUARKUS_BUILDER_IMAGE_ENCODING);
+            } finally {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_BUILDER_IMAGE_ENCODING.dir).toFile());
+            }
+        } else {
+            testRuntime(testInfo, Apps.QUARKUS_BUILDER_IMAGE_ENCODING);
+        }
     }
 
     @Test

@@ -164,6 +164,12 @@ public class DebugSymbolsTest {
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
+            // Patch for compatibility
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+            }
+
             // Build
             processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
@@ -220,6 +226,10 @@ public class DebugSymbolsTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
+                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+            }
         }
     }
 
@@ -245,6 +255,7 @@ public class DebugSymbolsTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final Pattern dbReady = Pattern.compile(".*ready to accept connections.*");
+        final File patchDir = Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile();
         try {
             // Cleanup
             cleanTarget(app);
@@ -252,12 +263,13 @@ public class DebugSymbolsTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             if (applySourcesPatch()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"),
-                        Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
+                runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), patchDir);
             }
             if (QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_snapshot.patch"),
-                        Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
+                runCommand(getRunCommand("git", "apply", "quarkus_snapshot.patch"), patchDir);
+            }
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), patchDir);
             }
 
             // Build & Run
@@ -331,8 +343,13 @@ public class DebugSymbolsTest {
             stopAllRunningContainers();
             removeContainers(app.runtimeContainer.name, "quarkus_test_db");
             if (applySourcesPatch()) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"),
-                        Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile());
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"), patchDir);
+            }
+            if (QUARKUS_VERSION.isSnapshot()) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_snapshot.patch"), patchDir);
+            }
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), patchDir);
             }
         }
     }

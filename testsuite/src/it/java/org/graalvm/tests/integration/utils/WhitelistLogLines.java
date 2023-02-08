@@ -61,8 +61,6 @@ public enum WhitelistLogLines {
     QUARKUS_FULL_MICROPROFILE(new Pattern[]{
             // Well, the RestClient demo probably should do some cleanup before shutdown...?
             Pattern.compile(".*Closing a class org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient.*"),
-            // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
-            Pattern.compile(".*GR-10238.*"),
             // Unused argument on new Graal; Quarkus uses it for backward compatibility.
             Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
             // Windows specific warning
@@ -93,8 +91,6 @@ public enum WhitelistLogLines {
     }),
 
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
-            // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
-            Pattern.compile(".*GR-10238.*"),
             // Container image build
             Pattern.compile(".*lib.*-WARNING .*"),
             // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests

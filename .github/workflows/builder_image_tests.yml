@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: [ '2.7.6.Final', '2.13.7.Final', '2.16.0.Final' ]
+        quarkus-version: [ '2.7.6.Final', '2.13.7.Final', '2.16.0.Final', '3.0.0.Alpha3' ]
         mandrel-builder-image: [
             '21.3-java11',
             '21.3-java17',
@@ -44,6 +44,11 @@ jobs:
           - quarkus-version: '2.16.0.Final'
             mandrel-builder-image: '21.3-java11'
           - quarkus-version: '2.16.0.Final'
+            mandrel-builder-image: '21.3-java17'
+
+          - quarkus-version: '3.0.0.Alpha3'
+            mandrel-builder-image: '21.3-java11'
+          - quarkus-version: '3.0.0.Alpha3'
             mandrel-builder-image: '21.3-java17'
     steps:
       - uses: actions/checkout@v2
