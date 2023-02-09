@@ -21,7 +21,6 @@ package org.graalvm.tests.integration;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
@@ -308,9 +307,10 @@ public class AppReproducersTest {
 
     /**
      * Resources handling changed:
-     *     3: N/A -> JDK
-     *    14: N/A -> JDK
+     * 3: N/A -> JDK
+     * 14: N/A -> JDK
      * In https://github.com/oracle/graal/commit/8faf577
+     *
      * @param testInfo
      * @throws IOException
      * @throws InterruptedException
@@ -372,8 +372,9 @@ public class AppReproducersTest {
 
     /**
      * Resources handling changed:
-     *    31: N/A -> JDK
+     * 31: N/A -> JDK
      * In https://github.com/oracle/graal/commit/3e9313ec2f41e96dcd1a3a621675adc2e9e3f8ac
+     *
      * @param testInfo
      * @throws IOException
      * @throws InterruptedException
