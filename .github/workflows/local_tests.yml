@@ -31,39 +31,27 @@ jobs:
           - quarkus-version: '2.7.6.Final'
             mandrel-version: '21.3.5.1-Final'
             java-version: '17'
+
           - quarkus-version: '2.7.6.Final'
             mandrel-version: '22.3.1.0-Final'
-            java-version: '11'
-          - quarkus-version: '2.7.6.Final'
-            mandrel-version: '22.3.1.0-Final'
-            java-version: '17'
 
           - quarkus-version: '2.13.7.Final'
             mandrel-version: '21.3.5.1-Final'
-            java-version: '11'
-          - quarkus-version: '2.13.7.Final'
-            mandrel-version: '21.3.5.1-Final'
-            java-version: '17'
+
           - quarkus-version: '2.13.7.Final'
             mandrel-version: '22.3.1.0-Final'
             java-version: '11'
 
           - quarkus-version: '2.16.1.Final'
             mandrel-version: '21.3.5.1-Final'
-            java-version: '11'
-          - quarkus-version: '2.16.1.Final'
-            mandrel-version: '21.3.5.1-Final'
-            java-version: '17'
+
           - quarkus-version: '2.16.1.Final'
             mandrel-version: '22.3.1.0-Final'
             java-version: '11'
 
           - quarkus-version: '3.0.0.Alpha3'
             mandrel-version: '21.3.5.1-Final'
-            java-version: '11'
-          - quarkus-version: '3.0.0.Alpha3'
-            mandrel-version: '21.3.5.1-Final'
-            java-version: '17'
+
           - quarkus-version: '3.0.0.Alpha3'
             mandrel-version: '22.3.1.0-Final'
             java-version: '11'
@@ -149,6 +137,7 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
+          echo 0 | sudo tee /proc/sys/kernel/perf_event_paranoid
           mvn clean verify -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
