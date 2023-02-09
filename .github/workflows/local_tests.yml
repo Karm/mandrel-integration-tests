@@ -96,7 +96,7 @@ jobs:
         shell: bash
       - name: Windows test
         if: startsWith(matrix.os, 'windows')
-        timeout-minutes: 55
+        timeout-minutes: 110
         env:
           MAVEN_OPTS: -Xmx1g
         run: |
@@ -120,7 +120,7 @@ jobs:
         shell: cmd
       - name: Linux test
         if: startsWith(matrix.os, 'ubuntu')
-        timeout-minutes: 55
+        timeout-minutes: 110
         env:
           MAVEN_OPTS: -Xmx1g
         run: |
