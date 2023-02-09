@@ -109,6 +109,8 @@ public enum WhitelistLogLines {
             Pattern.compile(".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead."),
             // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
             Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
+            // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
+            Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
     }),
 
     HELIDON_QUICKSTART_SE(new Pattern[]{
