@@ -76,8 +76,8 @@ public class RuntimesSmokeTest {
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         Process process = null;
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
-        final File processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final File processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
         final StringBuilder report = new StringBuilder();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();

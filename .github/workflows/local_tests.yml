@@ -128,7 +128,7 @@ jobs:
           pushd ts
           mkdir ~/.m2
           copy .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite -Dquarkus.version=${{ matrix.quarkus-version }}
+          mvn clean verify -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: cmd
       - name: Linux test
         if: startsWith(matrix.os, 'ubuntu')
@@ -149,7 +149,7 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite -Dquarkus.version=${{ matrix.quarkus-version }}
+          mvn clean verify -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()

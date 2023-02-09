@@ -88,7 +88,7 @@ public class DebugSymbolsTest {
         LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -97,7 +97,7 @@ public class DebugSymbolsTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
@@ -156,7 +156,7 @@ public class DebugSymbolsTest {
         LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -171,7 +171,7 @@ public class DebugSymbolsTest {
             }
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
 
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/quarkus-runner"));
@@ -251,11 +251,10 @@ public class DebugSymbolsTest {
         LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final Pattern dbReady = Pattern.compile(".*ready to accept connections.*");
-        final File patchDir = Path.of(BASE_DIR, Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX.dir).toFile();
         try {
             // Cleanup
             cleanTarget(app);
@@ -263,17 +262,17 @@ public class DebugSymbolsTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             if (applySourcesPatch()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), patchDir);
+                runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), appDir);
             }
             if (QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_snapshot.patch"), patchDir);
+                runCommand(getRunCommand("git", "apply", "quarkus_snapshot.patch"), appDir);
             }
             if (QUARKUS_VERSION.majorIs(3)) {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), patchDir);
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
             // Build & Run
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
             builderRoutine(app.buildAndRunCmds.cmds.length, app, report, cn, mn, appDir, processLog);
 
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
@@ -343,13 +342,13 @@ public class DebugSymbolsTest {
             stopAllRunningContainers();
             removeContainers(app.runtimeContainer.name, "quarkus_test_db");
             if (applySourcesPatch()) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"), patchDir);
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"), appDir);
             }
             if (QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_snapshot.patch"), patchDir);
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_snapshot.patch"), appDir);
             }
             if (QUARKUS_VERSION.majorIs(3)) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), patchDir);
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }
     }
@@ -396,5 +395,4 @@ public class DebugSymbolsTest {
                 "Note that commands in the session might depend on each other. Errors: " +
                 System.lineSeparator() + String.join(", " + System.lineSeparator(), errorQueue));
     }
-
 }

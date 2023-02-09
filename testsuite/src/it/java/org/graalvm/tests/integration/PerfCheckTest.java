@@ -136,6 +136,10 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
+            }
+
             // Build executables
             final Map<String, String> switches;
             if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
@@ -238,6 +242,7 @@ public class PerfCheckTest {
             LOGGER.info("Gonna wait for ports closed...");
             Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                     "Main port is still open");
+            Logs.checkLog(cn, mn, app, processLog);
         } finally {
             Files.deleteIfExists(json.toPath());
             if (process != null) {
@@ -249,6 +254,9 @@ public class PerfCheckTest {
                     "quarkus-json_+ParseOnce-native-image-source-jar", "quarkus-json_plus-ParseOnce.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
+            }
         }
     }
 
@@ -271,6 +279,11 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
+            }
+
+            // Build executables
             final Map<String, String> switches;
             if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
                 switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
@@ -364,6 +377,7 @@ public class PerfCheckTest {
             LOGGER.info("Gonna wait for ports closed...");
             Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                     "Main port is still open");
+            Logs.checkLog(cn, mn, app, processLog);
         } finally {
             Files.deleteIfExists(json.toPath());
             if (process != null) {
@@ -373,6 +387,9 @@ public class PerfCheckTest {
                     "quarkus-json-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
+            }
         }
     }
 
@@ -393,6 +410,11 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
+            }
+
+            // Build executables
             final Map<String, String> switches;
             if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
                 switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
@@ -486,6 +508,9 @@ public class PerfCheckTest {
                     "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
+            if (QUARKUS_VERSION.majorIs(3)) {
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
+            }
         }
     }
 }

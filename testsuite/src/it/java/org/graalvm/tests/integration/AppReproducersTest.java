@@ -88,7 +88,7 @@ public class AppReproducersTest {
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -97,7 +97,7 @@ public class AppReproducersTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
@@ -437,7 +437,7 @@ public class AppReproducersTest {
         LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -446,7 +446,7 @@ public class AppReproducersTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
@@ -512,7 +512,7 @@ public class AppReproducersTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
@@ -634,7 +634,7 @@ public class AppReproducersTest {
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -643,7 +643,7 @@ public class AppReproducersTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
@@ -722,7 +722,7 @@ public class AppReproducersTest {
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -731,7 +731,7 @@ public class AppReproducersTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
@@ -765,7 +765,7 @@ public class AppReproducersTest {
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -774,7 +774,7 @@ public class AppReproducersTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             builderRoutine(2, app, report, cn, mn, appDir, processLog);
 
@@ -810,7 +810,7 @@ public class AppReproducersTest {
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -819,7 +819,7 @@ public class AppReproducersTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
-            processLog = new File(appDir.getAbsolutePath() + File.separator + "logs" + File.separator + "build-and-run.log");
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
