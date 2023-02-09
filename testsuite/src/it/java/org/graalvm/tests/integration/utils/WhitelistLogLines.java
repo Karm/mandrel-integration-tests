@@ -60,7 +60,7 @@ public enum WhitelistLogLines {
 
     QUARKUS_FULL_MICROPROFILE(new Pattern[]{
             // Well, the RestClient demo probably should do some cleanup before shutdown...?
-            Pattern.compile(".*Closing a class org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient.*"),
+            Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"),
             // Unused argument on new Graal; Quarkus uses it for backward compatibility.
             Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
             // Windows specific warning
