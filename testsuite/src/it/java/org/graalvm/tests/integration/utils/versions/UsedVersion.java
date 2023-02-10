@@ -45,6 +45,7 @@ import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
  * native-image 21.1.0.0-Final (Mandrel Distribution) (Java Version 11.0.11+9)
  * native-image 21.2.0.2-0b3 Mandrel Distribution (Java Version 11.0.13+8-LTS)
  * native-image 21.3.0.0-Final Mandrel Distribution (Java Version 17.0.1+12)
+ * native-image 23.0.0-devf2da442e8f1 Mandrel Distribution (Java Version 20-beta+33-202302010338)
  *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
@@ -77,7 +78,8 @@ public class UsedVersion {
     private static final class MVersion {
         private static final Logger LOGGER = Logger.getLogger(MVersion.class.getName());
         private static final Pattern VERSION_PATTERN = Pattern.compile(
-                "(?:GraalVM|native-image)(?: Version)? (?<version>[^ ]*).*Java Version (?<jfeature>[\\d]+)\\.(?<jinterim>[\\d]+)\\.(?<jupdate>[\\d]+).*");
+                "(?:GraalVM|native-image)(?: Version)? (?<version>[^ ]*).*" +
+                        "Java Version (?<jfeature>[\\d]+)((?<beta>-beta\\+[\\d]+-[\\d]+)|\\.(?<jinterim>[\\d]+)\\.(?<jupdate>[\\d]+)).*");
 
         private final Version version;
         private final boolean jdkUsesSysLibs;
@@ -105,7 +107,9 @@ public class UsedVersion {
                 try {
                     lastLine = Commands.runCommand(cmd).trim();
                 } catch (IOException e) {
-                    throw new RuntimeException("Is native-image command available?", e);
+                    throw new RuntimeException("Is native-image command available? Check if you are not trying " +
+                            "to run tests expecting locally installed native-image without having one. -Ptestsuite-builder-image is the " +
+                            "correct profile for running without locally installed native-image.", e);
                 }
             }
 
@@ -128,17 +132,23 @@ public class UsedVersion {
             }
             version = versionParse(m.group("version"));
             final String jFeature = m.group("jfeature");
-            final String jInterim = m.group("jinterim");
-            final String jUpdate = m.group("jupdate");
             jdkFeature = jFeature == null ? UNDEFINED : Integer.parseInt(jFeature);
-            jdkInterim = jInterim == null ? UNDEFINED : Integer.parseInt(jInterim);
-            jdkUpdate = jUpdate == null ? UNDEFINED : Integer.parseInt(jUpdate);
+            final boolean beta = m.group("beta") != null;
+            if (beta) {
+                jdkInterim = 0;
+                jdkUpdate = 0;
+            } else {
+                final String jInterim = m.group("jinterim");
+                final String jUpdate = m.group("jupdate");
+                jdkInterim = jInterim == null ? UNDEFINED : Integer.parseInt(jInterim);
+                jdkUpdate = jUpdate == null ? UNDEFINED : Integer.parseInt(jUpdate);
+            }
             if (jdkFeature == UNDEFINED) {
                 LOGGER.warn("Failed to correctly parse Java feature (major) version from native-image version command output. " +
                         "JDK version constraints in tests won't work reliably.");
             }
-            LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d.",
-                    version.toString(), inContainer ? "in container" : " installed locally on PATH", jdkFeature, jdkInterim, jdkUpdate);
+            LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d%s.",
+                    version.toString(), inContainer ? "in container" : "installed locally on PATH", jdkFeature, jdkInterim, jdkUpdate, beta ? m.group("beta") : "");
         }
 
         private static Version versionParse(String version) {

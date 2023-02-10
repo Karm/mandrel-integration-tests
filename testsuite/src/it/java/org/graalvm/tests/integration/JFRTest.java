@@ -112,7 +112,7 @@ public class JFRTest {
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {
@@ -209,7 +209,7 @@ public class JFRTest {
         LOGGER.info("Testing app: " + app);
         File processLog = null;
         final StringBuilder report = new StringBuilder();
-        final File appDir = new File(BASE_DIR + File.separator + app.dir);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         try {

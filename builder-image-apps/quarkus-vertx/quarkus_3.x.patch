@@ -1,0 +1,90 @@
+diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
+index cf0796c..66c53c2 100644
+--- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
++++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
+@@ -18,19 +18,19 @@ package org.acme.vertx;
+ 
+ import java.net.URI;
+ 
+-import javax.annotation.PostConstruct;
+-import javax.inject.Inject;
+-import javax.ws.rs.Consumes;
+-import javax.ws.rs.DELETE;
+-import javax.ws.rs.GET;
+-import javax.ws.rs.POST;
+-import javax.ws.rs.PUT;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
+-import javax.ws.rs.core.Response;
+-import javax.ws.rs.core.Response.ResponseBuilder;
+-import javax.ws.rs.core.Response.Status;
++import jakarta.annotation.PostConstruct;
++import jakarta.inject.Inject;
++import jakarta.ws.rs.Consumes;
++import jakarta.ws.rs.DELETE;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.POST;
++import jakarta.ws.rs.PUT;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.Produces;
++import jakarta.ws.rs.core.MediaType;
++import jakarta.ws.rs.core.Response;
++import jakarta.ws.rs.core.Response.ResponseBuilder;
++import jakarta.ws.rs.core.Response.Status;
+ 
+ import org.eclipse.microprofile.config.inject.ConfigProperty;
+ import org.jboss.resteasy.annotations.jaxrs.PathParam;
+diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
+index ac167a0..c5c66fa 100644
+--- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
++++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
+@@ -18,11 +18,11 @@ package org.acme.vertx;
+ import static java.util.concurrent.TimeUnit.MILLISECONDS;
+ import static java.util.concurrent.TimeUnit.NANOSECONDS;
+ 
+-import javax.inject.Inject;
+-import javax.ws.rs.GET;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
++import jakarta.inject.Inject;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.Produces;
++import jakarta.ws.rs.core.MediaType;
+ 
+ import org.jboss.resteasy.annotations.jaxrs.PathParam;
+ 
+diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
+index 0cb587a..ba16e14 100644
+--- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
++++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
+@@ -15,7 +15,7 @@
+  */
+ package org.acme.vertx;
+ 
+-import javax.enterprise.context.ApplicationScoped;
++import jakarta.enterprise.context.ApplicationScoped;
+ 
+ import io.quarkus.vertx.ConsumeEvent;
+ 
+diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
+index cc9c525..3650581 100644
+--- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
++++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
+@@ -15,10 +15,10 @@
+  */
+ package org.acme.vertx;
+ 
+-import javax.ws.rs.GET;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.Produces;
++import jakarta.ws.rs.core.MediaType;
+ 
+ import org.jboss.resteasy.annotations.jaxrs.PathParam;
+ 

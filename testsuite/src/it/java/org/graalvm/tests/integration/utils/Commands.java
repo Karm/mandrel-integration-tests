@@ -27,6 +27,7 @@ import org.jboss.logging.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -58,6 +61,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -68,28 +72,32 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class Commands {
 
     private static final Logger LOGGER = Logger.getLogger(Commands.class.getName());
-    public static final String CONTAINER_RUNTIME = getProperty(
-            new String[]{"QUARKUS_NATIVE_CONTAINER_RUNTIME", "quarkus.native.container-runtime"},
-            "docker");
-    public static final String BUILDER_IMAGE = getProperty(
-            new String[]{"QUARKUS_NATIVE_BUILDER_IMAGE", "quarkus.native.builder-image"},
-            "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
+
+    public static final String CONTAINER_RUNTIME = getProperty("QUARKUS_NATIVE_CONTAINER_RUNTIME", "docker");
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
-    public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(
-            getProperty(new String[]{"PODMAN_WITH_SUDO", "podman.with.sudo"}, "true"));
-    public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(
-            getProperty(
-                    new String[]{"QUARKUS_VERSION", "quarkus.version"},
-                    "2.13.7.Final"));
-    public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(
-            getProperty(new String[]{"FAIL_ON_PERF_REGRESSION", "fail.on.perf.regression"}, "true"));
+    public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(getProperty("PODMAN_WITH_SUDO", "true"));
+    public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(getProperty("FAIL_ON_PERF_REGRESSION", "true"));
+
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
     private static final Pattern CONTAINER_STATS_MEMORY = Pattern.compile("(?:table)?[ \t]*([0-9\\.]+)([a-zA-Z]+).*");
 
-    public static String getProperty(String[] alternatives, String defaultValue) {
+    public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE = "<GRAALVM_BUILD_OUTPUT_JSON_FILE>";
+    public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH = "-H:BuildOutputJSONFile=";
+    public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(getProperty("QUARKUS_VERSION", "2.13.7.Final"));
+    public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE", "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
+
+    public static String getProperty(String key) {
+        return getProperty(key, null);
+    }
+
+    public static String getProperty(String key, String defaultValue) {
         String prop = null;
+        final String[] alternatives = new String[]{
+                key.toUpperCase().replaceAll("[\\.-]+", "_"),
+                key.toLowerCase().replaceAll("_+", ".")
+        };
         for (String p : alternatives) {
             String env = System.getenv().get(p);
             if (StringUtils.isNotBlank(env)) {
@@ -104,7 +112,8 @@ public class Commands {
         }
         if (prop == null) {
             LOGGER.info("Failed to detect any of " + String.join(",", alternatives) +
-                    " as env or sys props, defaulting to " + defaultValue);
+                    " as env or sys props, defaulting to "
+                    + ((defaultValue != null && !defaultValue.isEmpty()) ? defaultValue : "nothing (empty string)"));
             return defaultValue;
         }
         return prop;
@@ -493,17 +502,33 @@ public class Commands {
     }
 
     public static void processStopper(Process p, boolean force) throws InterruptedException {
-        p.children().forEach(child -> {
-            if (child.supportsNormalTermination()) {
-                child.destroy();
+        processStopper(p, force, false);
+    }
+
+    public static void processStopper(Process p, boolean force, boolean orderMatters) throws InterruptedException {
+        // TODO: Simplify. "Order matters" should not harm use cases, where order doesn't matter...
+        if (orderMatters) {
+            final Queue<ProcessHandle> l = new ArrayDeque<>();
+            p.children().forEach(l::add);
+            l.add(p.toHandle());
+            for (int j = 0; j < l.size(); j++) {
+                final ProcessHandle ph = l.poll();
+                ph.destroy();
+                pidKiller(ph.pid(), force);
             }
-            pidKiller(child.pid(), force);
-        });
-        if (p.supportsNormalTermination()) {
-            p.destroy();
-            p.waitFor(3, TimeUnit.MINUTES);
+        } else {
+            p.children().forEach(child -> {
+                if (child.supportsNormalTermination()) {
+                    child.destroy();
+                }
+                pidKiller(child.pid(), force);
+            });
+            if (p.supportsNormalTermination()) {
+                p.destroy();
+                p.waitFor(3, TimeUnit.MINUTES);
+            }
+            pidKiller(p.pid(), force);
         }
-        pidKiller(p.pid(), force);
     }
 
     public static class ProcessRunner implements Runnable {
@@ -544,7 +569,7 @@ public class Commands {
                 if (!log.exists()) {
                     Files.createFile(log.toPath());
                 }
-                String command = "Command: " + String.join(" ", this.command) + "\n";
+                final String command = "Command: " + String.join(" ", this.command) + "\n";
                 System.out.println(command);
                 Files.write(log.toPath(), command.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
                 p = pb.start();
@@ -676,6 +701,202 @@ public class Commands {
         return false;
     }
 
+    public static class PerfRecord {
+        public String file;
+        public double taskClock = -1;
+        public long contextSwitches = -1;
+        public long cpuMigrations = -1;
+        public long pageFaults = -1;
+        public long cycles = -1;
+        public long instructions = -1;
+        public long branches = -1;
+        public long branchMisses = -1;
+        public double secondsTimeElapsed = -1;
+    }
+
+    public static PerfRecord parsePerfRecord(Path path, String statsFor) throws IOException {
+        /*
+        An alternative would be to read it all in a one scary chunk:
+        final Pattern p = Pattern.compile(".*Performance counter stats for '(?<file>" + filename + ")':\\s*$+" +
+                        "\\s*(?<taskclock>[0-9\\.,]*)\\s*msec\\s*task-clock.*$" +
+                        "\\s*(?<contextswitches>[0-9\\.,]*)\\s*context-switches.*$" +
+                        "\\s*(?<cpumigrations>[0-9\\.,]*)\\s*cpu-migrations.*$" +
+                        "\\s*(?<pagefaults>[0-9\\.,]*)\\s*page-faults.*$" +
+                        "\\s*(?<cycles>[0-9\\.,]*)\\s*cycles.*$" +
+                        "\\s*(?<instructions>[0-9\\.,]*)\\s*instructions.*$" +
+                        "\\s*(?<branches>[0-9\\.,]*)\\s*branches.*$" +
+                        "\\s*(?<branchmisses>[0-9\\.,]*)\\s*branch-misses.*$+" +
+                        "\\s*(?<secondstimeelapsed>[0-9\\.,]*)\\s*seconds time elapsed.*$"
+                , Pattern.DOTALL | Pattern.MULTILINE);
+       */
+        final Pattern begin = Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*");
+        final Pattern taskClock = Pattern.compile("\\s*([0-9\\.,]+)\\s*msec\\s*task-clock.*$");
+        final Pattern contextSwitches = Pattern.compile("\\s*([0-9\\.,]+)\\s*context-switches.*$");
+        final Pattern cpuMigrations = Pattern.compile("\\s*([0-9\\.,]+)\\s*cpu-migrations.*$");
+        final Pattern pageFaults = Pattern.compile("\\s*([0-9\\.,]+)\\s*page-faults.*$");
+        final Pattern cycles = Pattern.compile("\\s*([0-9\\.,]+)\\s*cycles.*$");
+        final Pattern instructions = Pattern.compile("\\s*([0-9\\.,]+)\\s*instructions.*$");
+        final Pattern branches = Pattern.compile("\\s*([0-9\\.,]+)\\s*branches.*$");
+        final Pattern branchMisses = Pattern.compile("\\s*([0-9\\.,]+)\\s*branch-misses.*$");
+        final Pattern secondsTimeElapsed = Pattern.compile("\\s*([0-9\\.,]+)\\s*seconds time elapsed.*$");
+        try (Scanner sc = new Scanner(path, UTF_8)) {
+            while (sc.hasNextLine()) {
+                if (begin.matcher(sc.nextLine()).matches()) {
+                    break;
+                }
+            }
+            final PerfRecord pr = new PerfRecord();
+            pr.file = statsFor;
+            while (sc.hasNextLine() && pr.secondsTimeElapsed == -1) {
+                final String line = sc.nextLine().replaceAll(",", "");
+                Matcher m = taskClock.matcher(line);
+                if (m.matches()) {
+                    pr.taskClock = Double.parseDouble(m.group(1));
+                    continue;
+                }
+                m = contextSwitches.matcher(line);
+                if (m.matches()) {
+                    pr.contextSwitches = Long.parseLong(m.group(1));
+                    continue;
+                }
+                m = cpuMigrations.matcher(line);
+                if (m.matches()) {
+                    pr.cpuMigrations = Long.parseLong(m.group(1));
+                    continue;
+                }
+                m = pageFaults.matcher(line);
+                if (m.matches()) {
+                    pr.pageFaults = Long.parseLong(m.group(1));
+                    continue;
+                }
+                m = cycles.matcher(line);
+                if (m.matches()) {
+                    pr.cycles = Long.parseLong(m.group(1));
+                    continue;
+                }
+                m = instructions.matcher(line);
+                if (m.matches()) {
+                    pr.instructions = Long.parseLong(m.group(1));
+                    continue;
+                }
+                m = branches.matcher(line);
+                if (m.matches()) {
+                    pr.branches = Long.parseLong(m.group(1));
+                    continue;
+                }
+                m = branchMisses.matcher(line);
+                if (m.matches()) {
+                    pr.branchMisses = Long.parseLong(m.group(1));
+                    continue;
+                }
+                m = secondsTimeElapsed.matcher(line);
+                if (m.matches()) {
+                    pr.secondsTimeElapsed = Double.parseDouble(m.group(1));
+                }
+            }
+            return pr;
+        }
+    }
+
+    public static class SerialGCLog {
+        public double timeSpentInGCs = 0;
+        public int incrementalGCevents = 0;
+        public int fullGCevents = 0;
+    }
+
+    public static SerialGCLog parseSerialGCLog(Path path, String statsFor, boolean isJVM) throws IOException {
+        final Pattern begin = Pattern.compile(".*\\s+\\Q" + statsFor + "\\E$");
+        final Pattern incremental = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Young \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
+                Pattern.compile("^\\[Incremental\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$");
+        final Pattern full = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Full \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
+                Pattern.compile("^\\[Full\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$");
+        final Pattern end = Pattern.compile(".*quarkus.*stopped.*");
+        try (Scanner sc = new Scanner(path, UTF_8)) {
+            while (sc.hasNextLine()) {
+                final String l = sc.nextLine();
+                if (begin.matcher(l).matches()) {
+                    break;
+                }
+            }
+            final SerialGCLog l = new SerialGCLog();
+            String line;
+            while (sc.hasNextLine() && !end.matcher(line = sc.nextLine()).matches()) {
+                Matcher m = incremental.matcher(line);
+                if (m.matches()) {
+                    l.incrementalGCevents = l.incrementalGCevents + 1;
+                    l.timeSpentInGCs = l.timeSpentInGCs + (isJVM ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
+                    continue;
+                }
+                m = full.matcher(line);
+                if (m.matches()) {
+                    l.fullGCevents = l.fullGCevents + 1;
+                    l.timeSpentInGCs = l.timeSpentInGCs + (isJVM ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
+                }
+            }
+            return l;
+        }
+    }
+
+    public static String mapToJSON(List<Map<String, String>> maps) {
+        final Pattern num = Pattern.compile("\\d+");
+        final StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        maps.forEach(map -> {
+            sb.append("{");
+            map.forEach((k, v) -> {
+                sb.append("\"");
+                sb.append(k);
+                sb.append("\":");
+                if (num.matcher(v).matches()) {
+                    sb.append(v);
+                } else {
+                    sb.append("\"");
+                    sb.append(v);
+                    sb.append("\"");
+                }
+                sb.append(",");
+            });
+            sb.setLength(sb.length() - 1);
+            sb.append("}");
+            sb.append(",");
+        });
+        sb.setLength(sb.length() - 1);
+        sb.append("]");
+        return sb.toString();
+    }
+
+    public static int waitForFileToMatch(Pattern lineMatchRegexp, Path path, int skipLines, long timeout, long sleep, TimeUnit unit) throws IOException {
+        long timeoutMillis = unit.toMillis(timeout);
+        long sleepMillis = unit.toMillis(sleep);
+        long startMillis = System.currentTimeMillis();
+        LOGGER.infof("Waiting for file %s to have a line matching this regexp: %s", path, lineMatchRegexp);
+        // Reading the file again and again, could hurt on huge files...
+        while (System.currentTimeMillis() - startMillis < timeoutMillis) {
+            if (Files.exists(path)) {
+                try (final BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(new ByteArrayInputStream(Files.readAllBytes(path)), StandardCharsets.UTF_8))) {
+                    String line;
+                    int c = 0;
+                    while ((line = reader.readLine()) != null) {
+                        c++;
+                        if (c > skipLines && lineMatchRegexp.matcher(line).matches()) {
+                            return c;
+                        }
+                    }
+                }
+            } else {
+                LOGGER.error("File " + path + " is missing");
+            }
+            try {
+                Thread.sleep(sleepMillis);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+        }
+        return -1;
+    }
+
     public static boolean waitForBufferToMatch(StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
         long timeoutMillis = unit.toMillis(timeout);
         long sleepMillis = unit.toMillis(sleep);
@@ -694,11 +915,41 @@ public class Commands {
         return false;
     }
 
+    /**
+     * @param switchReplacements
+     * Example usage for switch statements:
+     * //@formatter:off
+     *  final Map<String, String> switches;
+     *  if (UsedVersion.getVersion(false).compareTo(Version.create(23, 0, 0)) >= 0) {
+     *      switches = Map.of(GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH_TOKEN, GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH + ",");
+     *  } else {
+     *      switches = Map.of(GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH_TOKEN, "");
+     *  }
+     *  builderRoutine(1, app, null, null, null, appDir, processLog, null, switches);
+     *
+     *  Where the constants could be e.g.:
+     *
+     *  public static final String GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH_TOKEN = "<GRAALVM_ALLOW_DEPRECATED_BUILDER>";
+     *  public static final String GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH = "-H:+AllowDeprecatedBuilderClassesOnImageClasspath";
+     *
+     *  And in the BuildAndRunCmds e.g.:
+     *
+     *  new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+     *               "-Dquarkus.native.additional-build-args=" +
+     *                GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH_TOKEN +
+     *               "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
+     *               "-H:-ParseOnce," +
+     *               "-H:BuildOutputJSONFile=quarkus-json_minus-ParseOnce.json",
+     *               "-Dfinal.name=quarkus-json_-ParseOnce"},
+     * //@formatter:on
+     */
     public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,
-                                      File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws InterruptedException {
+                                      File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
         // The last command is reserved for running it
         assertTrue(app.buildAndRunCmds.cmds.length > 1);
-        Logs.appendln(report, "# " + cn + ", " + mn);
+        if (report != null) {
+            Logs.appendln(report, "# " + cn + ", " + mn);
+        }
         for (int i = 0; i < steps; i++) {
             // We cannot run commands in parallel, we need them to follow one after another
             final ExecutorService buildService = Executors.newFixedThreadPool(1);
@@ -709,34 +960,28 @@ public class Commands {
             } else {
                 cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
             }
-            buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 10, env)); // might take a long time....
-            Logs.appendln(report, (new Date()).toString());
-            Logs.appendln(report, appDir.getAbsolutePath());
-            Logs.appendlnSection(report, String.join(" ", cmd));
-            shutdownAndAwaitTermination(buildService, 10, TimeUnit.MINUTES); // Native image build might take a long time....
+            Files.writeString(processLog.toPath(), String.join(" ", cmd) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+            buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 20, env)); // might take a long time....
+            if (report != null) {
+                Logs.appendln(report, (new Date()).toString());
+                Logs.appendln(report, appDir.getAbsolutePath());
+                Logs.appendlnSection(report, String.join(" ", cmd));
+            }
+            shutdownAndAwaitTermination(buildService, 20, TimeUnit.MINUTES); // Native image build might take a long time....
         }
         assertTrue(processLog.exists());
     }
 
-    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
         builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, null);
     }
 
-    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws InterruptedException {
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws IOException {
         builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env, null);
     }
 
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws InterruptedException {
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
         builderRoutine(steps, app, report, cn, mn, appDir, processLog, null, null);
-    }
-
-    public static void replaceInSmallTextFile(Pattern search, String replace, Path file, Charset charset) throws IOException {
-        final String data = Files.readString(file, charset);
-        Files.writeString(file, search.matcher(data).replaceAll(replace), charset, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    }
-
-    public static void replaceInSmallTextFile(Pattern search, String replace, Path file) throws IOException {
-        replaceInSmallTextFile(search, replace, file, Charset.defaultCharset());
     }
 
     public static List<String> replaceSwitchesInCmd(List<String> cmd, Map<String, String> switchReplacements) {
@@ -749,7 +994,14 @@ public class Commands {
                     l.add(replacement);
                 }
             } else {
-                l.add(c);
+                // Some switches could be nested in e.g. -Dquarkus.native.additional-build-args=,
+                // thus not found by simple cmd lookup above.
+                final String key = switchReplacements.keySet().stream().filter(k::contains).findFirst().orElse(null);
+                if (key != null) {
+                    l.add(k.replace(key, switchReplacements.get(key)));
+                } else {
+                    l.add(c);
+                }
             }
         });
         return l;
@@ -775,6 +1027,15 @@ public class Commands {
         }
     }
 
+    public static void replaceInSmallTextFile(Pattern search, String replace, Path file, Charset charset) throws IOException {
+        final String data = Files.readString(file, charset);
+        Files.writeString(file, search.matcher(data).replaceAll(replace), charset, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    public static void replaceInSmallTextFile(Pattern search, String replace, Path file) throws IOException {
+        replaceInSmallTextFile(search, replace, file, Charset.defaultCharset());
+    }
+
     /**
      * Finds the first matching executable in a given dir,
      * *does not dive into the tree*, is not recursive...
@@ -794,7 +1055,7 @@ public class Commands {
             return false;
         });
         if (f == null || f.length < 1) {
-            fail("Failed to find any executable in dir " + dir + ", matching regexp " + regexp.toString());
+            fail("Failed to find any executable in dir " + dir + ", matching regexp " + regexp);
         }
         return f[0];
     }

@@ -62,10 +62,10 @@ public class WebpageTester {
         boolean found = false;
         long foundTimestamp = -1L;
         while (now - startTime < 1000 * timeoutS) {
-            URLConnection c = new URL(url).openConnection();
+            final URLConnection c = new URL(url).openConnection();
             c.setRequestProperty("Accept", "*/*");
             c.setConnectTimeout(500);
-            try (Scanner scanner = new Scanner(c.getInputStream(), StandardCharsets.UTF_8.toString())) {
+            try (Scanner scanner = new Scanner(c.getInputStream(), StandardCharsets.UTF_8)) {
                 scanner.useDelimiter("\\A");
                 webPage = scanner.hasNext() ? scanner.next() : "";
             } catch (Exception e) {
@@ -96,7 +96,7 @@ public class WebpageTester {
         final URLConnection c = new URL(url).openConnection();
         c.setRequestProperty("Accept", "*/*");
         c.setConnectTimeout(500);
-        try (Scanner scanner = new Scanner(c.getInputStream(), StandardCharsets.UTF_8.toString())) {
+        try (Scanner scanner = new Scanner(c.getInputStream(), StandardCharsets.UTF_8)) {
             scanner.useDelimiter("\\A");
             return scanner.hasNext() ? scanner.next() : "";
         }

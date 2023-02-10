@@ -60,9 +60,7 @@ public enum WhitelistLogLines {
 
     QUARKUS_FULL_MICROPROFILE(new Pattern[]{
             // Well, the RestClient demo probably should do some cleanup before shutdown...?
-            Pattern.compile(".*Closing a class org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient.*"),
-            // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
-            Pattern.compile(".*GR-10238.*"),
+            Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"),
             // Unused argument on new Graal; Quarkus uses it for backward compatibility.
             Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
             // Windows specific warning
@@ -93,8 +91,6 @@ public enum WhitelistLogLines {
     }),
 
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new Pattern[]{
-            // https://github.com/oracle/graal/blob/master/substratevm/src/com.oracle.svm.core/src/com/oracle/svm/core/jdk/VarHandleFeature.java#L199
-            Pattern.compile(".*GR-10238.*"),
             // Container image build
             Pattern.compile(".*lib.*-WARNING .*"),
             // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
@@ -113,6 +109,8 @@ public enum WhitelistLogLines {
             Pattern.compile(".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead."),
             // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
             Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
+            // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
+            Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
     }),
 
     HELIDON_QUICKSTART_SE(new Pattern[]{

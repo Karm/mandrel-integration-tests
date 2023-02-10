@@ -43,6 +43,14 @@ public enum URLContent {
             new String[]{"http://localhost:8080/data/client/test/parameterValue=xxx", "Processed parameter value 'parameterValue=xxx'"}
     }),
 
+    QUARKUS_JSON_PERF(new String[][]{
+            // apps/quarkus-json/src/main/resources/application.properties
+            new String[]{"http://localhost:8887/ready", "Yes."},
+            new String[]{"http://localhost:8887/dump"},
+            new String[]{"http://localhost:8887/load"},
+            new String[]{"http://localhost:8887/load/hash"},
+    }),
+
     QUARKUS_BUILDER_IMAGE_ENCODING(new String[][]{
             new String[]{"http://localhost:8080/s%C3%A5nt%20%C3%A4r%20livet", "žluťoučká, říká ďolíčkatý koníček"}}),
 

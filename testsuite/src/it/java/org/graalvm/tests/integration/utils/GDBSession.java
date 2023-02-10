@@ -88,7 +88,7 @@ public enum GDBSession {
                                         Pattern.DOTALL)),
                 };
             } else if (UsedVersion.getVersion(inContainer).compareTo(Version.create(21, 1, 0)) >= 0 &&
-                       UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 2, 0)) <= 0) {
+                    UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 2, 0)) <= 0) {
                 return new CP[]{
                         SHOW_VERSION,
                         new CP("run < ./test_data_small.txt\n",
