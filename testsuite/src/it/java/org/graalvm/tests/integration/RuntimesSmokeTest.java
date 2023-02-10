@@ -187,7 +187,7 @@ public class RuntimesSmokeTest {
     @Test
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
-        if (QUARKUS_VERSION.majorIs(3)) {
+        if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
             try {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
                         Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
@@ -205,7 +205,7 @@ public class RuntimesSmokeTest {
     @Tag("builder-image")
     @Tag("quarkus")
     public void quarkusEncodingIssues(TestInfo testInfo) throws IOException, InterruptedException {
-        if (QUARKUS_VERSION.majorIs(3)) {
+        if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
             try {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
                         Path.of(BASE_DIR, Apps.QUARKUS_BUILDER_IMAGE_ENCODING.dir).toFile());

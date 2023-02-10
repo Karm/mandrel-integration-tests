@@ -136,7 +136,7 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
@@ -254,7 +254,7 @@ public class PerfCheckTest {
                     "quarkus-json_+ParseOnce-native-image-source-jar", "quarkus-json_plus-ParseOnce.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }
@@ -279,7 +279,7 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
@@ -387,7 +387,7 @@ public class PerfCheckTest {
                     "quarkus-json-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }
@@ -410,7 +410,7 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
@@ -508,7 +508,7 @@ public class PerfCheckTest {
                     "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }

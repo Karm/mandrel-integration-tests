@@ -165,7 +165,7 @@ public class DebugSymbolsTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Patch for compatibility
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
                         Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
             }
@@ -226,7 +226,7 @@ public class DebugSymbolsTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
                         Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
             }
@@ -267,7 +267,7 @@ public class DebugSymbolsTest {
             if (QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_snapshot.patch"), appDir);
             }
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
@@ -347,7 +347,7 @@ public class DebugSymbolsTest {
             if (QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_snapshot.patch"), appDir);
             }
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }
