@@ -19,6 +19,8 @@
  */
 package org.graalvm.tests.integration.utils.versions;
 
+import static org.graalvm.tests.integration.utils.Commands.getProperty;
+
 public class QuarkusVersion implements Comparable<QuarkusVersion> {
 
     private final String version;
@@ -26,6 +28,11 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     private final int minor;
     private final int patch;
     private final boolean snapshot;
+    private final String gitSHA;
+
+    public QuarkusVersion() {
+        this(getProperty("QUARKUS_VERSION", "2.13.7.Final"));
+    }
 
     public QuarkusVersion(String version) {
         this.version = version;
@@ -34,11 +41,13 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
             this.major = Integer.parseInt(version.split("-")[0]);
             this.minor = 0;
             this.patch = 0;
+            this.gitSHA = getProperty("QUARKUS_VERSION_GITSHA", "");
         } else {
-            String[] split = version.split("\\.");
+            final String[] split = version.split("\\.");
             this.major = Integer.parseInt(split[0]);
             this.minor = Integer.parseInt(split[1]);
             this.patch = Integer.parseInt(split[2]);
+            this.gitSHA = null;
         }
     }
 
@@ -79,6 +88,10 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
 
     public String getVersionString() {
         return version;
+    }
+
+    public String getGitSHA() {
+        return gitSHA;
     }
 
     @Override

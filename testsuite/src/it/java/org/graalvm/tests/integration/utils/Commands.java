@@ -85,7 +85,7 @@ public class Commands {
 
     public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE = "<GRAALVM_BUILD_OUTPUT_JSON_FILE>";
     public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH = "-H:BuildOutputJSONFile=";
-    public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion(getProperty("QUARKUS_VERSION", "2.13.7.Final"));
+    public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion();
     public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE", "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
 
     public static String getProperty(String key) {
