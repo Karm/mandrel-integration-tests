@@ -101,7 +101,8 @@ public class PerfCheckTest {
     public static Map<String, String> populateHeader(Map<String, String> report) {
         report.put("arch", getProperty("perf.app.arch", System.getProperty("os.arch")));
         report.put("os", getProperty("perf.app.os", System.getProperty("os.name")));
-        report.put("quarkusVersion", QUARKUS_VERSION.getVersionString());
+        report.put("quarkusVersion", QUARKUS_VERSION.isSnapshot() ?
+                QUARKUS_VERSION.getGitSHA() + '.' + QUARKUS_VERSION.getVersionString() : QUARKUS_VERSION.getVersionString());
         report.put("mandrelVersion", UsedVersion.getVersion(false).toString());
         report.put("jdkVersion", String.format("%s.%s.%s", UsedVersion.jdkFeature(false),
                 UsedVersion.jdkInterim(false), UsedVersion.jdkUpdate(false)));
