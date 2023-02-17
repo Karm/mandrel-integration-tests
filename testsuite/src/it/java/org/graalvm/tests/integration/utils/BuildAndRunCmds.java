@@ -28,6 +28,7 @@ import static org.graalvm.tests.integration.PerfCheckTest.MX_HEAP_MB;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_STRIP_DEBUG_DISABLE;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
@@ -61,7 +62,8 @@ public enum BuildAndRunCmds {
                     "-Dquarkus.native.additional-build-args=" +
                             "-H:Log=registerResource:," +
                             "--trace-object-instantiation=java.util.Random," +
-                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT"
+                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT" +
+                            GRAALVM_STRIP_DEBUG_DISABLE
             },
             new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}

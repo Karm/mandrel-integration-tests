@@ -19,12 +19,14 @@
  */
 package org.graalvm.tests.integration;
 
+import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,8 @@ import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContain
 import static org.graalvm.tests.integration.utils.Commands.stopRunningContainers;
 import static org.graalvm.tests.integration.utils.Commands.waitForBufferToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_STRIP_DEBUG_DISABLE;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_STRIP_DEBUG_DISABLE_SWITCH;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -170,9 +174,19 @@ public class DebugSymbolsTest {
                         Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
             }
 
+            final Map<String, String> switches;
+            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 0, 0)) >= 0) {
+                switches = Map.of(
+                        GRAALVM_STRIP_DEBUG_DISABLE, "," + GRAALVM_STRIP_DEBUG_DISABLE_SWITCH
+                );
+            } else {
+                switches = Map.of(
+                        GRAALVM_STRIP_DEBUG_DISABLE, ""
+                );
+            }
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, switches);
 
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/quarkus-runner"));
             final Map<String, String> envA = processBuilder.environment();
@@ -272,8 +286,18 @@ public class DebugSymbolsTest {
             }
 
             // Build & Run
+            final Map<String, String> switches;
+            if (UsedVersion.getVersion(true).compareTo(Version.create(23, 0, 0)) >= 0) {
+                switches = Map.of(
+                        GRAALVM_STRIP_DEBUG_DISABLE, "," + GRAALVM_STRIP_DEBUG_DISABLE_SWITCH
+                );
+            } else {
+                switches = Map.of(
+                        GRAALVM_STRIP_DEBUG_DISABLE, ""
+                );
+            }
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            builderRoutine(app.buildAndRunCmds.cmds.length, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app.buildAndRunCmds.cmds.length, app, report, cn, mn, appDir, processLog, null, switches);
 
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
 
