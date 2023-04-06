@@ -24,6 +24,7 @@ import org.graalvm.tests.integration.utils.Commands;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,7 +37,8 @@ import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
  * Lazy loads Mandrel version either from a container or from
  * the local installation, being thread safe about it.
  *
- * Supported `native-image --version' output:
+ * Supported `native-image --version' output (old single-line):
+ *
  * GraalVM 20.3.3 Java 11 (Java Version 11.0.12+6-jvmci-20.3-b20)
  * GraalVM 21.1.0 Java 11 CE (Java Version 11.0.11+8-jvmci-21.1-b05)
  * GraalVM 21.3.0 Java 11 CE (Java Version 11.0.13+7-jvmci-21.3-b05)
@@ -46,6 +48,25 @@ import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
  * native-image 21.2.0.2-0b3 Mandrel Distribution (Java Version 11.0.13+8-LTS)
  * native-image 21.3.0.0-Final Mandrel Distribution (Java Version 17.0.1+12)
  * native-image 23.0.0-devf2da442e8f1 Mandrel Distribution (Java Version 20-beta+33-202302010338)
+ *
+ * Supported new `native-image --version' output (3-lines of output):
+ * ------------------------------------------------------------------
+ *
+ * native-image 17.0.6 2023-01-17
+ * OpenJDK Runtime Environment Mandrel-23.0.0-dev (build 17.0.6+10)
+ * OpenJDK 64-Bit Server VM Mandrel-23.0.0-dev (build 17.0.6+10, mixed mode)
+ *
+ * or
+ *
+ * native-image 17.0.6 2023-01-17
+ * GraalVM Runtime Environment Mandrel-23.0.0-dev (build 17.0.6+10)
+ * Substrate VM Mandrel-23.0.0-dev (build 17.0.6+10, serial gc)
+ *
+ * or
+ *
+ * native-image 20 2023-03-21
+ * GraalVM Runtime Environment GraalVM CE (build 20+34-jvmci-23.0-b10)
+ * Substrate VM GraalVM CE (build 20+34, serial gc)
  *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
@@ -72,10 +93,127 @@ public class UsedVersion {
         return inContainer ? InContainer.mVersion.jdkUpdate : Locally.mVersion.jdkUpdate;
     }
 
+    // Implements version parsing after https://github.com/oracle/graal/pull/6302
+    static final class VersionParseHelper {
+
+        private static final String JVMCI_BUILD_PREFIX = "jvmci-";
+        private static final String MANDREL_VERS_PREFIX = "Mandrel-";
+
+        // Java version info (suitable for Runtime.Version.parse()). See java.lang.VersionProps
+        private static final String VNUM = "(?<VNUM>[1-9][0-9]*(?:(?:\\.0)*\\.[1-9][0-9]*)*)";
+        private static final String PRE = "(?:-(?<PRE>[a-zA-Z0-9]+))?";
+        private static final String BUILD = "(?:(?<PLUS>\\+)(?<BUILD>0|[1-9][0-9]*)?)?";
+        private static final String OPT = "(?:-(?<OPT>[-a-zA-Z0-9.]+))?";
+        private static final String VSTR_FORMAT = VNUM + PRE + BUILD + OPT;
+
+        private static final String VNUM_GROUP = "VNUM";
+        private static final String VENDOR_VERSION_GROUP = "VENDOR";
+        private static final String BUILD_INFO_GROUP = "BUILDINFO";
+
+        private static final String VENDOR_VERS = "(?<VENDOR>.*)";
+        private static final String JDK_DEBUG = "[^\\)]*"; // zero or more of >anything not a ')'<
+        private static final String RUNTIME_NAME = "(?<RUNTIME>(?:OpenJDK|GraalVM) Runtime Environment) ";
+        private static final String BUILD_INFO = "(?<BUILDINFO>.*)";
+        private static final String VM_NAME = "(?<VM>(?:OpenJDK 64-Bit Server|Substrate) VM) ";
+
+        private static final String FIRST_LINE_PATTERN = "native-image " + VSTR_FORMAT + " .*$";
+        private static final String SECOND_LINE_PATTERN = RUNTIME_NAME
+                + VENDOR_VERS + " \\(" + JDK_DEBUG + "build " + BUILD_INFO + "\\)$";
+        private static final String THIRD_LINE_PATTERN = VM_NAME + VENDOR_VERS + " \\(" + JDK_DEBUG + "build .*\\)$";
+        private static final Pattern FIRST_PATTERN = Pattern.compile(FIRST_LINE_PATTERN);
+        private static final Pattern SECOND_PATTERN = Pattern.compile(SECOND_LINE_PATTERN);
+        private static final Pattern THIRD_PATTERN = Pattern.compile(THIRD_LINE_PATTERN);
+
+        private static final String VERS_FORMAT = "(?<VERSION>[1-9][0-9]*(\\.[0-9]+)+(-dev\\p{XDigit}*)?)";
+        private static final String VERSION_GROUP = "VERSION";
+        private static final Pattern VERSION_PATTERN = Pattern.compile(VERS_FORMAT);
+
+        static MVersion parse(List<String> lines) {
+            Matcher firstMatcher = FIRST_PATTERN.matcher(lines.get(0));
+            Matcher secondMatcher = SECOND_PATTERN.matcher(lines.get(1));
+            Matcher thirdMatcher = THIRD_PATTERN.matcher(lines.get(2));
+            if (firstMatcher.find() && secondMatcher.find() && thirdMatcher.find()) {
+                String javaVersion = firstMatcher.group(VNUM_GROUP);
+                java.lang.Runtime.Version v = null;
+                try {
+                    v = java.lang.Runtime.Version.parse(javaVersion);
+                } catch (IllegalArgumentException e) {
+                    return MVersion.UNKNOWN_VERSION;
+                }
+
+                String vendorVersion = secondMatcher.group(VENDOR_VERSION_GROUP);
+
+                String buildInfo = secondMatcher.group(BUILD_INFO_GROUP);
+                String graalVersion = graalVersion(buildInfo);
+                String mandrelVersion = mandrelVersion(vendorVersion);
+                String versNum = (isMandrel(vendorVersion) ? mandrelVersion : graalVersion);
+                Version vers = versionParse(versNum);
+                VersionBuilder builder = new VersionBuilder();
+                return builder.jdkUsesSysLibs(false /* not implemented */)
+                       .beta("" /* not implemented */)
+                       .jdkFeature(v.feature())
+                       .jdkInterim(v.interim())
+                       .jdkUpdate(v.update())
+                       .version(vers)
+                       .build();
+            } else {
+                return MVersion.UNKNOWN_VERSION;
+            }
+        }
+
+        private static boolean isMandrel(String vendorVersion) {
+            if (vendorVersion == null) {
+                return false;
+            }
+            return !vendorVersion.isBlank() && vendorVersion.startsWith(MANDREL_VERS_PREFIX);
+        }
+
+        private static String mandrelVersion(String vendorVersion) {
+            if (vendorVersion == null) {
+                return null;
+            }
+            int idx = vendorVersion.indexOf(MANDREL_VERS_PREFIX);
+            if (idx < 0) {
+                return null;
+            }
+            String version = vendorVersion.substring(idx + MANDREL_VERS_PREFIX.length());
+            return matchVersion(version);
+        }
+
+        private static String matchVersion(String version) {
+            Matcher versMatcher = VERSION_PATTERN.matcher(version);
+            if (versMatcher.find()) {
+                return versMatcher.group(VERSION_GROUP);
+            }
+            return null;
+        }
+
+        private static String graalVersion(String buildInfo) {
+            if (buildInfo == null) {
+                return null;
+            }
+            int idx = buildInfo.indexOf(JVMCI_BUILD_PREFIX);
+            if (idx < 0) {
+                return null;
+            }
+            String version = buildInfo.substring(idx + JVMCI_BUILD_PREFIX.length());
+            return matchVersion(version);
+        }
+
+        static Version versionParse(String version) {
+            // Invalid version string '20.1.0.4.Final'
+            return Version.parse(version
+                    .toLowerCase()
+                    .replace(".f", "-f")
+                    .replace(".s", "-s"));
+        }
+    }
+
     /**
      * Mandrel Version plus additional metadata, e.g. jdkUsesSysLibs
      */
     private static final class MVersion {
+        private static final MVersion UNKNOWN_VERSION = new MVersion(null, false, UNDEFINED, UNDEFINED, UNDEFINED, "beta-unknown");
         private static final Logger LOGGER = Logger.getLogger(MVersion.class.getName());
         private static final Pattern VERSION_PATTERN = Pattern.compile(
                 "(?:GraalVM|native-image)(?: Version)? (?<version>[^ ]*).*" +
@@ -86,34 +224,36 @@ public class UsedVersion {
         private final int jdkFeature;
         private final int jdkInterim;
         private final int jdkUpdate;
+        private final String betaBits;
 
-        public MVersion(boolean inContainer) {
-            final String lastLine;
-            if (inContainer) {
-                final List<String> cmd = List.of(CONTAINER_RUNTIME, "run", "-t", BUILDER_IMAGE, "native-image", "--version");
-                LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
-                final String out;
-                try {
-                    out = Commands.runCommand(cmd);
-                } catch (IOException e) {
-                    throw new RuntimeException("Is " + CONTAINER_RUNTIME + " running?", e);
-                }
-                final String[] lines = out.split(System.lineSeparator());
-                lastLine = lines[lines.length - 1].trim();
+        private MVersion(Version version, boolean jdkUsesSysLibs, int jdkFeature, int jdkInterim, int jdkUpdate, String betaBits) {
+            this.version = version;
+            this.jdkUsesSysLibs = jdkUsesSysLibs;
+            this.jdkFeature = jdkFeature;
+            this.jdkInterim = jdkInterim;
+            this.jdkUpdate = jdkUpdate;
+            this.betaBits = betaBits;
+        }
+
+        public static MVersion of(boolean inContainer) {
+            List<String> lines = runNativeImageVersion(inContainer);
+            MVersion mandrelVersion;
+            if (lines.size() == 1) {
+                mandrelVersion = parseOldVersion(lines, inContainer);
+            } else if (lines.size() == 3) {
+                mandrelVersion = VersionParseHelper.parse(lines);
             } else {
-                final String TEST_TESTSUITE_ABSOLUTE_PATH = System.getProperty("FAKE_NATIVE_IMAGE_DIR", "");
-                final List<String> cmd = getRunCommand(TEST_TESTSUITE_ABSOLUTE_PATH + "native-image", "--version");
-                LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
-                try {
-                    lastLine = Commands.runCommand(cmd).trim();
-                } catch (IOException e) {
-                    throw new RuntimeException("Is native-image command available? Check if you are not trying " +
-                            "to run tests expecting locally installed native-image without having one. -Ptestsuite-builder-image is the " +
-                            "correct profile for running without locally installed native-image.", e);
-                }
+                mandrelVersion = UNKNOWN_VERSION;
             }
+            LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d%s.",
+                    mandrelVersion.version.toString(), inContainer ? "in container" : "installed locally on PATH", mandrelVersion.jdkFeature, mandrelVersion.jdkInterim, mandrelVersion.jdkUpdate, mandrelVersion.betaBits);
+            return mandrelVersion;
+        }
 
-            jdkUsesSysLibs = lastLine.contains("-LTS");
+        private static MVersion parseOldVersion(List<String> lines, boolean inContainer) {
+            final String lastLine = lines.get(lines.size() - 1).trim();
+            VersionBuilder builder = new VersionBuilder();
+            builder.jdkUsesSysLibs(lastLine.contains("-LTS"));
             if (inContainer && !lastLine.contains("Mandrel")) {
                 LOGGER.warn("You are probably running GraalVM and not Mandrel container. " +
                         "It might not work as tests might expect certain paths such as /opt/mandrel/.");
@@ -130,42 +270,103 @@ public class UsedVersion {
                             "Output: '" + lastLine + "'");
                 }
             }
-            version = versionParse(m.group("version"));
+            builder.version(VersionParseHelper.versionParse(m.group("version")));
             final String jFeature = m.group("jfeature");
-            jdkFeature = jFeature == null ? UNDEFINED : Integer.parseInt(jFeature);
+            builder.jdkFeature(jFeature == null ? UNDEFINED : Integer.parseInt(jFeature));
             final boolean beta = m.group("beta") != null;
+            builder.beta(beta ? m.group("beta") : "");
             if (beta) {
-                jdkInterim = 0;
-                jdkUpdate = 0;
+                builder.jdkInterim(0);
+                builder.jdkUpdate(0);
             } else {
                 final String jInterim = m.group("jinterim");
                 final String jUpdate = m.group("jupdate");
-                jdkInterim = jInterim == null ? UNDEFINED : Integer.parseInt(jInterim);
-                jdkUpdate = jUpdate == null ? UNDEFINED : Integer.parseInt(jUpdate);
+                builder.jdkInterim(jInterim == null ? UNDEFINED : Integer.parseInt(jInterim));
+                builder.jdkUpdate(jUpdate == null ? UNDEFINED : Integer.parseInt(jUpdate));
             }
-            if (jdkFeature == UNDEFINED) {
+            MVersion mandrelVersion = builder.build();
+            if (mandrelVersion.jdkFeature == UNDEFINED) {
                 LOGGER.warn("Failed to correctly parse Java feature (major) version from native-image version command output. " +
                         "JDK version constraints in tests won't work reliably.");
             }
-            LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d%s.",
-                    version.toString(), inContainer ? "in container" : "installed locally on PATH", jdkFeature, jdkInterim, jdkUpdate, beta ? m.group("beta") : "");
+            return mandrelVersion;
         }
 
-        private static Version versionParse(String version) {
-            // Invalid version string '20.1.0.4.Final'
-            return Version.parse(version
-                    .toLowerCase()
-                    .replace(".f", "-f")
-                    .replace(".s", "-s"));
+        private static List<String> runNativeImageVersion(boolean inContainer) {
+            final String out;
+            if (inContainer) {
+                final List<String> cmd = List.of(CONTAINER_RUNTIME, "run", "-t", BUILDER_IMAGE, "native-image", "--version");
+                LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
+                try {
+                    out = Commands.runCommand(cmd);
+                } catch (IOException e) {
+                    throw new RuntimeException("Is " + CONTAINER_RUNTIME + " running?", e);
+                }
+            } else {
+                final String TEST_TESTSUITE_ABSOLUTE_PATH = System.getProperty("FAKE_NATIVE_IMAGE_DIR", "");
+                final List<String> cmd = getRunCommand(TEST_TESTSUITE_ABSOLUTE_PATH + "native-image", "--version");
+                LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
+                try {
+                    out = Commands.runCommand(cmd);
+                } catch (IOException e) {
+                    throw new RuntimeException("Is native-image command available? Check if you are not trying " +
+                            "to run tests expecting locally installed native-image without having one. -Ptestsuite-builder-image is the " +
+                            "correct profile for running without locally installed native-image.", e);
+                }
+            }
+            return Arrays.asList(out.split(System.lineSeparator()));
+        }
+    }
+
+    private static class VersionBuilder {
+        private int jdkInterim;
+        private int jdkFeature;
+        private int jdkUpdate;
+        private boolean jdkUsesSysLibs;
+        private Version version;
+        private String betaBits;
+
+        VersionBuilder jdkInterim(int jdkInterim) {
+            this.jdkInterim = jdkInterim;
+            return this;
+        }
+
+        VersionBuilder beta(String betaBits) {
+            this.betaBits = betaBits;
+            return this;
+        }
+
+        VersionBuilder jdkUsesSysLibs(boolean jdkUsesSysLibs) {
+            this.jdkUsesSysLibs = jdkUsesSysLibs;
+            return this;
+        }
+
+        VersionBuilder jdkFeature(int jdkFeature) {
+            this.jdkFeature = jdkFeature;
+            return this;
+        }
+
+        VersionBuilder jdkUpdate(int jdkUpdate) {
+            this.jdkUpdate = jdkUpdate;
+            return this;
+        }
+
+        VersionBuilder version(Version version) {
+            this.version = version;
+            return this;
+        }
+
+        MVersion build() {
+            return new MVersion(version, jdkUsesSysLibs, jdkFeature, jdkInterim, jdkUpdate, betaBits);
         }
     }
 
     private static class InContainer {
-        private static final MVersion mVersion = new MVersion(true);
+        private static final MVersion mVersion = MVersion.of(true);
     }
 
     private static class Locally {
-        private static final MVersion mVersion = new MVersion(false);
+        private static final MVersion mVersion = MVersion.of(false);
     }
 
     public static int[] featureInterimUpdate(Pattern pattern, String version, int defaultValue) {
