@@ -23,9 +23,6 @@ import java.util.function.BooleanSupplier;
 
 import org.graalvm.home.Version;
 
-import com.oracle.svm.core.annotate.Substitute;
-import com.oracle.svm.core.annotate.TargetClass;
-
 public class GraalVM20OrLater implements BooleanSupplier {
 
     @Override
