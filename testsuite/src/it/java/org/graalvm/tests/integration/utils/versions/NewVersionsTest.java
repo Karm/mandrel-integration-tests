@@ -74,11 +74,7 @@ public class NewVersionsTest {
     @BeforeAll
     public static void setup() throws IOException {
         System.setProperty("FAKE_NATIVE_IMAGE_DIR", TEMP_DIR.toAbsolutePath().toString() + File.separator);
-        Files.writeString(NATIVE_IMAGE, IS_THIS_WINDOWS ?
-                        "@echo off" + System.lineSeparator() +
-                                "echo " + VERSION + System.lineSeparator() :
-                        "#!/bin/sh" + System.lineSeparator() +
-                                "echo '" + VERSION + "'" + System.lineSeparator(),
+        Files.writeString(NATIVE_IMAGE, getNativeImageVersionScript(),
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
         if (!IS_THIS_WINDOWS) {
             Files.setPosixFilePermissions(NATIVE_IMAGE, PosixFilePermissions.fromString("rwxr-xr-x"));
@@ -102,6 +98,21 @@ public class NewVersionsTest {
             Files.deleteIfExists(LOG);
             Files.deleteIfExists(TEMP_DIR);
         }
+    }
+
+    private static String getNativeImageVersionScript() {
+        StringBuilder builder = new StringBuilder();
+        if (IS_THIS_WINDOWS) {
+            builder.append("@echo off" + System.lineSeparator());
+        } else {
+            builder.append("#!/bin/sh" + System.lineSeparator());
+        }
+        for (String line: VERSION.split(System.lineSeparator())) {
+            builder.append(IS_THIS_WINDOWS ?
+                        "echo " + line + System.lineSeparator() :
+                        "echo '" + line + "'" + System.lineSeparator());
+        }
+        return builder.toString();
     }
 
     @Test
