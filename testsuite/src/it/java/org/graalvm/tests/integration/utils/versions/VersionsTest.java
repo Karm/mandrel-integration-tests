@@ -51,14 +51,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 @Tag("testing-testsuite")
 public class VersionsTest {
-    static final Path NATIVE_IMAGE = Path.of(System.getProperty("java.io.tmpdir"), IS_THIS_WINDOWS ? "native-image.cmd" : "native-image");
-    static final String VERSION = "native-image 22.2.0-devdb26f5c4fbe Mandrel Distribution (Java Version 17.0.3-beta+5-202203292328)";
-    static final Path LOG = Path.of(System.getProperty("java.io.tmpdir"), "versions-log");
     static final StandardOpenOption[] LOG_FILE_OPS = new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE};
+    static final String VERSION = "native-image 22.2.0-devdb26f5c4fbe Mandrel Distribution (Java Version 17.0.3-beta+5-202203292328)";
+    static final Path TEMP_DIR;
+    static final Path LOG;
+    static final Path NATIVE_IMAGE;
+
+    static {
+        try {
+            TEMP_DIR = Files.createTempDirectory(VersionsTest.class.getSimpleName());
+            LOG = TEMP_DIR.resolve(Path.of("versions-log"));
+            NATIVE_IMAGE = TEMP_DIR.resolve(Path.of(IS_THIS_WINDOWS ? "native-image.cmd" : "native-image"));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed setting up temp directory for test");
+        }
+    }
 
     @BeforeAll
     public static void setup() throws IOException {
-        System.setProperty("FAKE_NATIVE_IMAGE_DIR", System.getProperty("java.io.tmpdir") + File.separator);
+        System.setProperty("FAKE_NATIVE_IMAGE_DIR", TEMP_DIR.toAbsolutePath().toString() + File.separator);
         Files.writeString(NATIVE_IMAGE, IS_THIS_WINDOWS ?
                         "@echo off" + System.lineSeparator() +
                                 "echo " + VERSION + System.lineSeparator() :
@@ -69,6 +80,9 @@ public class VersionsTest {
             Files.setPosixFilePermissions(NATIVE_IMAGE, PosixFilePermissions.fromString("rwxr-xr-x"));
         }
         Files.deleteIfExists(LOG);
+        // Reset parsed instances so as to avoid side-effects on other tests
+        // Note that container instance isn't being used, so isn't reset.
+        UsedVersion.Locally.resetInstance();
     }
 
     @AfterAll
@@ -86,6 +100,7 @@ public class VersionsTest {
         } finally {
             Logs.archiveLog(VersionsTest.class.getCanonicalName(), "versionTest", LOG.toFile());
             Files.deleteIfExists(LOG);
+            Files.deleteIfExists(TEMP_DIR);
         }
     }
 
