@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 
 /**
@@ -304,7 +305,7 @@ public class UsedVersion {
                 }
             } else {
                 final String TEST_TESTSUITE_ABSOLUTE_PATH = System.getProperty("FAKE_NATIVE_IMAGE_DIR", "");
-                final List<String> cmd = getRunCommand(TEST_TESTSUITE_ABSOLUTE_PATH + "native-image", "--version");
+                final List<String> cmd = getRunCommand(TEST_TESTSUITE_ABSOLUTE_PATH + (IS_THIS_WINDOWS ? "native-image.cmd" : "native-image"), "--version");
                 LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
                 try {
                     out = Commands.runCommand(cmd);
