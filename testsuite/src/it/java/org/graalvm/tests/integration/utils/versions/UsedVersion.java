@@ -361,12 +361,18 @@ public class UsedVersion {
         }
     }
 
-    private static class InContainer {
-        private static final MVersion mVersion = MVersion.of(true);
+    static class InContainer {
+        private static volatile MVersion mVersion = MVersion.of(true);
+        static void resetInstance() { // used in tests
+            mVersion = MVersion.of(true);
+        }
     }
 
-    private static class Locally {
-        private static final MVersion mVersion = MVersion.of(false);
+    static class Locally {
+        private static volatile MVersion mVersion = MVersion.of(false);
+        static void resetInstance() { // used in tests
+            mVersion = MVersion.of(false);
+        }
     }
 
     public static int[] featureInterimUpdate(Pattern pattern, String version, int defaultValue) {

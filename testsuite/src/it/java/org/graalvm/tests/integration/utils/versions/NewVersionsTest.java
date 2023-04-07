@@ -53,54 +53,82 @@ import org.junit.jupiter.api.TestInfo;
 @Tag("testing-testsuite")
 public class NewVersionsTest {
 
-        static final Path NATIVE_IMAGE = Path.of(System.getProperty("java.io.tmpdir"), IS_THIS_WINDOWS ? "native-image.cmd" : "native-image");
-        static final String VERSION = "native-image 17.0.6 2023-01-17\n"
-                + "GraalVM Runtime Environment Mandrel-23.0.0-dev (build 17.0.6+10)\n"
-                + "Substrate VM Mandrel-23.0.0-dev (build 17.0.6+10, serial gc)";
-        static final Path LOG = Path.of(System.getProperty("java.io.tmpdir"), "new-versions-log");
-        static final StandardOpenOption[] LOG_FILE_OPS = new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE};
+    static final StandardOpenOption[] LOG_FILE_OPS = new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE};
+    static final String VERSION = "native-image 17.0.6 2023-01-17" + System.lineSeparator()
+        + "GraalVM Runtime Environment Mandrel-23.0.0-dev (build 17.0.6+10)" + System.lineSeparator()
+        + "Substrate VM Mandrel-23.0.0-dev (build 17.0.6+10, serial gc)";
+    static final Path TEMP_DIR;
+    static final Path LOG;
+    static final Path NATIVE_IMAGE;
 
-        @BeforeAll
-        public static void setup() throws IOException {
-            System.setProperty("FAKE_NATIVE_IMAGE_DIR", System.getProperty("java.io.tmpdir") + File.separator);
-            Files.writeString(NATIVE_IMAGE, IS_THIS_WINDOWS ?
-                            "@echo off" + System.lineSeparator() +
-                                    "echo " + VERSION + System.lineSeparator() :
-                            "#!/bin/sh" + System.lineSeparator() +
-                                    "echo '" + VERSION + "'" + System.lineSeparator(),
-                    StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-            if (!IS_THIS_WINDOWS) {
-                Files.setPosixFilePermissions(NATIVE_IMAGE, PosixFilePermissions.fromString("rwxr-xr-x"));
-            }
-            Files.deleteIfExists(LOG);
+    static {
+        try {
+            TEMP_DIR = Files.createTempDirectory(NewVersionsTest.class.getSimpleName());
+            LOG = TEMP_DIR.resolve(Path.of("new-versions-log"));
+            NATIVE_IMAGE = TEMP_DIR.resolve(Path.of(IS_THIS_WINDOWS ? "native-image.cmd" : "native-image"));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed setting up temp directory for test");
         }
+    }
 
-        @AfterAll
-        public static void teardown() throws IOException {
-            System.clearProperty("FAKE_NATIVE_IMAGE_DIR");
-            Files.deleteIfExists(NATIVE_IMAGE);
+    @BeforeAll
+    public static void setup() throws IOException {
+        System.setProperty("FAKE_NATIVE_IMAGE_DIR", TEMP_DIR.toAbsolutePath().toString() + File.separator);
+        Files.writeString(NATIVE_IMAGE, IS_THIS_WINDOWS ?
+                        "@echo off" + System.lineSeparator() +
+                                "echo " + VERSION + System.lineSeparator() :
+                        "#!/bin/sh" + System.lineSeparator() +
+                                "echo '" + VERSION + "'" + System.lineSeparator(),
+                StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        if (!IS_THIS_WINDOWS) {
+            Files.setPosixFilePermissions(NATIVE_IMAGE, PosixFilePermissions.fromString("rwxr-xr-x"));
+        }
+        Files.deleteIfExists(LOG);
+        // Reset parsed instances so as to avoid side-effects on other tests
+        UsedVersion.Locally.resetInstance();
+    }
+
+    @AfterAll
+    public static void teardown() throws IOException {
+        System.clearProperty("FAKE_NATIVE_IMAGE_DIR");
+        Files.deleteIfExists(NATIVE_IMAGE);
+        try {
             final String testlog = Files.readString(LOG, StandardCharsets.UTF_8);
-            try {
-                assertEquals(
-                        "Running test jdkNewVersionCheckA\n" +
-                        "Running test jdkNewVersionCheckB\n", testlog);
-            } finally {
-                Logs.archiveLog(NewVersionsTest.class.getCanonicalName(), "versionTest", LOG.toFile());
-                Files.deleteIfExists(LOG);
-            }
+            assertEquals(
+                    "Running test jdkNewVersionCheckA\n" +
+                    "Running test jdkNewVersionCheckB\n", testlog);
+        } finally {
+            Logs.archiveLog(NewVersionsTest.class.getCanonicalName(), "versionTest", LOG.toFile());
+            Files.deleteIfExists(LOG);
+            Files.deleteIfExists(TEMP_DIR);
         }
+    }
 
-        @Test
-        @Order(1)
-        @IfMandrelVersion(min = "23.0.0")
-        public void jdkNewVersionCheckA(TestInfo testInfo) throws IOException {
-            Files.writeString(LOG, "Running test " + testInfo.getTestMethod().get().getName() + "\n", StandardCharsets.UTF_8, LOG_FILE_OPS);
-        }
+    @Test
+    @Order(1)
+    @IfMandrelVersion(min = "23.0.0")
+    public void jdkNewVersionCheckA(TestInfo testInfo) throws IOException {
+        Files.writeString(LOG, "Running test " + testInfo.getTestMethod().get().getName() + "\n", StandardCharsets.UTF_8, LOG_FILE_OPS);
+    }
 
-        @Test
-        @Order(2)
-        @IfMandrelVersion(min = "23.0.0", max = "23.1.0")
-        public void jdkNewVersionCheckB(TestInfo testInfo) throws IOException {
-            Files.writeString(LOG, "Running test " + testInfo.getTestMethod().get().getName() + "\n", StandardCharsets.UTF_8, LOG_FILE_OPS);
-        }
+    @Test
+    @Order(2)
+    @IfMandrelVersion(min = "23.0.0", max = "23.1.0")
+    public void jdkNewVersionCheckB(TestInfo testInfo) throws IOException {
+        Files.writeString(LOG, "Running test " + testInfo.getTestMethod().get().getName() + "\n", StandardCharsets.UTF_8, LOG_FILE_OPS);
+    }
+
+    @Test
+    @Order(3)
+    @IfMandrelVersion(min = "30.0")
+    public void jdkNewVersionCheckC(TestInfo testInfo) throws IOException {
+        Files.writeString(LOG, "Running test " + testInfo.getTestMethod().get().getName() + "\n", StandardCharsets.UTF_8, LOG_FILE_OPS);
+    }
+
+    @Test
+    @Order(4)
+    @IfMandrelVersion(min = "20.0.0", max = "22.3")
+    public void jdkNewVersionCheckD(TestInfo testInfo) throws IOException {
+        Files.writeString(LOG, "Running test " + testInfo.getTestMethod().get().getName() + "\n", StandardCharsets.UTF_8, LOG_FILE_OPS);
+    }
 }
