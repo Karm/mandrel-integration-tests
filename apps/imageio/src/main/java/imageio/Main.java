@@ -36,8 +36,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 
 import static java.awt.image.BufferedImage.TYPE_3BYTE_BGR;
@@ -57,7 +61,7 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 // $ jar uf target/imageio.jar -C src/main/resources/ META-INF
 // $ native-image -H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf --no-fallback -jar target/imageio.jar target/imageio
 // $ rm -rf mytest*
-// $ ./target/imageio
+// $ ./target/imageio -Djava.home=$(pwd)
 public class Main {
 
     /**
@@ -186,8 +190,32 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException, FontFormatException {
+        removeFontsCache();
         paintGrace();
         paintRectangles();
         resizeImage();
+    }
+
+    // Remove the fonts related cache, so that the agent will take the right
+    // code paths which will match the native run.
+    //
+    // See https://github.com/openjdk/jdk17u/blob/908cab4123812b6b206b966a6ce92398cdf42c08/src/java.desktop/unix/classes/sun/font/FcFontConfiguration.java#L371
+    private static void removeFontsCache() {
+        String userDir = System.getProperty("user.home");
+        String version = System.getProperty("java.version");
+        String fs = File.separator;
+        String dir = userDir + fs + ".java" + fs + "fonts" + fs + version;
+        Path fontsCacheDir = Paths.get(dir);
+        try {
+            Files.walkFileTree(fontsCacheDir, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to remove fonts config cache file", e);
+        }
     }
 }
