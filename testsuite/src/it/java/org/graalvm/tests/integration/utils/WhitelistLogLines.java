@@ -46,7 +46,9 @@ public enum WhitelistLogLines {
 
     IMAGEIO(new Pattern[]{
             // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
-            Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints.")
+            Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
+            // The java agent erronously produces a reflect config mentioning this constructor, which doesn't exist
+            Pattern.compile("Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found.")
     }),
 
     IMAGEIO_BUILDER_IMAGE(new Pattern[]{

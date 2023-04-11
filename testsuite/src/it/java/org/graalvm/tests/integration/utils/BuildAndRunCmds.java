@@ -168,7 +168,7 @@ public enum BuildAndRunCmds {
             new String[]{"java", "-Djava.awt.headless=true", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
             new String[]{"jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF"},
             new String[]{"native-image", "-J-Djava.awt.headless=true", "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
-            new String[]{IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio"}
+            new String[]{IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio", "-Djava.home=.", "-Djava.awt.headless=true"}
     }),
     IMAGEIO_BUILDER_IMAGE(new String[][]{
             // Bring Your Own Maven (not a part of the builder image toolchain)
@@ -191,11 +191,11 @@ public enum BuildAndRunCmds {
                     "-J-Djava.awt.headless=true", "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
             // We build a runtime image, ubi 8 minimal based, runtime dependencies installed
             new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-t", ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "."},
-            // We have to run int the same env as we run the java part above, i.e. in the same container base.
+            // We have to run in the same env as we run the java part above, i.e. in the same container base.
             // Hashsums of font rotations would differ otherwise as your linux host might have different freetype native libs.
             new String[]{CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/work:z",
-                    ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "/work/target/imageio"}
+                    ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "/work/target/imageio", "-Djava.home=.", "-Djava.awt.headless=true"}
     }),
     DEBUG_SYMBOLS_SMOKE(new String[][]{
             new String[]{"mvn", "package"},
