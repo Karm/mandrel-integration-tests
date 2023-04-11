@@ -206,16 +206,18 @@ public class Main {
         String fs = File.separator;
         String dir = userDir + fs + ".java" + fs + "fonts" + fs + version;
         Path fontsCacheDir = Paths.get(dir);
-        try {
-            Files.walkFileTree(fontsCacheDir, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to remove fonts config cache file", e);
+        if (Files.exists(fontsCacheDir)) { // May not exist for container builds
+            try {
+                Files.walkFileTree(fontsCacheDir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to remove fonts config cache file", e);
+            }
         }
     }
 }
