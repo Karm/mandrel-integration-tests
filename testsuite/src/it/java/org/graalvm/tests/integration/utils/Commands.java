@@ -86,6 +86,9 @@ public class Commands {
     public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE = "<GRAALVM_BUILD_OUTPUT_JSON_FILE>";
     public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH = "-H:BuildOutputJSONFile=";
     public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion();
+    // While this looks like an env value it isn't. In particular keep the '-' in '[...]BUILDER-IMAGE'
+    // as that's used in CI which uses -Dquarkus.native.builder-image=<value> alternative. See
+    // getProperty() function for details.
     public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE", "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
 
     public static String getProperty(String key) {
