@@ -168,7 +168,7 @@ public enum BuildAndRunCmds {
             new String[]{"java", "-Djava.awt.headless=true", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
             new String[]{"jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF"},
             new String[]{"native-image", "-J-Djava.awt.headless=true", "-H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
-            new String[]{IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio"}
+            new String[]{IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio", "-Djava.home=.", "-Djava.awt.headless=true"}
     }),
     IMAGEIO_BUILDER_IMAGE(new String[][]{
             // Bring Your Own Maven (not a part of the builder image toolchain)

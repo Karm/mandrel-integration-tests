@@ -61,7 +61,7 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 // $ jar uf target/imageio.jar -C src/main/resources/ META-INF
 // $ native-image -H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf --no-fallback -jar target/imageio.jar target/imageio
 // $ rm -rf mytest*
-// $ ./target/imageio -Djava.home=$(pwd)
+// $ ./target/imageio -Djava.awt.headless=true -Djava.home=$(pwd)
 public class Main {
 
     /**
