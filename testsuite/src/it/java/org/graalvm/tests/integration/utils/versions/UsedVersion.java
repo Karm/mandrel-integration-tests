@@ -296,6 +296,13 @@ public class UsedVersion {
         private static List<String> runNativeImageVersion(boolean inContainer) {
             final String out;
             if (inContainer) {
+                final List<String> pullCmd = List.of(CONTAINER_RUNTIME, "pull", BUILDER_IMAGE);
+                LOGGER.info("Running command " + pullCmd + " so as to pull Mandrel image locally.");
+                try {
+                    Commands.runCommand(pullCmd);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failing to pull " + BUILDER_IMAGE, e);
+                }
                 final List<String> cmd = List.of(CONTAINER_RUNTIME, "run", "-t", BUILDER_IMAGE, "native-image", "--version");
                 LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
                 try {
