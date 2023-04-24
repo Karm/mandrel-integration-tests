@@ -47,7 +47,7 @@ public enum WhitelistLogLines {
     IMAGEIO(new Pattern[]{
             // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
             Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
-            // The java agent erronously produces a reflect config mentioning this constructor, which doesn't exist
+            // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
             Pattern.compile("Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found.")
     }),
 
@@ -57,7 +57,9 @@ public enum WhitelistLogLines {
             // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
             Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
             // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
-            Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints.")
+            Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
+            // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
+            Pattern.compile("Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found.")
     }),
 
     QUARKUS_FULL_MICROPROFILE(new Pattern[]{
