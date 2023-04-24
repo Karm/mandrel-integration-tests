@@ -551,6 +551,12 @@ public class AppReproducersTest {
             controlData.keySet().forEach(f -> new File(appDir, f).delete());
 
             LOGGER.info("Running...");
+
+            // Fontconfig might look for fonts here, see similar thing in Quarkus:
+            // https://github.com/quarkusio/quarkus/blob/main/extensions/awt/runtime/src/main/java/io/quarkus/awt/runtime/JDKSubstitutions.java#L53
+            // Details: https://github.com/Karm/mandrel-integration-tests/issues/151#issuecomment-1516802244
+            Files.createDirectories(Path.of(appDir.toString(), "lib")).toFile().deleteOnExit();
+
             final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
