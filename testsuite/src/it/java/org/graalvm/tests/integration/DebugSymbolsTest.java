@@ -19,12 +19,14 @@
  */
 package org.graalvm.tests.integration;
 
+import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_1;
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_1;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
@@ -80,6 +85,20 @@ public class DebugSymbolsTest {
 
     public static final String BASE_DIR = getBaseDir();
 
+    public enum DebugOptions {
+        TrackNodeSourcePosition_23_0("<DEBUG_FLAGS_23_0>", "-H:+TrackNodeSourcePosition"),
+        DebugCodeInfoUseSourceMappings_23_1("<DEBUG_FLAGS_23_1_a>", "-H:+DebugCodeInfoUseSourceMappings"),
+        OmitInlinedMethodDebugLineInfo_23_1("<DEBUG_FLAGS_23_1_b>", "-H:+OmitInlinedMethodDebugLineInfo");
+
+        public final String token;
+        final String replacement;
+
+        DebugOptions(String token, String replacement) {
+            this.token = token;
+            this.replacement = replacement;
+        }
+    }
+
     @Test
     @Tag("debugSymbolsSmoke")
     @DisabledOnOs({OS.WINDOWS})
@@ -99,9 +118,27 @@ public class DebugSymbolsTest {
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
+            Map<String, String> switches;
+            Version version = UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE);
+            if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
+                switches = Map.of(
+                        TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement,
+                        DebugCodeInfoUseSourceMappings_23_1.token, DebugCodeInfoUseSourceMappings_23_1.replacement,
+                        OmitInlinedMethodDebugLineInfo_23_1.token, OmitInlinedMethodDebugLineInfo_23_1.replacement);
+            } else if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
+                switches = Map.of(
+                        TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement,
+                        DebugCodeInfoUseSourceMappings_23_1.token, "",
+                        OmitInlinedMethodDebugLineInfo_23_1.token, "");
+            } else {
+                switches = Map.of(
+                        TrackNodeSourcePosition_23_0.token, "",
+                        DebugCodeInfoUseSourceMappings_23_1.token, "",
+                        OmitInlinedMethodDebugLineInfo_23_1.token, "");
+            }
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
 
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/debug-symbols-smoke"));
             final Map<String, String> envA = processBuilder.environment();
