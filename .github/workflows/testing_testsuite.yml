@@ -22,11 +22,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mandrel-version: [ '21.3.5.1-Final', '22.3.1.0-Final' ]
+        mandrel-version: [ '21.3.6.0-Final', '22.3.2.1-Final' ]
         java-version: [ '11', '17' ]
         os: [ ubuntu-20.04, windows-2019 ]
         exclude:
-          - mandrel-version: '22.3.1.0-Final'
+          - mandrel-version: '22.3.2.1-Final'
             java-version: '11'
     steps:
       - uses: actions/checkout@v2
