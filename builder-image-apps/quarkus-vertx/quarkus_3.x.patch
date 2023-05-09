@@ -1,3 +1,16 @@
+diff --git a/builder-image-apps/quarkus-vertx/pom.xml b/builder-image-apps/quarkus-vertx/pom.xml
+index 4bbe1d3..7d47c9b 100644
+--- a/builder-image-apps/quarkus-vertx/pom.xml
++++ b/builder-image-apps/quarkus-vertx/pom.xml
+@@ -48,7 +48,7 @@
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-vertx-web</artifactId>
++            <artifactId>quarkus-reactive-routes</artifactId>
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
 diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
 index cf0796c..66c53c2 100644
 --- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java

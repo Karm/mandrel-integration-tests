@@ -26,6 +26,7 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     private final String version;
     private final int major;
     private final int minor;
+
     private final int patch;
     private final boolean snapshot;
     private final String gitSHA;

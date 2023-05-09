@@ -301,9 +301,6 @@ public class DebugSymbolsTest {
             if (applySourcesPatch()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), appDir);
             }
-            if (QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_snapshot.patch"), appDir);
-            }
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
