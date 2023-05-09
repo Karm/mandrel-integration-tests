@@ -93,13 +93,13 @@ public class RuntimesSmokeTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             long buildStarts = System.currentTimeMillis();
-            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, switchReplacements);
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switchReplacements);
             long buildEnds = System.currentTimeMillis();
             findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*"));
 
             // Run
             LOGGER.info("Running...");
-            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -120,8 +120,7 @@ public class RuntimesSmokeTest {
             long executableSizeKb;
             // Running without a container
             if (app.runtimeContainer == ContainerNames.NONE) {
-                executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(),
-                        app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1][0])) / 1024L;
+                executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(), app.buildAndRunCmds.runCommands[0][0])) / 1024L;
                 rssKb = getRSSkB(process.pid());
                 final long openedFiles = getOpenedFDs(process.pid());
                 processStopper(process, false);
