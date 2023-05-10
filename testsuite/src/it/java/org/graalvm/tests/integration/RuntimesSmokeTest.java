@@ -91,13 +91,12 @@ public class RuntimesSmokeTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // The last command is reserved for running it
-            assertTrue(app.buildAndRunCmds.cmds.length > 1);
             long buildStarts = System.currentTimeMillis();
             Logs.appendln(report, "# " + cn + ", " + mn);
-            for (int i = 0; i < app.buildAndRunCmds.cmds.length - 1; i++) {
+            for (int i = 0; i < app.buildAndRunCmds.buildCommands.length; i++) {
                 // We cannot run commands in parallel, we need them to follow one after another
                 ExecutorService buildService = Executors.newFixedThreadPool(1);
-                List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
+                List<String> cmd = getRunCommand(app.buildAndRunCmds.buildCommands[i]);
                 buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 30)); // Timeout for Maven downloading the Internet
                 Logs.appendln(report, (new Date()).toString());
                 Logs.appendln(report, appDir.getAbsolutePath());
@@ -110,7 +109,7 @@ public class RuntimesSmokeTest {
 
             // Run
             LOGGER.info("Running...");
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -131,8 +130,7 @@ public class RuntimesSmokeTest {
             long executableSizeKb;
             // Running without a container
             if (app.runtimeContainer == ContainerNames.NONE) {
-                executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(),
-                        app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1][0])) / 1024L;
+                executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(), app.buildAndRunCmds.runCommands[0][0])) / 1024L;
                 rssKb = getRSSkB(process.pid());
                 final long openedFiles = getOpenedFDs(process.pid());
                 processStopper(process, false);

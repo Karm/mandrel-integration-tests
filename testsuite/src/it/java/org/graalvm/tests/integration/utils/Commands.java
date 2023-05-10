@@ -946,22 +946,22 @@ public class Commands {
      *               "-Dfinal.name=quarkus-json_-ParseOnce"},
      * //@formatter:on
      */
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir,
                                       File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
-        // The last command is reserved for running it
-        assertTrue(app.buildAndRunCmds.cmds.length > 1);
+        String[][] buildCommands = app.buildAndRunCmds.buildCommands;
+        assertTrue(buildCommands.length > 0);
         if (report != null) {
             Logs.appendln(report, "# " + cn + ", " + mn);
         }
-        for (int i = 0; i < steps; i++) {
+        for (int i = 0; i < buildCommands.length; i++) {
             // We cannot run commands in parallel, we need them to follow one after another
             final ExecutorService buildService = Executors.newFixedThreadPool(1);
             final List<String> cmd;
             // Replace possible placeholders with actual switches
             if (switchReplacements != null && !switchReplacements.isEmpty()) {
-                cmd = replaceSwitchesInCmd(getRunCommand(app.buildAndRunCmds.cmds[i]), switchReplacements);
+                cmd = replaceSwitchesInCmd(getRunCommand(buildCommands[i]), switchReplacements);
             } else {
-                cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
+                cmd = getRunCommand(buildCommands[i]);
             }
             Files.writeString(processLog.toPath(), String.join(" ", cmd) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
             buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 20, env)); // might take a long time....
@@ -976,15 +976,11 @@ public class Commands {
     }
 
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
-        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, null);
+        builderRoutine(app, report, cn, mn, appDir, processLog, null, null);
     }
 
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws IOException {
-        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env, null);
-    }
-
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
-        builderRoutine(steps, app, report, cn, mn, appDir, processLog, null, null);
+        builderRoutine(app, report, cn, mn, appDir, processLog, env, null);
     }
 
     public static List<String> replaceSwitchesInCmd(List<String> cmd, Map<String, String> switchReplacements) {

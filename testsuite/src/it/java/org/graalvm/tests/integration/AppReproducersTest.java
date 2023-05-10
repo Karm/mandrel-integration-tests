@@ -106,7 +106,7 @@ public class AppReproducersTest {
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...#1");
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
@@ -114,7 +114,7 @@ public class AppReproducersTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             LOGGER.info("Running...#2");
-            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
@@ -457,7 +457,7 @@ public class AppReproducersTest {
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...");
-            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             final String output = runCommand(cmd, appDir).trim();
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
@@ -561,7 +561,7 @@ public class AppReproducersTest {
             // Details: https://github.com/Karm/mandrel-integration-tests/issues/151#issuecomment-1516802244
             Files.createDirectories(Path.of(appDir.toString(), "lib")).toFile().deleteOnExit();
 
-            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(15, TimeUnit.SECONDS);
@@ -671,7 +671,7 @@ public class AppReproducersTest {
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...");
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
@@ -759,7 +759,7 @@ public class AppReproducersTest {
             builderRoutine(app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...");
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
@@ -799,10 +799,10 @@ public class AppReproducersTest {
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            builderRoutine(2, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             LOGGER.info("Running...");
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
@@ -862,15 +862,13 @@ public class AppReproducersTest {
                         DebugCodeInfoUseSourceMappings_23_1.token, "",
                         OmitInlinedMethodDebugLineInfo_23_1.token, "");
             }
-            // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
-            // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 
             final File inputData = new File(BASE_DIR + File.separator + app.dir + File.separator + "target" + File.separator + "test_data.txt");
 
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
@@ -880,7 +878,7 @@ public class AppReproducersTest {
 
             LOGGER.info("Running Native mode...");
             start = System.currentTimeMillis();
-            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            cmd = getRunCommand(app.buildAndRunCmds.runCommands[1]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);

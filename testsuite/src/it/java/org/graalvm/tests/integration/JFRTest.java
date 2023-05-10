@@ -130,13 +130,13 @@ public class JFRTest {
                 switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
             }
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 
             final File inputData = Path.of(BASE_DIR, app.dir, "target", "test_data.txt").toFile();
 
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             if (UsedVersion.jdkFeature(inContainer) >= 17) {
                 cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_17_FLIGHT_RECORDER.replacement));
             } else {
@@ -151,7 +151,7 @@ public class JFRTest {
 
             LOGGER.info("Running Native mode...");
             start = System.currentTimeMillis();
-            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            cmd = getRunCommand(app.buildAndRunCmds.runCommands[1]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
@@ -226,7 +226,7 @@ public class JFRTest {
             } else {
                 switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
             }
-            builderRoutine(2, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 
             final Map<String[], Pattern> cmdOutput = new HashMap<>();
             cmdOutput.put(new String[]{"./target/timezones",

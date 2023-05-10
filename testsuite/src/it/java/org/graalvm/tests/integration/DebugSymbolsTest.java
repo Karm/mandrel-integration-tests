@@ -136,9 +136,7 @@ public class DebugSymbolsTest {
                         DebugCodeInfoUseSourceMappings_23_1.token, "",
                         OmitInlinedMethodDebugLineInfo_23_1.token, "");
             }
-            // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
-            // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/debug-symbols-smoke"));
             final Map<String, String> envA = processBuilder.environment();
@@ -209,7 +207,7 @@ public class DebugSymbolsTest {
 
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/quarkus-runner"));
             final Map<String, String> envA = processBuilder.environment();
@@ -307,7 +305,7 @@ public class DebugSymbolsTest {
 
             // Build & Run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            builderRoutine(app.buildAndRunCmds.cmds.length, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
 

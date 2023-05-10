@@ -135,7 +135,6 @@ public class PerfCheckTest {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
-            assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
@@ -154,13 +153,13 @@ public class PerfCheckTest {
                         GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", ""
                 );
             }
-            builderRoutine(3, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(app, null, null, null, appDir, processLog, null, switches);
             assertTrue(processLog.exists());
 
             int line = 0;
-            for (int i = 3; i >= 1; i--) {
+            for (int i = 0; i < app.buildAndRunCmds.runCommands.length; i++) {
                 final Map<String, String> report = populateHeader(new TreeMap<>());
-                final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - i]);
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[i]);
                 Files.writeString(processLog.toPath(), String.join(" ", cmd) + '\n', StandardOpenOption.APPEND, StandardOpenOption.CREATE);
                 process = runCommand(cmd, appDir, processLog, app);
                 line = waitForFileToMatch(Pattern.compile(".*Events enabled.*"), processLog.toPath(), line, 20, 1, TimeUnit.SECONDS);
@@ -191,7 +190,7 @@ public class PerfCheckTest {
                 System.out.println();
                 report.put("rssKb", Long.toString(getRSSkB(process.children().sorted().findFirst().get().pid())));
                 processStopper(process, false, true);
-                final String statsFor = Arrays.stream(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - i])
+                final String statsFor = Arrays.stream(app.buildAndRunCmds.runCommands[i])
                         // skipping first 4 perf tool conf
                         .skip(4).collect(Collectors.joining(" ")).trim();
                 waitForFileToMatch(Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*"), processLog.toPath(), 0, 5, 1, TimeUnit.SECONDS);
@@ -278,7 +277,6 @@ public class PerfCheckTest {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
-            assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
@@ -291,12 +289,12 @@ public class PerfCheckTest {
             } else {
                 switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
             }
-            builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(app, null, null, null, appDir, processLog, null, switches);
 
             int line = 0;
-            for (int i = 2; i >= 1; i--) {
+            for (int i = 0; i < app.buildAndRunCmds.runCommands.length; i++) {
                 final Map<String, String> report = populateHeader(new TreeMap<>());
-                final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - i]);
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[i]);
                 Files.writeString(processLog.toPath(), String.join(" ", cmd) + '\n', StandardOpenOption.APPEND, StandardOpenOption.CREATE);
                 process = runCommand(cmd, appDir, processLog, app);
                 line = waitForFileToMatch(Pattern.compile(".*Events enabled.*"), processLog.toPath(), line, 20, 1, TimeUnit.SECONDS);
@@ -327,7 +325,7 @@ public class PerfCheckTest {
                 System.out.println();
                 report.put("rssKb", Long.toString(getRSSkB(process.children().sorted().findFirst().get().pid())));
                 processStopper(process, false, true);
-                final String statsFor = Arrays.stream(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - i])
+                final String statsFor = Arrays.stream(app.buildAndRunCmds.runCommands[i])
                         // skipping first 4 perf tool conf
                         .skip(4).collect(Collectors.joining(" ")).trim();
                 waitForFileToMatch(Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*"), processLog.toPath(), 0, 5, 1, TimeUnit.SECONDS);
@@ -409,7 +407,6 @@ public class PerfCheckTest {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
-            assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
@@ -422,13 +419,13 @@ public class PerfCheckTest {
             } else {
                 switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
             }
-            builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(app, null, null, null, appDir, processLog, null, switches);
 
             int line = 0;
-            for (int i = 2; i >= 1; i--) {
+            for (int i = 0; i < app.buildAndRunCmds.runCommands.length; i++) {
                 final Map<String, String> report = populateHeader(new TreeMap<>());
                 report.replace("testApp", "https://github.com/Karm/mandrel-integration-tests/apps/quarkus-full-microprofile/");
-                final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - i]);
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[i]);
                 Files.writeString(processLog.toPath(), String.join(" ", cmd) + '\n', StandardOpenOption.APPEND, StandardOpenOption.CREATE);
                 process = runCommand(cmd, appDir, processLog, app);
                 final long timeToFirstOKRequestMs = WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
@@ -450,7 +447,7 @@ public class PerfCheckTest {
                 System.out.println();
                 report.put("rssKb", Long.toString(getRSSkB(process.children().sorted().findFirst().get().pid())));
                 processStopper(process, false, true);
-                final String statsFor = Arrays.stream(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - i])
+                final String statsFor = Arrays.stream(app.buildAndRunCmds.runCommands[i])
                         // skipping first 2:  `perf stat'
                         .skip(2).collect(Collectors.joining(" ")).trim();
                 waitForFileToMatch(Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*"), processLog.toPath(), 0, 5, 1, TimeUnit.SECONDS);
