@@ -272,7 +272,7 @@ public enum GDBSession {
         }
     };
 
-    private static final CP SHOW_VERSION = new CP("show version\n", Pattern.compile(".*", Pattern.DOTALL));
+    private static final CP SHOW_VERSION = new CP("show version\n", Pattern.compile(".*gdb.*", Pattern.DOTALL));
 
     public abstract CP[] get(boolean inContainer);
 }
