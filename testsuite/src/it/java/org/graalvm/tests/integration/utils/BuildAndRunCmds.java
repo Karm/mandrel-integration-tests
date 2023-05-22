@@ -208,8 +208,8 @@ public enum BuildAndRunCmds {
                     
                     new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
                             DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0.token,
-                            DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_1.token,
-                            DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_1.token,
+                            DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0.token,
+                            DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0.token,
                             "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}

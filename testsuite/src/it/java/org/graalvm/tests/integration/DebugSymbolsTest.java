@@ -52,8 +52,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_1;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_1;
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
@@ -86,9 +86,9 @@ public class DebugSymbolsTest {
     public static final String BASE_DIR = getBaseDir();
 
     public enum DebugOptions {
-        TrackNodeSourcePosition_23_0("<DEBUG_FLAGS_23_0>", "-H:+TrackNodeSourcePosition"),
-        DebugCodeInfoUseSourceMappings_23_1("<DEBUG_FLAGS_23_1_a>", "-H:+DebugCodeInfoUseSourceMappings"),
-        OmitInlinedMethodDebugLineInfo_23_1("<DEBUG_FLAGS_23_1_b>", "-H:+OmitInlinedMethodDebugLineInfo");
+        TrackNodeSourcePosition_23_0("<DEBUG_FLAGS_23_0_a>", "-H:+TrackNodeSourcePosition"),
+        DebugCodeInfoUseSourceMappings_23_0("<DEBUG_FLAGS_23_0_b>", "-H:+DebugCodeInfoUseSourceMappings"),
+        OmitInlinedMethodDebugLineInfo_23_0("<DEBUG_FLAGS_23_0_c>", "-H:+OmitInlinedMethodDebugLineInfo");
 
         public final String token;
         final String replacement;
@@ -120,21 +120,16 @@ public class DebugSymbolsTest {
 
             Map<String, String> switches;
             Version version = UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE);
-            if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
+            if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
                 switches = Map.of(
                         TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement,
-                        DebugCodeInfoUseSourceMappings_23_1.token, DebugCodeInfoUseSourceMappings_23_1.replacement,
-                        OmitInlinedMethodDebugLineInfo_23_1.token, OmitInlinedMethodDebugLineInfo_23_1.replacement);
-            } else if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
-                switches = Map.of(
-                        TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement,
-                        DebugCodeInfoUseSourceMappings_23_1.token, "",
-                        OmitInlinedMethodDebugLineInfo_23_1.token, "");
+                        DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement,
+                        OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
             } else {
                 switches = Map.of(
                         TrackNodeSourcePosition_23_0.token, "",
-                        DebugCodeInfoUseSourceMappings_23_1.token, "",
-                        OmitInlinedMethodDebugLineInfo_23_1.token, "");
+                        DebugCodeInfoUseSourceMappings_23_0.token, "",
+                        OmitInlinedMethodDebugLineInfo_23_0.token, "");
             }
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
