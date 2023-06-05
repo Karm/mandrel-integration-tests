@@ -145,7 +145,7 @@ public enum GDBSession {
                                         ".*File debug_symbols_smoke/ClassA.java:.*" +
                                                 "java.lang.String \\*debug_symbols_smoke.ClassA::toString\\(\\).*" +
                                                 "File debug_symbols_smoke/Main.java:.*" +
-                                                "void debug_symbols_smoke.Main\\$\\$Lambda\\$.*::accept\\(java.lang.Object\\*\\).*" +
+                                                "void debug_symbols_smoke.Main\\$\\$Lambda.*::accept\\(java.lang.Object\\*\\).*" +
                                                 "void debug_symbols_smoke.Main::lambda\\$thisIsTheEnd\\$0\\(java.io.ByteArrayOutputStream\\*, debug_symbols_smoke.ClassA\\*\\).*" +
                                                 "void debug_symbols_smoke.Main::main\\(java.lang.String\\[\\]\\*\\).*" +
                                                 "void debug_symbols_smoke.Main::thisIsTheEnd\\(java.util.List\\*\\).*"
