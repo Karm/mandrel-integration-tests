@@ -29,9 +29,17 @@ import java.util.regex.Pattern;
 public class CP {
     public final String c;
     public final Pattern p;
+    public final int timeoutSeconds;
 
     public CP(String c, Pattern p) {
         this.c = c;
         this.p = p;
+        this.timeoutSeconds = 10;
+    }
+
+    public CP(String c, Pattern p, int timeoutSeconds) {
+        this.c = c;
+        this.p = p;
+        this.timeoutSeconds = timeoutSeconds;
     }
 }
