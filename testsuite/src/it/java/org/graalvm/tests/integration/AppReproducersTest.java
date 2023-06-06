@@ -618,6 +618,12 @@ public class AppReproducersTest {
                 modifiable.remove("libawt.a");
                 expected = Collections.unmodifiableSet(modifiable);
             }
+            if (UsedVersion.jdkFeature(inContainer) >= 21) {
+                 // JDK 21 has fdlibm ported to Java. See JDK-8171407
+                Set<String> modifiable = new HashSet<>(expected);
+                modifiable.remove("libfdlibm.a");
+                expected = Collections.unmodifiableSet(modifiable);
+            }
             if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
                 // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
                 // NO-OP
