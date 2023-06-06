@@ -406,7 +406,7 @@ public class DebugSymbolsTest {
                         } else {
                             writer.write(cp.c);
                             writer.flush();
-                            boolean m = waitForBufferToMatch(stringBuffer, cp.p, 10, 1, TimeUnit.SECONDS);
+                            boolean m = waitForBufferToMatch(stringBuffer, cp.p, cp.timeoutSeconds, 1, TimeUnit.SECONDS);
                             Logs.appendlnSection(report, cp.c);
                             Logs.appendln(report, stringBuffer.toString());
                             if (!m) {
