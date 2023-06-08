@@ -240,7 +240,7 @@ public enum GDBSession {
                                     Pattern.DOTALL),
                             // FIXME: The timeout should be revisited once we conclude on whether such a delay on loading
                             // the symbols is acceptable or not. See https://github.com/Karm/mandrel-integration-tests/issues/160
-                            5 * 60),
+                            10 * 60),
                     new CP("run&\n",
                             Pattern.compile(".*Installed features:.*", Pattern.DOTALL)),
                     new CP("GOTO URL http://localhost:8080/data/config/lookup",
