@@ -234,7 +234,7 @@ public class DebugSymbolsTest {
                 Logs.appendln(report, stringBuffer.toString());
                 assertTrue(waitForBufferToMatch(stringBuffer,
                                 Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                                3000, 500, TimeUnit.MILLISECONDS),
+                                60000, 500, TimeUnit.MILLISECONDS),
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
                 writer.write("set confirm off\n");

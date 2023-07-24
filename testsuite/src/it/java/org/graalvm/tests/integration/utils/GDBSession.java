@@ -238,9 +238,7 @@ public enum GDBSession {
                     new CP("b ConfigTestController.java:33\n",
                             Pattern.compile(".*Breakpoint 1 at .*: file com/example/quarkus/config/ConfigTestController.java, line 33.*",
                                     Pattern.DOTALL),
-                            // FIXME: The timeout should be revisited once we conclude on whether such a delay on loading
-                            // the symbols is acceptable or not. See https://github.com/Karm/mandrel-integration-tests/issues/160
-                            10 * 60),
+                            60),
                     new CP("run&\n",
                             Pattern.compile(".*Installed features:.*", Pattern.DOTALL)),
                     new CP("GOTO URL http://localhost:8080/data/config/lookup",
