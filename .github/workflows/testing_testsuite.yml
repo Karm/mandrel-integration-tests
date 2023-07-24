@@ -22,25 +22,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mandrel-version: [ '21.3.6.0-Final', '22.3.2.1-Final' ]
-        java-version: [ '11', '17' ]
+        mandrel-version: [ '22.3.3.1-Final', '23.0.1.2-Final' ]
+        java-version: [ '17' ]
         os: [ ubuntu-20.04, windows-2019 ]
-        exclude:
-          - mandrel-version: '22.3.2.1-Final'
-            java-version: '11'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
           path: ts
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ matrix.os }}-
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         name: Mandrel installation cached
         id: cache_mandrel
         with:
@@ -116,7 +113,7 @@ jobs:
         if: failure()
         run: tar czvf test-reports-mandrel-it.tgz ${{ github.workspace }}/ts/testsuite/target/archived-logs
       - name: Upload failure Archive (if maven failed)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: reports-${{ matrix.mandrel-version }}-${{ matrix.java-version }}-${{ matrix.os }}

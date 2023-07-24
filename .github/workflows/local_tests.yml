@@ -23,51 +23,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: [ '2.7.7.Final', '2.13.7.Final', '2.16.7.Final', '3.0.2.Final' ]
-        mandrel-version: [ '21.3.6.0-Final', '22.3.2.1-Final' ]
-        java-version: [ '11', '17' ]
+        quarkus-version: [ '2.13.8.Final', '2.16.8.Final', '3.2.2.Final' ]
+        mandrel-version: [ '22.3.3.1-Final', '23.0.1.2-Final' ]
+        java-version: [ '17' ]
         os: [ ubuntu-20.04, windows-2019 ]
-        exclude:
-          - quarkus-version: '2.7.7.Final'
-            mandrel-version: '21.3.6.0-Final'
-            java-version: '17'
-
-          - quarkus-version: '2.7.7.Final'
-            mandrel-version: '22.3.2.1-Final'
-
-          - quarkus-version: '2.13.7.Final'
-            mandrel-version: '21.3.6.0-Final'
-
-          - quarkus-version: '2.13.7.Final'
-            mandrel-version: '22.3.2.1-Final'
-            java-version: '11'
-
-          - quarkus-version: '2.16.7.Final'
-            mandrel-version: '21.3.6.0-Final'
-
-          - quarkus-version: '2.16.7.Final'
-            mandrel-version: '22.3.2.1-Final'
-            java-version: '11'
-
-          - quarkus-version: '3.0.2.Final'
-            mandrel-version: '21.3.6.0-Final'
-
-          - quarkus-version: '3.0.2.Final'
-            mandrel-version: '22.3.2.1-Final'
-            java-version: '11'
+        include:
+          - quarkus-version: '2.13.8.Final'
+            mandrel-builder-image: '22.3.3.1-Final'
+          - quarkus-version: '2.16.8.Final'
+            mandrel-builder-image: '22.3.3.1-Final'
+          - quarkus-version: '3.2.2.Final'
+            mandrel-builder-image: '23.0.1.2-Final'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
           path: ts
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ matrix.quarkus-version }}-${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ matrix.quarkus-version }}-${{ matrix.os }}-
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         name: Mandrel installation cached
         id: cache_mandrel
         with:
@@ -144,7 +123,7 @@ jobs:
         if: failure()
         run: tar czvf test-reports-mandrel-it.tgz ${{ github.workspace }}/ts/testsuite/target/archived-logs
       - name: Upload failure Archive (if maven failed)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: reports-${{ matrix.mandrel-version }}-${{ matrix.java-version }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
