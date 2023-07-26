@@ -157,12 +157,13 @@ public class DebugSymbolsTest {
             esvc.submit(reader);
 
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
-                Logs.appendln(report, stringBuffer.toString());
-                assertTrue(waitForBufferToMatch(stringBuffer,
-                                Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                                3000, 500, TimeUnit.MILLISECONDS),
+                Logs.appendlnSection(report, appDir.getAbsolutePath());
+                Logs.appendln(report, String.join(" ", processBuilder.command()));
+                boolean result = waitForBufferToMatch(report, stringBuffer,
+                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
+                        3000, 500, TimeUnit.MILLISECONDS);
+                Logs.appendlnSection(report, stringBuffer.toString());
+                assertTrue(result,
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report, false);
@@ -226,15 +227,16 @@ public class DebugSymbolsTest {
             };
             esvc.submit(reader);
 
-            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
-                Logs.appendln(report, stringBuffer.toString());
-                assertTrue(waitForBufferToMatch(stringBuffer,
-                                Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                                60000, 500, TimeUnit.MILLISECONDS),
-                        "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
+            Logs.appendlnSection(report, appDir.getAbsolutePath());
+            Logs.appendln(report, String.join(" ", processBuilder.command()));
+            boolean result = waitForBufferToMatch(report, stringBuffer,
+                    Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
+                    60000, 500, TimeUnit.MILLISECONDS);
+            Logs.appendlnSection(report, stringBuffer.toString());
+            assertTrue(result,
+                    "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
 
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
                 writer.write("set confirm off\n");
                 writer.flush();
 
@@ -335,13 +337,15 @@ public class DebugSymbolsTest {
             esvc.submit(reader);
 
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(gdbProcess.getOutputStream()))) {
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", processBuilder.command()));
-                Logs.appendln(report, stringBuffer.toString());
-                assertTrue(waitForBufferToMatch(stringBuffer,
-                                Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                                3000, 500, TimeUnit.MILLISECONDS),
+                Logs.appendlnSection(report, appDir.getAbsolutePath());
+                Logs.appendln(report, String.join(" ", processBuilder.command()));
+                boolean result = waitForBufferToMatch(report, stringBuffer,
+                        Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
+                        3000, 500, TimeUnit.MILLISECONDS);
+                Logs.appendlnSection(report, stringBuffer.toString());
+                assertTrue(result,
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
+
 
                 writer.write("set confirm off\n");
                 writer.flush();
@@ -403,9 +407,9 @@ public class DebugSymbolsTest {
                         } else {
                             writer.write(cp.c);
                             writer.flush();
-                            boolean m = waitForBufferToMatch(stringBuffer, cp.p, cp.timeoutSeconds, 1, TimeUnit.SECONDS);
-                            Logs.appendlnSection(report, cp.c);
-                            Logs.appendln(report, stringBuffer.toString());
+                            Logs.appendln(report, cp.c);
+                            boolean m = waitForBufferToMatch(report, stringBuffer, cp.p, cp.timeoutSeconds, 1, TimeUnit.SECONDS);
+                            Logs.appendlnSection(report, stringBuffer.toString());
                             if (!m) {
                                 errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern '" +
                                         cp.p.pattern() + "'.\nOutput was:\n" + stringBuffer);
