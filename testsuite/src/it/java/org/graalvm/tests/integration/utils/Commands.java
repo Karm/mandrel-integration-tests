@@ -905,8 +905,11 @@ public class Commands {
         long sleepMillis = unit.toMillis(sleep);
         long startMillis = System.currentTimeMillis();
         while (System.currentTimeMillis() - startMillis < timeoutMillis) {
-            if (pattern.matcher(stringBuffer.toString()).matches()) {
-                return true;
+            // Wait for command to complete, i.e. for the prompt to appear.
+            // To ensure the prompt appears consistently across gdb versions after every command we use the GDB/MI mode, i.e. the "--interpreter=mi" option.
+            // See https://sourceware.org/gdb/onlinedocs/gdb/GDB_002fMI-Output-Syntax.html#GDB_002fMI-Output-Syntax
+            if (Pattern.compile(".*\\(gdb\\).*", Pattern.DOTALL).matcher(stringBuffer.toString()).matches()) {
+                return pattern.matcher(stringBuffer.toString()).matches();
             }
             try {
                 Thread.sleep(sleepMillis);

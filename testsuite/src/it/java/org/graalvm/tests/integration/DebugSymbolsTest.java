@@ -135,7 +135,7 @@ public class DebugSymbolsTest {
             // We should somehow capture this semantically in an Enum or something. This is fragile...
             builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
 
-            final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/debug-symbols-smoke"));
+            final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "--interpreter=mi", "./target/debug-symbols-smoke"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
             processBuilder.directory(appDir)
@@ -148,8 +148,7 @@ public class DebugSymbolsTest {
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = r.readLine()) != null) {
-                        stringBuffer.append(line);
-                        stringBuffer.append('\n');
+                        stringBuffer.append(filterAndUnescapeGDBMIOutput(line));
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -206,7 +205,7 @@ public class DebugSymbolsTest {
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
 
-            final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "./target/quarkus-runner"));
+            final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "--interpreter=mi", "./target/quarkus-runner"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
             processBuilder.directory(appDir)
@@ -219,8 +218,7 @@ public class DebugSymbolsTest {
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                     String line;
                     while ((line = r.readLine()) != null) {
-                        stringBuffer.append(line);
-                        stringBuffer.append('\n');
+                        stringBuffer.append(filterAndUnescapeGDBMIOutput(line));
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -315,7 +313,7 @@ public class DebugSymbolsTest {
             // Q 1.11.7.Final and Mandrel 20.3.2 needs work/application.debug
             // Is Q 2.x baking debug symbols to the main executable too?
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(
-                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb", "/work/application.debug", "1"))
+                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb", "--interpreter=mi", "/work/application.debug", "1"))
                     .directory(appDir)
                     .redirectErrorStream(true);
             final Map<String, String> envA = processBuilder.environment();
@@ -328,8 +326,7 @@ public class DebugSymbolsTest {
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(gdbProcess.getInputStream()))) {
                     String line;
                     while ((line = r.readLine()) != null) {
-                        stringBuffer.append(line);
-                        stringBuffer.append('\n');
+                        stringBuffer.append(filterAndUnescapeGDBMIOutput(line));
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -423,5 +420,29 @@ public class DebugSymbolsTest {
         assertTrue(errorQueue.isEmpty(), "There were errors in the GDB session. " +
                 "Note that commands in the session might depend on each other. Errors: " +
                 System.lineSeparator() + String.join(", " + System.lineSeparator(), errorQueue));
+    }
+
+    private static String filterAndUnescapeGDBMIOutput(String line) {
+        switch (line.charAt(0)) {
+            case '&':
+                // Strip & prefix added by GDB/MI to gdb input
+            case '=':
+                // Strip = prefix added by GDB/MI to program output
+                line = line.substring(1);
+                break;
+            case '~':
+                // Strip ~ prefix and quotes added by GDB/MI
+                line = line.substring(2, line.length() - 1);
+                break;
+            default:
+                break;
+        }
+        // Replace \n with newlines
+        line = line.replace("\\n", System.lineSeparator());
+        // Replace \" with "
+        line = line.replace("\\\"", "\"");
+        // Replace \t with tab
+        line = line.replace("\\t", "\t");
+        return line;
     }
 }
