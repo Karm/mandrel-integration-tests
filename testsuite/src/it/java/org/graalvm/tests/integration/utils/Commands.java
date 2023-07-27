@@ -900,7 +900,7 @@ public class Commands {
         return -1;
     }
 
-    public static boolean waitForBufferToMatch(StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
+    public static boolean waitForBufferToMatch(StringBuilder report, StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
         long timeoutMillis = unit.toMillis(timeout);
         long sleepMillis = unit.toMillis(sleep);
         long startMillis = System.currentTimeMillis();
@@ -909,6 +909,7 @@ public class Commands {
             // To ensure the prompt appears consistently across gdb versions after every command we use the GDB/MI mode, i.e. the "--interpreter=mi" option.
             // See https://sourceware.org/gdb/onlinedocs/gdb/GDB_002fMI-Output-Syntax.html#GDB_002fMI-Output-Syntax
             if (Pattern.compile(".*\\(gdb\\).*", Pattern.DOTALL).matcher(stringBuffer.toString()).matches()) {
+                Logs.appendln(report, "Command took " + (System.currentTimeMillis() - startMillis) + " ms to complete");
                 return pattern.matcher(stringBuffer.toString()).matches();
             }
             try {
@@ -918,6 +919,7 @@ public class Commands {
                 Thread.currentThread().interrupt();
             }
         }
+        Logs.appendln(report, "Command timed out after " + (System.currentTimeMillis() - startMillis) + " ms");
         return false;
     }
 
