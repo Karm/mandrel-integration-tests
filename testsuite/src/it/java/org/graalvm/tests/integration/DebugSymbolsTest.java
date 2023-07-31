@@ -84,6 +84,8 @@ public class DebugSymbolsTest {
     private static final Logger LOGGER = Logger.getLogger(DebugSymbolsTest.class.getName());
 
     public static final String BASE_DIR = getBaseDir();
+    private static final int MAX_GOTO_TRIES = 5;
+    private static volatile Exception gotoException = null;
 
     public enum DebugOptions {
         TrackNodeSourcePosition_23_0("<DEBUG_FLAGS_23_0_a>", "-H:+TrackNodeSourcePosition"),
@@ -398,12 +400,18 @@ public class DebugSymbolsTest {
                                         errorQueue.add("Content of URL " + url + " should have matched regexp " + cp.p.pattern() + " but it was this: " + content);
                                     }
                                 } catch (IOException e) {
-                                    e.printStackTrace();
-                                    fail("Unexpected failure: ", e);
+                                    gotoException = e;
                                 }
                             };
-                            esvc.submit(webRequest);
-                            // Well, there is a possible race condition where the request didn't hit the app yet...
+                            int tryCount = MAX_GOTO_TRIES;
+                            do {
+                                tryCount--;
+                                esvc.submit(webRequest);
+                                Thread.sleep(100);
+                            } while (gotoException != null && tryCount > 0);
+                            if (gotoException != null) {
+                                fail("Unexpected GOTO failure: ", gotoException);
+                            }
                         } else {
                             writer.write(cp.c);
                             writer.flush();
@@ -418,6 +426,8 @@ public class DebugSymbolsTest {
                     } catch (IOException e) {
                         e.printStackTrace();
                         fail("Unexpected failure: ", e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                 }
         );
