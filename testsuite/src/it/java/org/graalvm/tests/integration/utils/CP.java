@@ -30,11 +30,12 @@ public class CP {
     public final String c;
     public final Pattern p;
     public final int timeoutSeconds;
+    public static final int DEFAULT_TIMEOUT_SECONDS = 10;
 
     public CP(String c, Pattern p) {
         this.c = c;
         this.p = p;
-        this.timeoutSeconds = 10;
+        this.timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
     }
 
     public CP(String c, Pattern p, int timeoutSeconds) {

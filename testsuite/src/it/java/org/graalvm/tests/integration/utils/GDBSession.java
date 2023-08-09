@@ -24,6 +24,8 @@ import org.graalvm.tests.integration.utils.versions.UsedVersion;
 
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.CP.DEFAULT_TIMEOUT_SECONDS;
+
 /**
  * GDB commands and expected output
  *
@@ -233,12 +235,13 @@ public enum GDBSession {
     DEBUG_QUARKUS_FULL_MICROPROFILE {
         @Override
         public CP[] get(boolean inContainer) {
+            // The huge timeout is needed because it takes a very long time to set a breakpoint, even after: https://github.com/graalvm/mandrel/pull/545
+            final int increasedTimeout = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? 60 : DEFAULT_TIMEOUT_SECONDS;
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b ConfigTestController.java:33\n",
                             Pattern.compile(".*Breakpoint 1 at .*: file com/example/quarkus/config/ConfigTestController.java, line 33.*",
-                                    Pattern.DOTALL),
-                            60),
+                                    Pattern.DOTALL), increasedTimeout),
                     new CP("run&\n",
                             Pattern.compile(".*Installed features:.*", Pattern.DOTALL)),
                     new CP("GOTO URL http://localhost:8080/data/config/lookup",
@@ -255,10 +258,12 @@ public enum GDBSession {
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {
         @Override
         public CP[] get(boolean inContainer) {
+            // The huge timeout is needed because it takes a very long time to set a breakpoint, even after: https://github.com/graalvm/mandrel/pull/545
+            final int increasedTimeout = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? 60 : DEFAULT_TIMEOUT_SECONDS;
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b Fruit.java:48\n",
-                            Pattern.compile(".*Breakpoint 1.*file org/acme/vertx/Fruit.java,.*line 48.*", Pattern.DOTALL)),
+                            Pattern.compile(".*Breakpoint 1.*file org/acme/vertx/Fruit.java,.*line 48.*", Pattern.DOTALL), increasedTimeout),
                     new CP("c&\n",
                             Pattern.compile(".*", Pattern.DOTALL)),
                     new CP("GOTO URL http://localhost:8080/fruits",

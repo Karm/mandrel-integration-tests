@@ -21,6 +21,7 @@ package org.graalvm.tests.integration;
 
 import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
+import org.graalvm.tests.integration.utils.Commands;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.Logs;
@@ -51,9 +52,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0;
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
@@ -410,7 +411,10 @@ public class DebugSymbolsTest {
                                 Thread.sleep(100);
                             } while (gotoException != null && tryCount > 0);
                             if (gotoException != null) {
-                                fail("Unexpected GOTO failure: ", gotoException);
+                                errorQueue.add("Unexpected GOTO URL " + cp.c.split("URL ")[1] + " failure: " + gotoException.fillInStackTrace().toString());
+                            }
+                            if (MAX_GOTO_TRIES - tryCount < MAX_GOTO_TRIES - 2 && Commands.FAIL_ON_PERF_REGRESSION) {
+                                errorQueue.add("GOTO URL " + cp.c.split("URL ")[1] + " took too long to respond.");
                             }
                         } else {
                             writer.write(cp.c);
