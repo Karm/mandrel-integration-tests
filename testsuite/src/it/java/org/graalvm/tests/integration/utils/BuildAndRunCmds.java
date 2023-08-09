@@ -205,12 +205,12 @@ public enum BuildAndRunCmds {
                     new String[]{"powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\""}
                     :
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
-                    
-                    new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
-                            DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0.token,
-                            DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0.token,
-                            DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0.token,
-                            "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+
+            new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
+                    DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0.token,
+                    DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0.token,
+                    DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0.token,
+                    "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
     }),
@@ -232,8 +232,8 @@ public enum BuildAndRunCmds {
     }),
     JFR_PERFORMANCE(new String[][]{
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.native.monitoring=jfr"},
-            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_with_jfr"},
-            new String[]{"./target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_with_jfr",
+            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE"},
+            new String[]{"./target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE",
                     "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"},
@@ -241,8 +241,8 @@ public enum BuildAndRunCmds {
     }),
     PLAINTEXT_PERFORMANCE(new String[][]{
             new String[]{"mvn", "package", "-Pnative"},
-            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_no_jfr"},
-            new String[]{"./target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_no_jfr"},
+            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_PLAINTEXT_PERFORMANCE"},
+            new String[]{"./target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_PLAINTEXT_PERFORMANCE"},
             new String[]{CONTAINER_RUNTIME, "run","--name", ContainerNames.HYPERFOIL.name,"--rm", "-v", "-u","--network", "host", "quay.io/hyperfoil/hyperfoil", "standalone"}
     }),
     JFR_SMOKE_BUILDER_IMAGE(new String[][]{
