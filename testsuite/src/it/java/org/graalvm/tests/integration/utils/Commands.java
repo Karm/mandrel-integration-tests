@@ -545,6 +545,14 @@ public class Commands {
         }
     }
 
+    public static void clearCaches() throws IOException, InterruptedException {
+        String[] cmd = new String[]{"sync", ";", "echo", "3", ">", "/proc/sys/vm/drop_caches"};
+
+        final ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+        Process p = processBuilder.start();
+        p.waitFor();
+    }
+
     public static class ProcessRunner implements Runnable {
         final File directory;
         final File log;

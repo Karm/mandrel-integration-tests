@@ -230,6 +230,21 @@ public enum BuildAndRunCmds {
                     "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"}
     }),
+    JFR_PERFORMANCE(new String[][]{
+            new String[]{"mvn", "package", "-Pnative","-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr"},
+            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_with_jfr"},
+            new String[]{"./target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_with_jfr",
+                    "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
+                    "-XX:FlightRecorderLogging=jfr"},
+            new String[]{CONTAINER_RUNTIME, "run","--name", ContainerNames.HYPERFOIL.name,"--rm", "-v", "-u","--network", "host", "-p", "8090:8090", "quay.io/hyperfoil/hyperfoil", "standalone"}
+    }),
+    PLAINTEXT_PERFORMANCE(new String[][]{
+            new String[]{"mvn", "package", "-Pnative","-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
+            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_no_jfr"},
+            new String[]{"./target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_no_jfr"},
+            new String[]{CONTAINER_RUNTIME, "run","--name", ContainerNames.HYPERFOIL.name,"--rm", "-v", "-u","--network", "host", "-p", "8090:8090", "quay.io/hyperfoil/hyperfoil", "standalone"}
+    }),
     JFR_SMOKE_BUILDER_IMAGE(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"unzip", "test_data.txt.zip", "-d", "target"},

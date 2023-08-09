@@ -86,6 +86,7 @@
             <modules>
                 <module>testsuite</module>
                 <module>apps/quarkus-full-microprofile</module>
+                <module>apps/jfr-native-image-performance</module>
                 <module>apps/quarkus-json</module>
                 <module>apps/helidon-quickstart-se</module>
                 <module>apps/random-numbers</module>
