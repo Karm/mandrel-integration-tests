@@ -10,7 +10,7 @@ public class GreetingService {
         return "hello " + name + "JFR TEST ";
     }
 
-    private String getNextString(String text) throws InterruptedException {
+    private String getNextString(String text) {
         LockSupport.parkNanos(1);
         LockSupport.parkNanos(this,1);
         return Integer.toString(text.hashCode() % (int) (Math.random() * 100));
@@ -22,13 +22,13 @@ public class GreetingService {
         String result = "";
         for (int i = 0; i < 1000; i++){
             try {
-                result += getNextString(text);
+                result = getNextString(text);
             } catch (Exception e) {
                 // Doesn't matter. Do nothing
             }
             CustomEvent customEvent = new CustomEvent();
             // Only commit the first few letters (goal is to spend time in the JFR piping not committing chars)
-            customEvent.message = result.substring(0,2);
+            customEvent.message = result;
             customEvent.commit();
         }
 
@@ -36,7 +36,7 @@ public class GreetingService {
     }
 
     /** This endpoint is used to compare between with/without JFR built into the image.
-     * Therefore it must not use any custom JFR events or the Event API at all, to avoid runtime errors.
+     * Therefore, it must not use any custom JFR events or the Event API at all, to avoid runtime errors.
      * It should have less unrealistic tasks, unlike GreetingService#work which simply loops to create many events.*/
     public String regular(String text) {
         String result = text;

@@ -50,6 +50,16 @@ public class LogBuilder {
     private long rssKb = -1L;
     private static final String executableSizeKbHeader = "executableSizeKb";
     private long executableSizeKb = -1L;
+    private static final String meanResponseTimeHeader = "meanResponseTime";
+    private long meanResponseTime = -1L;
+    private static final String maxResponseTimeHeader = "maxResponseTime";
+    private long maxResponseTime = -1L;
+    private static final String responseTime50PercentileHeader = "responseTime50Percentile";
+    private long responseTime50Percentile = -1L;
+    private static final String responseTime90PercentileHeader = "responseTime90Percentile";
+    private long responseTime90Percentile = -1L;
+    private static final String responseTime99PercentileHeader = "responseTime99Percentile";
+    private long responseTime99Percentile = -1L;
     private static final String openedFilesHeader = "FDs";
     private long openedFiles = -1L;
     private static final String appHeader = "App";
@@ -92,6 +102,41 @@ public class LogBuilder {
             throw new IllegalArgumentException("rssKb must be a positive long, was: " + rssKb);
         }
         this.rssKb = rssKb;
+        return this;
+    }
+    public LogBuilder meanResponseTime(long meanResponseTime) {
+        if (meanResponseTime <= 0) {
+            throw new IllegalArgumentException("meanResponseTime must be a positive long, was: " + meanResponseTime);
+        }
+        this.meanResponseTime = meanResponseTime;
+        return this;
+    }
+    public LogBuilder maxResponseTime(long maxResponseTime) {
+        if (maxResponseTime <= 0) {
+            throw new IllegalArgumentException("maxResponseTime must be a positive long, was: " + maxResponseTime);
+        }
+        this.maxResponseTime = maxResponseTime;
+        return this;
+    }
+    public LogBuilder responseTime50Percentile(long responseTime50Percentile) {
+        if (responseTime50Percentile <= 0) {
+            throw new IllegalArgumentException("responseTime50Percentile must be a positive long, was: " + responseTime50Percentile);
+        }
+        this.responseTime50Percentile = responseTime50Percentile;
+        return this;
+    }
+    public LogBuilder responseTime90Percentile(long responseTime90Percentile) {
+        if (responseTime90Percentile <= 0) {
+            throw new IllegalArgumentException("responseTime90Percentile must be a positive long, was: " + responseTime90Percentile);
+        }
+        this.responseTime90Percentile = responseTime90Percentile;
+        return this;
+    }
+    public LogBuilder responseTime99Percentile(long responseTime99Percentile) {
+        if (responseTime99Percentile <= 0) {
+            throw new IllegalArgumentException("responseTime99Percentile must be a positive long, was: " + responseTime99Percentile);
+        }
+        this.responseTime99Percentile = responseTime99Percentile;
         return this;
     }
 
@@ -158,6 +203,41 @@ public class LogBuilder {
             h.append(executableSizeKbHeader);
             h.append(',');
             l.append(executableSizeKb);
+            l.append(',');
+            sections++;
+        }
+        if (meanResponseTime != -1L) {
+            h.append(meanResponseTimeHeader);
+            h.append(',');
+            l.append(meanResponseTime);
+            l.append(',');
+            sections++;
+        }
+        if (maxResponseTime != -1L) {
+            h.append(maxResponseTimeHeader);
+            h.append(',');
+            l.append(maxResponseTime);
+            l.append(',');
+            sections++;
+        }
+        if (responseTime50Percentile != -1L) {
+            h.append(responseTime50PercentileHeader);
+            h.append(',');
+            l.append(responseTime50Percentile);
+            l.append(',');
+            sections++;
+        }
+        if (responseTime90Percentile != -1L) {
+            h.append(responseTime90PercentileHeader);
+            h.append(',');
+            l.append(responseTime90Percentile);
+            l.append(',');
+            sections++;
+        }
+        if (responseTime99Percentile != -1L) {
+            h.append(responseTime99PercentileHeader);
+            h.append(',');
+            l.append(responseTime99Percentile);
             l.append(',');
             sections++;
         }
