@@ -54,8 +54,8 @@ import java.util.stream.Stream;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.utils.CP.DEFAULT_TIMEOUT_MS;
-import static org.graalvm.tests.integration.utils.CP.LONG_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.CMD_LONG_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
@@ -168,7 +168,7 @@ public class DebugSymbolsTest {
                 Logs.appendlnSection(report, appDir.getAbsolutePath());
                 Logs.appendln(report, String.join(" ", processBuilder.command()));
                 final long increasedTimeoutMs = (UsedVersion.getVersion(false)
-                        .compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+                        .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                         increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit s the same for timeout and sleep.
@@ -240,7 +240,7 @@ public class DebugSymbolsTest {
             Logs.appendlnSection(report, appDir.getAbsolutePath());
             Logs.appendln(report, String.join(" ", processBuilder.command()));
             final long increasedTimeoutMs = (UsedVersion.getVersion(false)
-                    .compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+                    .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             boolean result = waitForBufferToMatch(report, stringBuffer,
                     Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                     increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit s the same for timeout and sleep.
@@ -352,7 +352,7 @@ public class DebugSymbolsTest {
                 Logs.appendlnSection(report, appDir.getAbsolutePath());
                 Logs.appendln(report, String.join(" ", processBuilder.command()));
                 final long increasedTimeoutMs = (UsedVersion.getVersion(true)
-                        .compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+                        .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                         increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit s the same for timeout and sleep.

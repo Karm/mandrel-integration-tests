@@ -91,6 +91,10 @@ public class Commands {
     // getProperty() function for details.
     public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE", "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
 
+    // Debug sessions, GDB commands related timeouts
+    public static final long CMD_DEFAULT_TIMEOUT_MS = Long.parseLong(getProperty("CMD_DEFAULT_TIMEOUT_MS", "10000"));
+    public static final long CMD_LONG_TIMEOUT_MS = Long.parseLong(getProperty("CMD_LONG_TIMEOUT_MS", "60000"));
+
     public static String getProperty(String key) {
         return getProperty(key, null);
     }

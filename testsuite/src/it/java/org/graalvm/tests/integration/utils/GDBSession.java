@@ -24,8 +24,8 @@ import org.graalvm.tests.integration.utils.versions.UsedVersion;
 
 import java.util.regex.Pattern;
 
-import static org.graalvm.tests.integration.utils.CP.DEFAULT_TIMEOUT_MS;
-import static org.graalvm.tests.integration.utils.CP.LONG_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.CMD_LONG_TIMEOUT_MS;
 
 /**
  * GDB commands and expected output
@@ -237,7 +237,7 @@ public enum GDBSession {
         @Override
         public CP[] get(boolean inContainer) {
             // The huge timeout is needed because it takes a very long time to set a breakpoint, even after: https://github.com/graalvm/mandrel/pull/545
-            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b ConfigTestController.java:33\n",
@@ -260,7 +260,7 @@ public enum GDBSession {
         @Override
         public CP[] get(boolean inContainer) {
             // The huge timeout is needed because it takes a very long time to set a breakpoint, even after: https://github.com/graalvm/mandrel/pull/545
-            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b Fruit.java:48\n",
