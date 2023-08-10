@@ -29,18 +29,19 @@ import java.util.regex.Pattern;
 public class CP {
     public final String c;
     public final Pattern p;
-    public final int timeoutSeconds;
-    public static final int DEFAULT_TIMEOUT_SECONDS = 10;
+    public final long timeoutMs;
+    public static final long DEFAULT_TIMEOUT_MS = 10000;
+    public static final long LONG_TIMEOUT_MS = 60000;
 
     public CP(String c, Pattern p) {
         this.c = c;
         this.p = p;
-        this.timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
+        this.timeoutMs = DEFAULT_TIMEOUT_MS;
     }
 
-    public CP(String c, Pattern p, int timeoutSeconds) {
+    public CP(String c, Pattern p, long timeoutMs) {
         this.c = c;
         this.p = p;
-        this.timeoutSeconds = timeoutSeconds;
+        this.timeoutMs = timeoutMs;
     }
 }

@@ -901,9 +901,9 @@ public class Commands {
     }
 
     public static boolean waitForBufferToMatch(StringBuilder report, StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
-        long timeoutMillis = unit.toMillis(timeout);
-        long sleepMillis = unit.toMillis(sleep);
-        long startMillis = System.currentTimeMillis();
+        final long timeoutMillis = unit.toMillis(timeout);
+        final long sleepMillis = unit.toMillis(sleep);
+        final long startMillis = System.currentTimeMillis();
         while (System.currentTimeMillis() - startMillis < timeoutMillis) {
             // Wait for command to complete, i.e. for the prompt to appear.
             // To ensure the prompt appears consistently across gdb versions after every command we use the GDB/MI mode, i.e. the "--interpreter=mi" option.
