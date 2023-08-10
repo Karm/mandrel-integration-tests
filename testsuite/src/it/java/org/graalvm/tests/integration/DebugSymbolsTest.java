@@ -88,7 +88,7 @@ public class DebugSymbolsTest {
     public static final String BASE_DIR = getBaseDir();
 
     // GOTO i.e. accessing a URL of a debugged test app to trigger a certain code path
-    private static final long GOTO_URL_TIMEOUT_MS = 100;
+    private static final long GOTO_URL_TIMEOUT_MS = 250;
     private static final long LONG_GOTO_URL_TIMEOUT_MS = 1000;
     private static final long GOTO_URL_SLEEP_MS = 50;
     private static volatile Exception gotoException = null;
