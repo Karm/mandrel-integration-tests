@@ -49,9 +49,10 @@ public class Logs {
     public static final long SKIP = -1L;
 
     public static void checkLog(String testClass, String testMethod, Apps app, File log) throws IOException {
-        final Pattern[] whitelistPatterns = new Pattern[app.whitelistLogLines.errs.length + WhitelistLogLines.ALL.errs.length];
-        System.arraycopy(app.whitelistLogLines.errs, 0, whitelistPatterns, 0, app.whitelistLogLines.errs.length);
-        System.arraycopy(WhitelistLogLines.ALL.errs, 0, whitelistPatterns, app.whitelistLogLines.errs.length, WhitelistLogLines.ALL.errs.length);
+        final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+        final Pattern[] whitelistPatterns = new Pattern[app.whitelistLogLines.get(inContainer).length + WhitelistLogLines.ALL.get(inContainer).length];
+        System.arraycopy(app.whitelistLogLines.get(inContainer), 0, whitelistPatterns, 0, app.whitelistLogLines.get(inContainer).length);
+        System.arraycopy(WhitelistLogLines.ALL.get(inContainer), 0, whitelistPatterns, app.whitelistLogLines.get(inContainer).length, WhitelistLogLines.ALL.get(inContainer).length);
         try (Scanner sc = new Scanner(log, UTF_8)) {
             Set<String> offendingLines = new HashSet<>();
             while (sc.hasNextLine()) {
