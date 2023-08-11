@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -124,6 +125,19 @@ public class JFRTest {
         jfrSmoke(testInfo, Apps.JFR_SMOKE);
     }
 
+    /**
+     * This test compares a simple Quarkus plaintext app built with and without JFR.
+     * The comparison is done using two different Hyperfoil benchmarks. This results in 4 runs total.
+     * Thresholds defined in the app directory are not absolute values (unlike in other perf tests in the project),
+     * instead they are the percent difference between the runs with/without JFR. This allows for a relative comparison
+     * to see how much JFR is impacting performance.
+     * The "worst" case benchmark intentionally emits an unrealistically large number of JFR events. jdk.ThreadPark has
+     * been chosen as the event to be emitted in a loop because it can be called directly with
+     * {@link LockSupport#parkNanos(long)}. This allows us to exercise the JFR infrastructure maximally without adding
+     * too much non-JFR overhead. This should help expose slowness in JFR substrateVM code. The "normal" case
+     * hyperfoil benchmark is meant to be a more realistic representation of the impact of JFR. We only compare against
+     * the defined thresholds with respect to the "normal" case benchmark.
+     */
     @Test
     @Tag("jfr-perf")
     @IfMandrelVersion(min = "23.0.0") // Thread park event is introduced in 23.0
@@ -145,42 +159,13 @@ public class JFRTest {
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-//            builderRoutine(2, appJfr, report, cn, mn, appDir, processLog, null, null);
-//            builderRoutine(2, appNoJfr, report, cn, mn, appDir, processLog, null, null);
+            builderRoutine(2, appJfr, report, cn, mn, appDir, processLog, null, null);
+            builderRoutine(2, appNoJfr, report, cn, mn, appDir, processLog, null, null);
 
-            // WITH JFR
-            Map<String, Integer> measurementsJfr = runPerfTestOnApp(5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
-
-            // NO JFR
-            Map<String, Integer> measurementsNoJfr = runPerfTestOnApp(5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
-
-            // Write diff results
-            long imageSizeDiff = (long) (Math.abs(measurementsJfr.get("imageSize") - measurementsNoJfr.get("imageSize")) * 100.0 / measurementsNoJfr.get("imageSize"));
-            long timeToFirstOKRequestMsDiff = (long) (Math.abs(measurementsJfr.get("startup") - measurementsNoJfr.get("startup")) * 100.0 / measurementsNoJfr.get("startup"));
-            long rssKbDiff = (long) (Math.abs(measurementsJfr.get("rss") - measurementsNoJfr.get("rss")) * 100.0 / measurementsNoJfr.get("rss"));
-            long meanResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("mean") - measurementsNoJfr.get("mean")) * 100.0 / measurementsNoJfr.get("mean"));
-            long maxResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("max") - measurementsNoJfr.get("max")) * 100.0 / measurementsNoJfr.get("max"));
-            long responseTime50PercentileDiff = (long) (Math.abs(measurementsJfr.get("p50") - measurementsNoJfr.get("p50")) * 100.0 / measurementsNoJfr.get("p50"));
-            long responseTime90PercentileDiff = (long) (Math.abs(measurementsJfr.get("p90") - measurementsNoJfr.get("p90")) * 100.0 / measurementsNoJfr.get("p90"));
-            long responseTime99PercentileDiff = (long) (Math.abs(measurementsJfr.get("p99") - measurementsNoJfr.get("p99")) * 100.0 / measurementsNoJfr.get("p99"));
-
-            LogBuilder logBuilder = new LogBuilder();
-            LogBuilder.Log log = logBuilder.app(appNoJfr)
-                    .executableSizeKb(imageSizeDiff)
-                    .timeToFirstOKRequestMs(timeToFirstOKRequestMsDiff)
-                    .rssKb(rssKbDiff)
-                    .meanResponseTime(meanResponseTimeDiff)
-                    .maxResponseTime(maxResponseTimeDiff)
-                    .responseTime50Percentile(responseTime50PercentileDiff)
-                    .responseTime90Percentile(responseTime90PercentileDiff)
-                    .responseTime99Percentile(responseTime99PercentileDiff)
-                    .build();
-            Logs.logMeasurements(log, measurementsLog);
-            Logs.appendln(report, "Measurements Diff %:");
-            Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
+            startComparisonForBenchmark("normal_case_benchmark", true, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr);
+            startComparisonForBenchmark("worst_case_benchmark", false, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr);
 
             Logs.checkLog(cn, mn, appJfr, processLog);
-            Logs.checkThreshold(appJfr, imageSizeDiff, rssKbDiff, timeToFirstOKRequestMsDiff, meanResponseTimeDiff, responseTime50PercentileDiff, responseTime90PercentileDiff);
         } finally {
             cleanup(null, cn, mn, report, appJfr, processLog);
             // The quarkus process already are stopped
@@ -191,11 +176,44 @@ public class JFRTest {
         }
     }
 
-    private Map<String, Integer> runPerfTestOnApp(int trials, Apps app, File appDir, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog) throws IOException, InterruptedException {
+    private void startComparisonForBenchmark(String benchmarkName, boolean checkThresholds, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog, File appDir, Apps appJfr, Apps appNoJfr) throws IOException, InterruptedException {
+        Map<String, Integer> measurementsJfr = runBenchmarkOnApp(benchmarkName, 5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
+        Map<String, Integer> measurementsNoJfr = runBenchmarkOnApp(benchmarkName, 5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
+
+        long imageSizeDiff = (long) (Math.abs(measurementsJfr.get("imageSize") - measurementsNoJfr.get("imageSize")) * 100.0 / measurementsNoJfr.get("imageSize"));
+        long timeToFirstOKRequestMsDiff = (long) (Math.abs(measurementsJfr.get("startup") - measurementsNoJfr.get("startup")) * 100.0 / measurementsNoJfr.get("startup"));
+        long rssKbDiff = (long) (Math.abs(measurementsJfr.get("rss") - measurementsNoJfr.get("rss")) * 100.0 / measurementsNoJfr.get("rss"));
+        long meanResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("mean") - measurementsNoJfr.get("mean")) * 100.0 / measurementsNoJfr.get("mean"));
+        long maxResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("max") - measurementsNoJfr.get("max")) * 100.0 / measurementsNoJfr.get("max"));
+        long responseTime50PercentileDiff = (long) (Math.abs(measurementsJfr.get("p50") - measurementsNoJfr.get("p50")) * 100.0 / measurementsNoJfr.get("p50"));
+        long responseTime90PercentileDiff = (long) (Math.abs(measurementsJfr.get("p90") - measurementsNoJfr.get("p90")) * 100.0 / measurementsNoJfr.get("p90"));
+        long responseTime99PercentileDiff = (long) (Math.abs(measurementsJfr.get("p99") - measurementsNoJfr.get("p99")) * 100.0 / measurementsNoJfr.get("p99"));
+
+        LogBuilder logBuilder = new LogBuilder();
+        LogBuilder.Log log = logBuilder.app(appJfr)
+                .executableSizeKb(imageSizeDiff)
+                .timeToFirstOKRequestMs(timeToFirstOKRequestMsDiff)
+                .rssKb(rssKbDiff)
+                .meanResponseTime(meanResponseTimeDiff)
+                .maxResponseTime(maxResponseTimeDiff)
+                .responseTime50Percentile(responseTime50PercentileDiff)
+                .responseTime90Percentile(responseTime90PercentileDiff)
+                .responseTime99Percentile(responseTime99PercentileDiff)
+                .build();
+        Logs.logMeasurements(log, measurementsLog);
+        Logs.appendln(report, benchmarkName + " Measurements Diff %:");
+        Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
+
+        if (checkThresholds) {
+            Logs.checkThreshold(appJfr, imageSizeDiff, rssKbDiff, timeToFirstOKRequestMsDiff, meanResponseTimeDiff, responseTime50PercentileDiff, responseTime90PercentileDiff);
+        }
+    }
+
+    private Map<String, Integer> runBenchmarkOnApp(String benchmarkName, int trials, Apps app, File appDir, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog) throws IOException, InterruptedException {
         final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
         // Get image sizes
-        String[] imageSizeCmd = new String[]{"stat", "-c%s", "../" + app.dir + "/target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_" + app.name()};
+        String[] imageSizeCmd = new String[]{"stat", "-c%s", "../" + app.dir + "/target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_" + app.name()};
 
         final ProcessBuilder processBuilder0 = new ProcessBuilder(imageSizeCmd);
         Process p = processBuilder0.start();
@@ -211,7 +229,7 @@ public class JFRTest {
         try {
             for (int i = 0; i < trials; i++) {
                 if (process != null) {
-                    processStopper(process, true, true); // stop each time to avoid influencing startup time
+                    processStopper(process, true, true);
                 }
                 List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[2]);
                 clearCaches(); //TODO consider using warm up instead of clearing caches
@@ -226,21 +244,21 @@ public class JFRTest {
             hyperfoilProcess = runCommand(getAndStartHyperfoil, appDir, processLog, app);
             assertNotNull(hyperfoilProcess, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
 
-            // Wait for hyperfoil to start up
+            // Wait for Hyperfoil to start up
             WebpageTester.testWeb(app.urlContent.urlContent[2][0], 15, app.urlContent.urlContent[2][1], false);
 
-            // upload benchmark
+            // Upload the benchmark
             final HttpRequest uploadRequest = HttpRequest.newBuilder()
                     .uri(new URI(app.urlContent.urlContent[1][0]))
                     .header("Content-Type", "text/vnd.yaml")
-                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/normal_case_benchmark.hf.yaml")))
+                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/"+ benchmarkName + ".hf.yaml")))
                     .build();
             final HttpResponse<String> releaseResponse = hc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
             assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
             LOGGER.info("Hyperfoil upload response code " + releaseResponse.statusCode());
 
 
-            // Run benchmark
+            // Run the benchmark
             disableTurbo();
             final HttpRequest benchmarkRequest = HttpRequest.newBuilder()
                     .uri(new URI(app.urlContent.urlContent[3][0]))
@@ -254,7 +272,7 @@ public class JFRTest {
             Thread.sleep(7000);
             enableTurbo();
 
-            // Get results
+            // Get the results
             final HttpRequest resultsRequest = HttpRequest.newBuilder()
                     .uri(new URI("http://0.0.0.0:8090/run/" + id + "/stats/all/json"))
                     .GET()
@@ -264,6 +282,7 @@ public class JFRTest {
             LOGGER.info("Hyperfoil results response code " + resultsResponse.statusCode());
             JSONObject resultsResponseJson = new JSONObject(resultsResponse.body());
 
+            // Parse JSON response from Hyperfoil controller server
             Map<String, Integer> measurements = new HashMap<>();
             measurements.put("mean", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getInt("meanResponseTime"));
             measurements.put("max", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getInt("maxResponseTime"));
@@ -295,7 +314,7 @@ public class JFRTest {
                     .responseTime99Percentile(measurements.get("p99"))
                     .build();
             Logs.logMeasurements(log, measurementsLog);
-            Logs.appendln(report, "Measurements " + app.name() + ":");
+            Logs.appendln(report, benchmarkName + " Measurements " + app.name() + ":");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
             return measurements;
@@ -305,7 +324,7 @@ public class JFRTest {
             if (process != null && process.isAlive()) {
                 processStopper(process, true);
             }
-            // Stop container before stopping hyperfoil process
+            // Stop container before stopping Hyperfoil process
             stopAllRunningContainers();
             removeContainers(app.runtimeContainer.name);
             if (hyperfoilProcess != null && hyperfoilProcess.isAlive()) {

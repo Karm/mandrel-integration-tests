@@ -93,27 +93,6 @@ public class WebpageTester {
         return foundTimestamp - startTime;
     }
 
-//    public static void attemptConnection(String url, long timeoutS, String stringToLookFor) throws IOException {
-//        long now = System.currentTimeMillis();
-//        final long startTime = now;
-//        String webPage = "";
-//
-//        while (now - startTime < 1000 * timeoutS) {
-//            final URLConnection c = new URL(url).openConnection();
-//            c.setRequestProperty("Accept", "*/*");
-//            c.setConnectTimeout(500);
-//            try (Scanner scanner = new Scanner(c.getInputStream(), StandardCharsets.UTF_8)) {
-//                scanner.useDelimiter("\\A");
-//                webPage = scanner.hasNext() ? scanner.next() : "";
-//            } catch (Exception e) {
-//                LOGGER.debug("Waiting `" + stringToLookFor + "' to appear on " + url);
-//            }
-//            if (webPage.contains(stringToLookFor)) {
-//                break;
-//            }
-//            now = System.currentTimeMillis();
-//        }
-//    }
     public static String getUrlContents(String url) throws IOException {
         final URLConnection c = new URL(url).openConnection();
         c.setRequestProperty("Accept", "*/*");
