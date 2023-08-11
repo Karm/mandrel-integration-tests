@@ -545,12 +545,19 @@ public class Commands {
         }
     }
 
-    public static void clearCaches() throws IOException, InterruptedException {
-        String[] cmd = new String[]{"sync", ";", "echo", "3", ">", "/proc/sys/vm/drop_caches"};
+    public static void clearCaches() throws IOException {
+        String[] cmd = new String[]{"sudo", "bash", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"};
+        LOGGER.info(runCommand(getRunCommand(cmd)));
+    }
 
-        final ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-        Process p = processBuilder.start();
-        p.waitFor();
+    public static void disableTurbo() throws IOException {
+        String[] cmd = new String[]{"sudo", "bash", "-c", "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
+        LOGGER.info(runCommand(getRunCommand(cmd)));
+    }
+
+    public static void enableTurbo() throws IOException {
+        String[] cmd = new String[]{"sudo", "bash", "-c", "echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
+        LOGGER.info(runCommand(getRunCommand(cmd)));
     }
 
     public static class ProcessRunner implements Runnable {

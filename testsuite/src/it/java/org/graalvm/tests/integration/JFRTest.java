@@ -58,11 +58,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.AppReproducersTest.validateDebugSmokeApp;
-import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
 import static org.graalvm.tests.integration.utils.Commands.clearCaches;
+import static org.graalvm.tests.integration.utils.Commands.disableTurbo;
+import static org.graalvm.tests.integration.utils.Commands.enableTurbo;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
@@ -148,29 +149,38 @@ public class JFRTest {
             builderRoutine(2, appNoJfr, report, cn, mn, appDir, processLog, null, null);
 
             // WITH JFR
-            Map<String,Integer> measurementsJfr = runPerfTest(5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
+            Map<String, Integer> measurementsJfr = runPerfTestOnApp(5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
 
             // NO JFR
-            Map<String, Integer> measurementsNoJfr = runPerfTest(5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
+            Map<String, Integer> measurementsNoJfr = runPerfTestOnApp(5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
 
             // Write diff results
+            long imageSizeDiff = (long) (Math.abs(measurementsJfr.get("imageSize") - measurementsNoJfr.get("imageSize")) * 100.0 / measurementsNoJfr.get("imageSize"));
+            long timeToFirstOKRequestMsDiff = (long) (Math.abs(measurementsJfr.get("startup") - measurementsNoJfr.get("startup")) * 100.0 / measurementsNoJfr.get("startup"));
+            long rssKbDiff = (long) (Math.abs(measurementsJfr.get("rss") - measurementsNoJfr.get("rss")) * 100.0 / measurementsNoJfr.get("rss"));
+            long meanResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("mean") - measurementsNoJfr.get("mean")) * 100.0 / measurementsNoJfr.get("mean"));
+            long maxResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("max") - measurementsNoJfr.get("max")) * 100.0 / measurementsNoJfr.get("max"));
+            long responseTime50PercentileDiff = (long) (Math.abs(measurementsJfr.get("p50") - measurementsNoJfr.get("p50")) * 100.0 / measurementsNoJfr.get("p50"));
+            long responseTime90PercentileDiff = (long) (Math.abs(measurementsJfr.get("p90") - measurementsNoJfr.get("p90")) * 100.0 / measurementsNoJfr.get("p90"));
+            long responseTime99PercentileDiff = (long) (Math.abs(measurementsJfr.get("p99") - measurementsNoJfr.get("p99")) * 100.0 / measurementsNoJfr.get("p99"));
+
             LogBuilder logBuilder = new LogBuilder();
             LogBuilder.Log log = logBuilder.app(appNoJfr)
-                    .executableSizeKb((long)(Math.abs(measurementsJfr.get("imageSize") - measurementsNoJfr.get("imageSize"))*100.0/measurementsNoJfr.get("imageSize")))
-                    .timeToFirstOKRequestMs((long)(Math.abs(measurementsJfr.get("startup")-measurementsNoJfr.get("startup"))*100.0/measurementsNoJfr.get("startup")))
-                    .rssKb((long)(Math.abs(measurementsJfr.get("rss")-measurementsNoJfr.get("rss"))*100.0/measurementsNoJfr.get("rss")))
-                    .meanResponseTime((long)(Math.abs(measurementsJfr.get("mean")-measurementsNoJfr.get("mean"))*100.0/measurementsNoJfr.get("mean")))
-                    .maxResponseTime((long)(Math.abs(measurementsJfr.get("max")-measurementsNoJfr.get("max"))*100.0/measurementsNoJfr.get("max")))
-                    .responseTime50Percentile((long)(Math.abs(measurementsJfr.get("50%")-measurementsNoJfr.get("50%"))*100.0/measurementsNoJfr.get("50%")))
-                    .responseTime90Percentile((long)(Math.abs(measurementsJfr.get("90%")-measurementsNoJfr.get("90%"))*100.0/measurementsNoJfr.get("90%")))
-                    .responseTime99Percentile((long)(Math.abs(measurementsJfr.get("99%")-measurementsNoJfr.get("99%"))*100.0/measurementsNoJfr.get("99%")))
+                    .executableSizeKb(imageSizeDiff)
+                    .timeToFirstOKRequestMs(timeToFirstOKRequestMsDiff)
+                    .rssKb(rssKbDiff)
+                    .meanResponseTime(meanResponseTimeDiff)
+                    .maxResponseTime(maxResponseTimeDiff)
+                    .responseTime50Percentile(responseTime50PercentileDiff)
+                    .responseTime90Percentile(responseTime90PercentileDiff)
+                    .responseTime99Percentile(responseTime99PercentileDiff)
                     .build();
             Logs.logMeasurements(log, measurementsLog);
             Logs.appendln(report, "Measurements Diff %:");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
             Logs.checkLog(cn, mn, appJfr, processLog);
-//            Logs.checkThreshold(app, executableSizeKb, rssKb, timeToFirstOKRequest);
+            Logs.checkThreshold(appJfr, imageSizeDiff, rssKbDiff, timeToFirstOKRequestMsDiff, meanResponseTimeDiff, responseTime90PercentileDiff, responseTime99PercentileDiff);
         } finally {
             cleanup(null, cn, mn, report, appJfr, processLog);
             // The quarkus process already are stopped
@@ -179,38 +189,38 @@ public class JFRTest {
                 removeContainers(appJfr.runtimeContainer.name, appJfr.runtimeContainer.name + "-build", appJfr.runtimeContainer.name + "-run");
             }
         }
-
     }
 
-    private Map<String,Integer> runPerfTest(int trials, Apps app, File appDir, File processLog, String cn,String mn, StringBuilder report, Path measurementsLog) throws IOException, InterruptedException {
+    private Map<String, Integer> runPerfTestOnApp(int trials, Apps app, File appDir, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog) throws IOException, InterruptedException {
+        final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+
         // Get image sizes
-        String[] imageSizeCmd = new String[]{"stat", "-c%s", "../"+app.dir+"/target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_"+app.name()};
+        String[] imageSizeCmd = new String[]{"stat", "-c%s", "../" + app.dir + "/target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_" + app.name()};
 
         final ProcessBuilder processBuilder0 = new ProcessBuilder(imageSizeCmd);
         Process p = processBuilder0.start();
         BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
-        Integer  imageSize = Integer.valueOf(processOutputReader.readLine());
-        LOGGER.info(app.name()+" image size "+imageSize);
+        Integer imageSize = Integer.valueOf(processOutputReader.readLine()) / 1024;
+        LOGGER.info(app.name() + " image size " + imageSize);
 
         Process process = null;
         Process hyperfoilProcess = null;
         int rssSum = 0;
         int startupSum = 0;
-        Map<String,Integer> measurements = new HashMap<>();
-        final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
         try {
             for (int i = 0; i < trials; i++) {
-                if (process != null){
+                if (process != null) {
                     processStopper(process, true, true); // stop each time to avoid influencing startup time
                 }
                 List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[2]);
-                clearCaches(); // TODO Not sure if this is working or is needed. Doesn't seems to have any affect
+                clearCaches(); //TODO consider using warm up instead of clearing caches
                 process = runCommand(cmd, appDir, processLog, app);
                 assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
                 startupSum += WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
                 rssSum += getRSSkB(process.pid());
             }
+
 
             // Run Hyperfoil controller in container and expose port for test
             List<String> getAndStartHyperfoil = getRunCommand(app.buildAndRunCmds.cmds[3]);
@@ -224,14 +234,15 @@ public class JFRTest {
             final HttpRequest uploadRequest = HttpRequest.newBuilder()
                     .uri(new URI(app.urlContent.urlContent[1][0]))
                     .header("Content-Type", "text/vnd.yaml")
-                    .POST( HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath()+"/worst_case_benchmark.hf.yaml")))
+                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/worst_case_benchmark.hf.yaml")))
                     .build();
-            System.out.println(uploadRequest.toString());
             final HttpResponse<String> releaseResponse = hc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
             assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
-            LOGGER.info("Hyperfoil upload response code "+ releaseResponse.statusCode());
+            LOGGER.info("Hyperfoil upload response code " + releaseResponse.statusCode());
+
 
             // Run benchmark
+            disableTurbo();
             final HttpRequest benchmarkRequest = HttpRequest.newBuilder()
                     .uri(new URI(app.urlContent.urlContent[3][0]))
                     .GET()
@@ -242,34 +253,36 @@ public class JFRTest {
 
             // Beanchmark is configured to take 5s
             Thread.sleep(7000);
+            enableTurbo();
 
             // Get results
             final HttpRequest resultsRequest = HttpRequest.newBuilder()
-                    .uri(new URI("http://0.0.0.0:8090/run/"+id+"/stats/all/json"))
+                    .uri(new URI("http://0.0.0.0:8090/run/" + id + "/stats/all/json"))
                     .GET()
                     .timeout(Duration.ofSeconds(3)) // set timeout to allow for cleanup, otherwise will stall at first request above
                     .build();
             final HttpResponse<String> resultsResponse = hc.send(resultsRequest, HttpResponse.BodyHandlers.ofString());
-            LOGGER.info("Hyperfoil results response code "+ resultsResponse.statusCode());
+            LOGGER.info("Hyperfoil results response code " + resultsResponse.statusCode());
             JSONObject resultsResponseJson = new JSONObject(resultsResponse.body());
 
+            Map<String, Integer> measurements = new HashMap<>();
             measurements.put("mean", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getInt("meanResponseTime"));
             measurements.put("max", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getInt("maxResponseTime"));
-            measurements.put("50%", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getJSONObject("percentileResponseTime").getInt("50.0"));
-            measurements.put("90%", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getJSONObject("percentileResponseTime").getInt("90.0"));
-            measurements.put("99%", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getJSONObject("percentileResponseTime").getInt("99.0"));
-            measurements.put("startup", startupSum/trials);
-            measurements.put("rss", rssSum/trials);
+            measurements.put("p50", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getJSONObject("percentileResponseTime").getInt("50.0"));
+            measurements.put("p90", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getJSONObject("percentileResponseTime").getInt("90.0"));
+            measurements.put("p99", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getJSONObject("percentileResponseTime").getInt("99.0"));
+            measurements.put("startup", startupSum / trials);
+            measurements.put("rss", rssSum / trials);
             measurements.put("imageSize", imageSize);
 
-            LOGGER.info("mean:"+measurements.get("mean")
-                    + ", max:"+measurements.get("max")
-                    + ", 50%:"+measurements.get("50%")
-                    + ", 90%:"+measurements.get("90%")
-                    + ", 99%:"+measurements.get("99%")
-                    + ", startup:"+measurements.get("startup")
-                    + ", rss:"+measurements.get("rss")
-                    + ", imageSize:"+measurements.get("imageSize"));
+            LOGGER.info("mean:" + measurements.get("mean")
+                    + ", max:" + measurements.get("max")
+                    + ", p50:" + measurements.get("p50")
+                    + ", p90:" + measurements.get("p90")
+                    + ", p99:" + measurements.get("p99")
+                    + ", startup:" + measurements.get("startup")
+                    + ", rss:" + measurements.get("rss")
+                    + ", imageSize:" + measurements.get("imageSize"));
 
             LogBuilder logBuilder = new LogBuilder();
             LogBuilder.Log log = logBuilder.app(app)
@@ -278,12 +291,12 @@ public class JFRTest {
                     .rssKb(measurements.get("rss"))
                     .meanResponseTime(measurements.get("mean"))
                     .maxResponseTime(measurements.get("max"))
-                    .responseTime50Percentile(measurements.get("50%"))
-                    .responseTime90Percentile(measurements.get("90%"))
-                    .responseTime99Percentile(measurements.get("99%"))
+                    .responseTime50Percentile(measurements.get("p50"))
+                    .responseTime90Percentile(measurements.get("p90"))
+                    .responseTime99Percentile(measurements.get("p99"))
                     .build();
             Logs.logMeasurements(log, measurementsLog);
-            Logs.appendln(report, "Measurements "+app.name()+ ":");
+            Logs.appendln(report, "Measurements " + app.name() + ":");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
             return measurements;
