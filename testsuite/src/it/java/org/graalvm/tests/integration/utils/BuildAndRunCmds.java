@@ -231,7 +231,7 @@ public enum BuildAndRunCmds {
                     "-XX:FlightRecorderLogging=jfr"}
     }),
     JFR_PERFORMANCE(new String[][]{
-            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.native.monitoring=jfr"},
+            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.native.monitoring=jfr", "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler"},
             new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE"},
             new String[]{"./target_tmp/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE",
                     "-XX:+FlightRecorder",

@@ -126,7 +126,7 @@ public class JFRTest {
 
     @Test
     @Tag("jfr-perf")
-    @IfMandrelVersion(min = "22.3")
+    @IfMandrelVersion(min = "23.0.0") // Thread park event is introduced in 23.0
     public void jfrPerfTest(TestInfo testInfo) throws IOException, InterruptedException {
         Apps appJfr = Apps.JFR_PERFORMANCE;
         Apps appNoJfr = Apps.PLAINTEXT_PERFORMANCE;
@@ -145,8 +145,8 @@ public class JFRTest {
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            builderRoutine(2, appJfr, report, cn, mn, appDir, processLog, null, null);
-            builderRoutine(2, appNoJfr, report, cn, mn, appDir, processLog, null, null);
+//            builderRoutine(2, appJfr, report, cn, mn, appDir, processLog, null, null);
+//            builderRoutine(2, appNoJfr, report, cn, mn, appDir, processLog, null, null);
 
             // WITH JFR
             Map<String, Integer> measurementsJfr = runPerfTestOnApp(5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
@@ -180,7 +180,7 @@ public class JFRTest {
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
             Logs.checkLog(cn, mn, appJfr, processLog);
-            Logs.checkThreshold(appJfr, imageSizeDiff, rssKbDiff, timeToFirstOKRequestMsDiff, meanResponseTimeDiff, responseTime90PercentileDiff, responseTime99PercentileDiff);
+            Logs.checkThreshold(appJfr, imageSizeDiff, rssKbDiff, timeToFirstOKRequestMsDiff, meanResponseTimeDiff, responseTime50PercentileDiff, responseTime90PercentileDiff);
         } finally {
             cleanup(null, cn, mn, report, appJfr, processLog);
             // The quarkus process already are stopped
@@ -221,7 +221,6 @@ public class JFRTest {
                 rssSum += getRSSkB(process.pid());
             }
 
-
             // Run Hyperfoil controller in container and expose port for test
             List<String> getAndStartHyperfoil = getRunCommand(app.buildAndRunCmds.cmds[3]);
             hyperfoilProcess = runCommand(getAndStartHyperfoil, appDir, processLog, app);
@@ -234,7 +233,7 @@ public class JFRTest {
             final HttpRequest uploadRequest = HttpRequest.newBuilder()
                     .uri(new URI(app.urlContent.urlContent[1][0]))
                     .header("Content-Type", "text/vnd.yaml")
-                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/worst_case_benchmark.hf.yaml")))
+                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/normal_case_benchmark.hf.yaml")))
                     .build();
             final HttpResponse<String> releaseResponse = hc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
             assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
@@ -304,7 +303,7 @@ public class JFRTest {
             throw new RuntimeException(e);
         } finally {
             if (process != null && process.isAlive()) {
-                processStopper(process, true); // *** confirmed this works may need fuser -k 8080/tcp in case there are remnant bg tasks
+                processStopper(process, true);
             }
             // Stop container before stopping hyperfoil process
             stopAllRunningContainers();

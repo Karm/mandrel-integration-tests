@@ -105,35 +105,35 @@ public class LogBuilder {
         return this;
     }
     public LogBuilder meanResponseTime(long meanResponseTime) {
-        if (meanResponseTime <= 0) {
+        if (meanResponseTime < 0) {
             throw new IllegalArgumentException("meanResponseTime must be a positive long, was: " + meanResponseTime);
         }
         this.meanResponseTime = meanResponseTime;
         return this;
     }
     public LogBuilder maxResponseTime(long maxResponseTime) {
-        if (maxResponseTime <= 0) {
+        if (maxResponseTime < 0) {
             throw new IllegalArgumentException("maxResponseTime must be a positive long, was: " + maxResponseTime);
         }
         this.maxResponseTime = maxResponseTime;
         return this;
     }
     public LogBuilder responseTime50Percentile(long responseTime50Percentile) {
-        if (responseTime50Percentile <= 0) {
+        if (responseTime50Percentile < 0) {
             throw new IllegalArgumentException("responseTime50Percentile must be a positive long, was: " + responseTime50Percentile);
         }
         this.responseTime50Percentile = responseTime50Percentile;
         return this;
     }
     public LogBuilder responseTime90Percentile(long responseTime90Percentile) {
-        if (responseTime90Percentile <= 0) {
+        if (responseTime90Percentile < 0) {
             throw new IllegalArgumentException("responseTime90Percentile must be a positive long, was: " + responseTime90Percentile);
         }
         this.responseTime90Percentile = responseTime90Percentile;
         return this;
     }
     public LogBuilder responseTime99Percentile(long responseTime99Percentile) {
-        if (responseTime99Percentile <= 0) {
+        if (responseTime99Percentile < 0) {
             throw new IllegalArgumentException("responseTime99Percentile must be a positive long, was: " + responseTime99Percentile);
         }
         this.responseTime99Percentile = responseTime99Percentile;

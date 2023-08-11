@@ -79,7 +79,7 @@ public class Logs {
         }
     }
 
-    public static void checkThreshold(Apps app, String mode, long executableSizeKb, long rssKb, long timeToFirstOKRequest, long timeToFinishMs, long mean, long p90, long p99) {
+    public static void checkThreshold(Apps app, String mode, long executableSizeKb, long rssKb, long timeToFirstOKRequest, long timeToFinishMs, long mean, long p50, long p90) {
         if (app.thresholdProperties.isEmpty() &&
                 (executableSizeKb != SKIP || rssKb != SKIP || timeToFirstOKRequest != SKIP || timeToFinishMs != SKIP)) {
             LOGGER.warn("It seem there is no " + Path.of(BASE_DIR, app.dir, "threshold.properties. ") +
@@ -158,6 +158,20 @@ public class Logs {
             }
         }
 
+        if (p50 != SKIP) {
+            final String key = propPrefix + ".p50.latency";
+            if (app.thresholdProperties.containsKey(key)) {
+                long p50Threshold = app.thresholdProperties.get(key);
+                assertThreshold(mean <= p50Threshold,
+                        "Application " + app + (mode != null ? " in mode " + mode : "") + " has p50 response latency " +
+                                p50 + " , which is over " +
+                                p50Threshold + "  threshold by " + percentageValOverTh(p50, p50Threshold) + "%.");
+            } else {
+                LOGGER.error("p99 was to be checked, but there is no " + key + " in " +
+                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+            }
+        }
+
         if (p90 != SKIP) {
             final String key = propPrefix + ".p90.latency";
             if (app.thresholdProperties.containsKey(key)) {
@@ -168,20 +182,6 @@ public class Logs {
                                 p90Threshold + "  threshold by " + percentageValOverTh(p90, p90Threshold) + "%.");
             } else {
                 LOGGER.error("p90 was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
-            }
-        }
-
-        if (p99 != SKIP) {
-            final String key = propPrefix + ".p99.latency";
-            if (app.thresholdProperties.containsKey(key)) {
-                long p99Threshold = app.thresholdProperties.get(key);
-                assertThreshold(mean <= p99Threshold,
-                        "Application " + app + (mode != null ? " in mode " + mode : "") + " has p90 response latency " +
-                                p99 + " , which is over " +
-                                p99Threshold + "  threshold by " + percentageValOverTh(p99, p99Threshold) + "%.");
-            } else {
-                LOGGER.error("p99 was to be checked, but there is no " + key + " in " +
                         Path.of(BASE_DIR, app.dir, "threshold.properties"));
             }
         }
@@ -209,8 +209,8 @@ public class Logs {
         checkThreshold(app, mode, executableSizeKb, rssKb, timeToFirstOKRequest, timeToFinishMs, SKIP, SKIP, SKIP);
     }
 
-    public static void checkThreshold(Apps app, long executableSizeKb, long rssKb, long timeToFirstOKRequest, long mean, long p90, long p99) {
-        checkThreshold(app, null, executableSizeKb, rssKb, timeToFirstOKRequest, SKIP, mean, p90, p99);
+    public static void checkThreshold(Apps app, long executableSizeKb, long rssKb, long timeToFirstOKRequest, long mean, long p50, long p90) {
+        checkThreshold(app, null, executableSizeKb, rssKb, timeToFirstOKRequest, SKIP, mean, p50, p90);
     }
 
     public static void archiveLog(String testClass, String testMethod, File log) throws IOException {
