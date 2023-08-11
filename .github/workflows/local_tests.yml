@@ -15,6 +15,7 @@ on:
 env:
   LANG: en_US.UTF-8
   FAIL_ON_PERF_REGRESSION: false
+  CMD_LONG_TIMEOUT_MS: 60000
 
 jobs:
   local-run:
@@ -23,17 +24,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus-version: [ '2.13.8.Final', '2.16.8.Final', '3.2.2.Final' ]
-        mandrel-version: [ '22.3.3.1-Final', '23.0.1.2-Final' ]
-        java-version: [ '17' ]
-        os: [ ubuntu-20.04, windows-2019 ]
         include:
+          - quarkus-version: '2.7.7.Final'
+            mandrel-version: '21.3.6.0-Final'
+            java-version: '17'
+            os: 'windows-2019'
+          - quarkus-version: '2.7.7.Final'
+            mandrel-version: '21.3.6.0-Final'
+            java-version: '17'
+            os: 'ubuntu-20.04'
+
           - quarkus-version: '2.13.8.Final'
-            mandrel-builder-image: '22.3.3.1-Final'
-          - quarkus-version: '2.16.8.Final'
-            mandrel-builder-image: '22.3.3.1-Final'
-          - quarkus-version: '3.2.2.Final'
-            mandrel-builder-image: '23.0.1.2-Final'
+            mandrel-version: '22.3.3.1-Final'
+            java-version: '17'
+            os: 'windows-2019'
+          - quarkus-version: '2.13.8.Final'
+            mandrel-version: '22.3.3.1-Final'
+            java-version: '17'
+            os: 'ubuntu-20.04'
+
+          - quarkus-version: '2.16.9.Final'
+            mandrel-version: '22.3.3.1-Final'
+            java-version: '17'
+            os: 'windows-2019'
+          - quarkus-version: '2.16.9.Final'
+            mandrel-version: '22.3.3.1-Final'
+            java-version: '17'
+            os: 'ubuntu-20.04'
+
+          - quarkus-version: '3.2.3.Final'
+            mandrel-version: '23.0.1.2-Final'
+            java-version: '20'
+            os: 'windows-2022'
+          - quarkus-version: '3.2.3.Final'
+            mandrel-version: '23.0.1.2-Final'
+            java-version: '20'
+            os: 'ubuntu-20.04'
+          - quarkus-version: '3.2.3.Final'
+            mandrel-version: '23.0.1.2-Final'
+            java-version: '17'
+            os: 'windows-2022'
+          - quarkus-version: '3.2.3.Final'
+            mandrel-version: '23.0.1.2-Final'
+            java-version: '17'
+            os: 'ubuntu-20.04'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -80,6 +114,7 @@ jobs:
           MAVEN_OPTS: -Xmx1g
         run: |
           set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\;%PATH%
+          set PATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\;%PATH%
           call vcvars64
           IF NOT %ERRORLEVEL% == 0 ( exit 1 )
           set "GRAALVM_HOME=${{ github.workspace }}\${{ matrix.java-version }}-${{ matrix.mandrel-version }}"
