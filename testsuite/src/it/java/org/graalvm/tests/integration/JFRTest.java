@@ -269,7 +269,7 @@ public class JFRTest {
             JSONObject benchmarkResponseJson = new JSONObject(benchmarkResponse.body());
             String id = benchmarkResponseJson.getString("id");
 
-            // Beanchmark is configured to take 5s
+            // Benchmark is configured to take 5s. There's probably a better way to wait for the benchmark to complete.
             Thread.sleep(7000);
             enableTurbo();
 

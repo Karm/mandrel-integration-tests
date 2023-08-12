@@ -2,7 +2,6 @@ name: jfr-hyperfoil
 http:
   host: http://localhost:8080
   sharedConnections: 25
-# 10 users will be starting the scenario every second
 usersPerSec: 50
 duration: 5s
 scenario:

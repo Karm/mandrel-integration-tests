@@ -235,9 +235,9 @@ public enum BuildAndRunCmds {
             new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE"},
             new String[]{"./target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE",
                     "-XX:+FlightRecorder",
-                    "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
+                    "-XX:StartFlightRecording=settings=" + BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/quarkus-demo.jfc,filename=logs/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"},
-            new String[]{CONTAINER_RUNTIME, "run","--name", ContainerNames.HYPERFOIL.name,"--rm", "-v", "-u","--network", "host","quay.io/hyperfoil/hyperfoil", "standalone"}
+            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name,"--rm", "-v", "-u","--network", "host","quay.io/hyperfoil/hyperfoil", "standalone"}
     }),
     PLAINTEXT_PERFORMANCE(new String[][]{
             new String[]{"mvn", "package", "-Pnative"},
