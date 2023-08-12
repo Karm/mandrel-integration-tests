@@ -26,17 +26,12 @@ public class GreetingService {
             } catch (Exception e) {
                 // Doesn't matter. Do nothing
             }
-            CustomEvent customEvent = new CustomEvent();
-            // Only commit the first few letters (goal is to spend time in the JFR piping not committing chars)
-            customEvent.message = result;
-            customEvent.commit();
         }
 
         return result;
     }
 
     /** This endpoint is used to compare between with/without JFR built into the image.
-     * Therefore, it must not use any custom JFR events or the Event API at all, to avoid runtime errors.
      * It should have less unrealistic tasks, unlike GreetingService#work which simply loops to create many events.*/
     public String regular(String text) {
         String result = text;
