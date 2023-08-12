@@ -140,6 +140,7 @@ public class JFRTest {
      */
     @Test
     @Tag("jfr-perf")
+    @Tag("jfr")
     @IfMandrelVersion(min = "23.0.0") // Thread park event is introduced in 23.0
     public void jfrPerfTest(TestInfo testInfo) throws IOException, InterruptedException {
         Apps appJfr = Apps.JFR_PERFORMANCE;
