@@ -57,6 +57,8 @@ import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackN
 import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CMD_LONG_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.GOTO_URL_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.LONG_GOTO_URL_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
@@ -88,8 +90,6 @@ public class DebugSymbolsTest {
     public static final String BASE_DIR = getBaseDir();
 
     // GOTO i.e. accessing a URL of a debugged test app to trigger a certain code path
-    private static final long GOTO_URL_TIMEOUT_MS = 250;
-    private static final long LONG_GOTO_URL_TIMEOUT_MS = CMD_LONG_TIMEOUT_MS;
     private static final long GOTO_URL_SLEEP_MS = 50;
     private static volatile Exception gotoException = null;
 

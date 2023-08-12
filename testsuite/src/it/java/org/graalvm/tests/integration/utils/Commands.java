@@ -92,8 +92,12 @@ public class Commands {
     public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE", "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
 
     // Debug sessions, GDB commands related timeouts
+    // How long to wait for a gdb command output to match a certain regexp:
     public static final long CMD_DEFAULT_TIMEOUT_MS = Long.parseLong(getProperty("CMD_DEFAULT_TIMEOUT_MS", "10000"));
     public static final long CMD_LONG_TIMEOUT_MS = Long.parseLong(getProperty("CMD_LONG_TIMEOUT_MS", "60000"));
+    // How long to wait for a URL to be reachable during debug session: (when debugging a web app)
+    public static final long GOTO_URL_TIMEOUT_MS = Long.parseLong(getProperty("GOTO_URL_TIMEOUT_MS", "250"));
+    public static final long LONG_GOTO_URL_TIMEOUT_MS = Long.parseLong(getProperty("LONG_GOTO_URL_TIMEOUT_MS", "120000"));
 
     public static String getProperty(String key) {
         return getProperty(key, null);
