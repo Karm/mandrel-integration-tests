@@ -244,7 +244,7 @@ public enum GDBSession {
                             Pattern.compile(".*Breakpoint 1 at .*: file com/example/quarkus/config/ConfigTestController.java, line 33.*",
                                     Pattern.DOTALL), increasedTimeoutMs),
                     new CP("run&\n",
-                            Pattern.compile(".*Starting program.*", Pattern.DOTALL), increasedTimeoutMs),
+                            Pattern.compile(".*Installed features:.*", Pattern.DOTALL), increasedTimeoutMs),
                     new CP("GOTO URL http://localhost:8080/data/config/lookup",
                             Pattern.compile(".*lookup value.*", Pattern.DOTALL)),
                     new CP("bt\n",
@@ -274,12 +274,13 @@ public enum GDBSession {
                     new CP("list\n",
                             Pattern.compile(".*48.*return client.query\\(\"SELECT id, name FROM fruits ORDER BY name ASC.*", Pattern.DOTALL)),
                     new CP("c&\n",
-                            Pattern.compile(".*", Pattern.DOTALL)),
+                            Pattern.compile(".*Continuing.*", Pattern.DOTALL)),
             };
         }
     };
 
     private static final CP SHOW_VERSION = new CP("show version\n", Pattern.compile(".*gdb.*", Pattern.DOTALL));
+    public static final Pattern GDB_IM_PROMPT = Pattern.compile(".*\\(gdb\\).*", Pattern.DOTALL);
 
     public abstract CP[] get(boolean inContainer);
 }

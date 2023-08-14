@@ -48,6 +48,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -91,7 +92,6 @@ public class DebugSymbolsTest {
 
     // GOTO i.e. accessing a URL of a debugged test app to trigger a certain code path
     private static final long GOTO_URL_SLEEP_MS = 50;
-    private static volatile Exception gotoException = null;
 
     public enum DebugOptions {
         TrackNodeSourcePosition_23_0("<DEBUG_FLAGS_23_0_a>", "-H:+TrackNodeSourcePosition"),
@@ -174,7 +174,7 @@ public class DebugSymbolsTest {
                         .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
+                        increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
                 Logs.appendlnSection(report, stringBuffer.toString());
                 assertTrue(result,
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
@@ -249,7 +249,7 @@ public class DebugSymbolsTest {
                     .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             boolean result = waitForBufferToMatch(report, stringBuffer,
                     Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                    increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
+                    increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
             Logs.appendlnSection(report, stringBuffer.toString());
             assertTrue(result,
                     "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
@@ -361,7 +361,7 @@ public class DebugSymbolsTest {
                         .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
+                        increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
                 Logs.appendlnSection(report, stringBuffer.toString());
                 assertTrue(result,
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
@@ -409,49 +409,70 @@ public class DebugSymbolsTest {
                     stringBuffer.delete(0, stringBuffer.length());
                     try {
                         if (cp.c.startsWith("GOTO URL")) {
+                            /* This one web request can block on a breakpoint, it might also come too early,
+                               so we need to retry it if necessary. */
+                            final AtomicBoolean failedToConnect = new AtomicBoolean(true);
                             final Runnable webRequest = () -> {
-                                try {
-                                    final String url = cp.c.split("URL ")[1];
-                                    final String content = WebpageTester.getUrlContents(url);
-                                    if (!cp.p.matcher(content).matches()) {
-                                        errorQueue.add("Content of URL " + url + " should have matched regexp " + cp.p.pattern() +
-                                                " but it was this: " + content);
+                                final long gotoURLStart = System.currentTimeMillis();
+                                final long timeoutMs = (UsedVersion.getVersion(inContainer)
+                                        .compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_GOTO_URL_TIMEOUT_MS : GOTO_URL_TIMEOUT_MS;
+                                long durationMs = 0;
+                                final String url = cp.c.split("URL ")[1];
+                                while (failedToConnect.get() && durationMs < timeoutMs) {
+                                    try {
+                                        final String content = WebpageTester.getUrlContents(url);
+                                        failedToConnect.set(false);
+                                        if (!cp.p.matcher(content).matches()) {
+                                            errorQueue.add("Content of URL " + url + " should have matched regexp " + cp.p.pattern() +
+                                                    " but it was this: " + content);
+                                        }
+                                    } catch (IOException e) {
+                                        try {
+                                            Thread.sleep(GOTO_URL_SLEEP_MS);
+                                        } catch (InterruptedException x) {
+                                            throw new RuntimeException(x);
+                                        }
+                                        durationMs = System.currentTimeMillis() - gotoURLStart;
                                     }
-                                    gotoException = null;
-                                } catch (IOException e) {
-                                    gotoException = e;
+                                }
+                                if (failedToConnect.get()) {
+                                    errorQueue.add("Unexpected GOTO URL " + url + " connection failure in " + durationMs + "ms.");
                                 }
                             };
-                            final long gotoURLStart = System.currentTimeMillis();
-                            final long timeoutMs = (UsedVersion.getVersion(inContainer)
-                                    .compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_GOTO_URL_TIMEOUT_MS : GOTO_URL_TIMEOUT_MS;
-                            long duration = 0;
-                            do {
-                                esvc.submit(webRequest);
-                                Thread.sleep(GOTO_URL_SLEEP_MS);
-                                duration = System.currentTimeMillis() - gotoURLStart;
-                            } while (gotoException != null && duration < timeoutMs);
-                            if (gotoException != null) {
-                                errorQueue.add("Unexpected GOTO URL " + cp.c.split("URL ")[1] + " failure in " + duration + "ms," +
-                                        " see: " + gotoException.fillInStackTrace().toString());
+                            esvc.submit(webRequest);
+                            Logs.appendln(report, cp.c);
+
+                            // We might want to just access a URL and check the content.
+                            // We also might want to access a URL to hit a breakpoint. In that case the thread above keeps trying
+                            // until the server is ready to talk, and then it hangs on the breakpoint, which is fine.
+                            // We don't want to keep spawning more URL accessing threads. We just need to know that the server
+                            // was ready to talk so as we can continue with the GDB session, e.g. by calling `bt`.
+                            // A simpler version would be to jam a hardcoded sleep instead. Immediately running `bt`
+                            // won't work as the breakpoint might not have been hit yet.
+                            final long start = System.currentTimeMillis();
+                            while (failedToConnect.get() && System.currentTimeMillis() - start < cp.timeoutMs) {
+                                try {
+                                    Thread.sleep(GOTO_URL_SLEEP_MS);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
+
                         } else {
                             writer.write(cp.c);
                             writer.flush();
                             Logs.appendln(report, cp.c);
                             // Time unit is the same for timeout and sleep.
-                            boolean m = waitForBufferToMatch(report, stringBuffer, cp.p, cp.timeoutMs, 500, TimeUnit.MILLISECONDS);
+                            boolean m = waitForBufferToMatch(report, stringBuffer, cp.p, cp.timeoutMs, 50, TimeUnit.MILLISECONDS);
                             Logs.appendlnSection(report, stringBuffer.toString());
                             if (!m) {
-                                errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern '" +
+                                errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern in time '" +
                                         cp.p.pattern() + "'.\nOutput was:\n" + stringBuffer);
                             }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                         fail("Unexpected failure: ", e);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
                     }
                 }
         );

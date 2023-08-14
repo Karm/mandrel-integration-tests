@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
+import static org.graalvm.tests.integration.utils.GDBSession.GDB_IM_PROMPT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -94,10 +95,12 @@ public class Commands {
     // Debug sessions, GDB commands related timeouts
     // How long to wait for a gdb command output to match a certain regexp:
     public static final long CMD_DEFAULT_TIMEOUT_MS = Long.parseLong(getProperty("CMD_DEFAULT_TIMEOUT_MS", "10000"));
-    public static final long CMD_LONG_TIMEOUT_MS = Long.parseLong(getProperty("CMD_LONG_TIMEOUT_MS", "60000"));
+    // It can take as long as 2 minutes to set a breakpoint in GraalVM 23.0 even with: https://github.com/graalvm/mandrel/pull/545
+    public static final long CMD_LONG_TIMEOUT_MS = Long.parseLong(getProperty("CMD_LONG_TIMEOUT_MS", "80000"));
     // How long to wait for a URL to be reachable during debug session: (when debugging a web app)
     public static final long GOTO_URL_TIMEOUT_MS = Long.parseLong(getProperty("GOTO_URL_TIMEOUT_MS", "250"));
-    public static final long LONG_GOTO_URL_TIMEOUT_MS = Long.parseLong(getProperty("LONG_GOTO_URL_TIMEOUT_MS", "120000"));
+    // Mind that the waiting might be blocked by setting a breakpoint in the meantime. Depend on the test flow.
+    public static final long LONG_GOTO_URL_TIMEOUT_MS = Long.parseLong(getProperty("LONG_GOTO_URL_TIMEOUT_MS", "60000"));
 
     public static String getProperty(String key) {
         return getProperty(key, null);
@@ -912,13 +915,18 @@ public class Commands {
         final long timeoutMillis = unit.toMillis(timeout);
         final long sleepMillis = unit.toMillis(sleep);
         final long startMillis = System.currentTimeMillis();
+        boolean promptSeen = false;
         while (System.currentTimeMillis() - startMillis < timeoutMillis) {
             // Wait for command to complete, i.e. for the prompt to appear.
             // To ensure the prompt appears consistently across gdb versions after every command we use the GDB/MI mode, i.e. the "--interpreter=mi" option.
             // See https://sourceware.org/gdb/onlinedocs/gdb/GDB_002fMI-Output-Syntax.html#GDB_002fMI-Output-Syntax
-            if (Pattern.compile(".*\\(gdb\\).*", Pattern.DOTALL).matcher(stringBuffer.toString()).matches()) {
-                Logs.appendln(report, "Command took " + (System.currentTimeMillis() - startMillis) + " ms to complete");
-                return pattern.matcher(stringBuffer.toString()).matches();
+            if (!promptSeen && GDB_IM_PROMPT.matcher(stringBuffer.toString()).matches()) {
+                Logs.appendln(report, "Gdb prompt took " + (System.currentTimeMillis() - startMillis) + " ms to appear");
+                promptSeen = true;
+            }
+            if (promptSeen && pattern.matcher(stringBuffer.toString()).matches()) {
+                Logs.appendln(report, "Expected gdb output took " + (System.currentTimeMillis() - startMillis) + " ms to appear");
+                return true;
             }
             try {
                 Thread.sleep(sleepMillis);
@@ -927,7 +935,7 @@ public class Commands {
                 Thread.currentThread().interrupt();
             }
         }
-        Logs.appendln(report, "Command timed out after " + (System.currentTimeMillis() - startMillis) + " ms");
+        Logs.appendln(report, "Command timed out after " + (System.currentTimeMillis() - startMillis) + " ms without seeing the expected output.");
         return false;
     }
 
