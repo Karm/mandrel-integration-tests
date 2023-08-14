@@ -143,6 +143,9 @@ public class DebugSymbolsTest {
             // We should somehow capture this semantically in an Enum or something. This is fragile...
             builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
 
+            assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "debug-symbols-smoke")),
+                    "debug-symbols-smoke executable does not exist. Compilation failed. Check the logs.");
+
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "--interpreter=mi", "./target/debug-symbols-smoke"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
@@ -171,7 +174,7 @@ public class DebugSymbolsTest {
                         .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit s the same for timeout and sleep.
+                        increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
                 Logs.appendlnSection(report, stringBuffer.toString());
                 assertTrue(result,
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
@@ -216,6 +219,9 @@ public class DebugSymbolsTest {
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
 
+            assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "quarkus-runner")),
+                    "Quarkus executable does not exist. Compilation failed. Check the logs.");
+
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "--interpreter=mi", "./target/quarkus-runner"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
@@ -243,7 +249,7 @@ public class DebugSymbolsTest {
                     .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             boolean result = waitForBufferToMatch(report, stringBuffer,
                     Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                    increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit s the same for timeout and sleep.
+                    increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
             Logs.appendlnSection(report, stringBuffer.toString());
             assertTrue(result,
                     "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
@@ -355,7 +361,7 @@ public class DebugSymbolsTest {
                         .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit s the same for timeout and sleep.
+                        increasedTimeoutMs, 500, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
                 Logs.appendlnSection(report, stringBuffer.toString());
                 assertTrue(result,
                         "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
@@ -433,7 +439,7 @@ public class DebugSymbolsTest {
                             writer.write(cp.c);
                             writer.flush();
                             Logs.appendln(report, cp.c);
-                            // Time unit s the same for timeout and sleep.
+                            // Time unit is the same for timeout and sleep.
                             boolean m = waitForBufferToMatch(report, stringBuffer, cp.p, cp.timeoutMs, 500, TimeUnit.MILLISECONDS);
                             Logs.appendlnSection(report, stringBuffer.toString());
                             if (!m) {

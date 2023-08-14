@@ -268,7 +268,7 @@ public enum GDBSession {
                     new CP("c&\n",
                             Pattern.compile(".*", Pattern.DOTALL)),
                     new CP("GOTO URL http://localhost:8080/fruits",
-                            Pattern.compile(".*Apple.*Orange.*Pear.*", Pattern.DOTALL), increasedTimeoutMs),
+                            Pattern.compile(".*Apple.*Orange.*Pear.*", Pattern.DOTALL)),
                     new CP("bt\n",
                             Pattern.compile(".*at org/acme/vertx/Fruit.java:48.*", Pattern.DOTALL)),
                     new CP("list\n",
