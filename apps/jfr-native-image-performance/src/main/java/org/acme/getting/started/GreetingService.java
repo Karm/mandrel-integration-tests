@@ -35,7 +35,7 @@ public class GreetingService {
      * It should have less unrealistic tasks, unlike GreetingService#work which simply loops to create many events.*/
     public String regular(String text) {
         String result = text;
-        int count = (int) (Math.random() * (20)) + 10;
+        int count = (int) (Math.random() * 20) + 10;
 
         String temp = Integer.toString(result.hashCode()).repeat(count);
         result = "";

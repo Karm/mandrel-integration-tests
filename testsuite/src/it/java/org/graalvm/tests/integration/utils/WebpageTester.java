@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
