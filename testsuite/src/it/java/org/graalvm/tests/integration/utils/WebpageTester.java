@@ -95,7 +95,8 @@ public class WebpageTester {
     public static String getUrlContents(String url) throws IOException {
         final URLConnection c = new URL(url).openConnection();
         c.setRequestProperty("Accept", "*/*");
-        c.setConnectTimeout(500);
+        // We might not want an IOException for a while, e.g. during GDB Sessions.
+        c.setConnectTimeout(1000);
         try (Scanner scanner = new Scanner(c.getInputStream(), StandardCharsets.UTF_8)) {
             scanner.useDelimiter("\\A");
             return scanner.hasNext() ? scanner.next() : "";

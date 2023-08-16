@@ -15,6 +15,8 @@ on:
 env:
   LANG: en_US.UTF-8
   FAIL_ON_PERF_REGRESSION: false
+  CMD_LONG_TIMEOUT_MS: 180000
+  LONG_GOTO_URL_TIMEOUT_MS: 200000
 
 jobs:
   local-run:
@@ -25,12 +27,16 @@ jobs:
       matrix:
         os: [ ubuntu-20.04 ]
         include:
+          - quarkus-version: '2.7.7.Final'
+            mandrel-builder-image: '21.3-java17'
           - quarkus-version: '2.13.8.Final'
             mandrel-builder-image: '22.3-java17'
-          - quarkus-version: '2.16.8.Final'
+          - quarkus-version: '2.16.9.Final'
             mandrel-builder-image: '22.3-java17'
-          - quarkus-version: '3.2.2.Final'
+          - quarkus-version: '3.2.3.Final'
             mandrel-builder-image: 'jdk-17'
+          - quarkus-version: '3.2.3.Final'
+            mandrel-builder-image: 'jdk-20'
     steps:
       - uses: actions/checkout@v3
         with:

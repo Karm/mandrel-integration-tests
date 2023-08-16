@@ -21,6 +21,8 @@ package org.graalvm.tests.integration.utils;
 
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
+
 /**
  * Utility struct
  *
@@ -29,17 +31,17 @@ import java.util.regex.Pattern;
 public class CP {
     public final String c;
     public final Pattern p;
-    public final int timeoutSeconds;
+    public final long timeoutMs;
 
     public CP(String c, Pattern p) {
         this.c = c;
         this.p = p;
-        this.timeoutSeconds = 10;
+        this.timeoutMs = CMD_DEFAULT_TIMEOUT_MS;
     }
 
-    public CP(String c, Pattern p, int timeoutSeconds) {
+    public CP(String c, Pattern p, long timeoutMs) {
         this.c = c;
         this.p = p;
-        this.timeoutSeconds = timeoutSeconds;
+        this.timeoutMs = timeoutMs;
     }
 }

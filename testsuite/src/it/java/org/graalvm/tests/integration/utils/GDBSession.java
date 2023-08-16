@@ -24,6 +24,9 @@ import org.graalvm.tests.integration.utils.versions.UsedVersion;
 
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.CMD_LONG_TIMEOUT_MS;
+
 /**
  * GDB commands and expected output
  *
@@ -233,14 +236,15 @@ public enum GDBSession {
     DEBUG_QUARKUS_FULL_MICROPROFILE {
         @Override
         public CP[] get(boolean inContainer) {
+            // The huge timeout is needed because it takes a very long time to set a breakpoint, even after: https://github.com/graalvm/mandrel/pull/545
+            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b ConfigTestController.java:33\n",
                             Pattern.compile(".*Breakpoint 1 at .*: file com/example/quarkus/config/ConfigTestController.java, line 33.*",
-                                    Pattern.DOTALL),
-                            60),
+                                    Pattern.DOTALL), increasedTimeoutMs),
                     new CP("run&\n",
-                            Pattern.compile(".*Installed features:.*", Pattern.DOTALL)),
+                            Pattern.compile(".*Installed features:.*", Pattern.DOTALL), increasedTimeoutMs),
                     new CP("GOTO URL http://localhost:8080/data/config/lookup",
                             Pattern.compile(".*lookup value.*", Pattern.DOTALL)),
                     new CP("bt\n",
@@ -255,10 +259,12 @@ public enum GDBSession {
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {
         @Override
         public CP[] get(boolean inContainer) {
+            // The huge timeout is needed because it takes a very long time to set a breakpoint, even after: https://github.com/graalvm/mandrel/pull/545
+            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b Fruit.java:48\n",
-                            Pattern.compile(".*Breakpoint 1.*file org/acme/vertx/Fruit.java,.*line 48.*", Pattern.DOTALL)),
+                            Pattern.compile(".*Breakpoint 1.*file org/acme/vertx/Fruit.java,.*line 48.*", Pattern.DOTALL), increasedTimeoutMs),
                     new CP("c&\n",
                             Pattern.compile(".*", Pattern.DOTALL)),
                     new CP("GOTO URL http://localhost:8080/fruits",
@@ -268,12 +274,13 @@ public enum GDBSession {
                     new CP("list\n",
                             Pattern.compile(".*48.*return client.query\\(\"SELECT id, name FROM fruits ORDER BY name ASC.*", Pattern.DOTALL)),
                     new CP("c&\n",
-                            Pattern.compile(".*", Pattern.DOTALL)),
+                            Pattern.compile(".*Continuing.*", Pattern.DOTALL)),
             };
         }
     };
 
     private static final CP SHOW_VERSION = new CP("show version\n", Pattern.compile(".*gdb.*", Pattern.DOTALL));
+    public static final Pattern GDB_IM_PROMPT = Pattern.compile(".*\\(gdb\\).*", Pattern.DOTALL);
 
     public abstract CP[] get(boolean inContainer);
 }

@@ -48,13 +48,18 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0;
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
+import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.CMD_LONG_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.GOTO_URL_TIMEOUT_MS;
+import static org.graalvm.tests.integration.utils.Commands.LONG_GOTO_URL_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
@@ -84,8 +89,9 @@ public class DebugSymbolsTest {
     private static final Logger LOGGER = Logger.getLogger(DebugSymbolsTest.class.getName());
 
     public static final String BASE_DIR = getBaseDir();
-    private static final int MAX_GOTO_TRIES = 5;
-    private static volatile Exception gotoException = null;
+
+    // GOTO i.e. accessing a URL of a debugged test app to trigger a certain code path
+    private static final long GOTO_URL_SLEEP_MS = 50;
 
     public enum DebugOptions {
         TrackNodeSourcePosition_23_0("<DEBUG_FLAGS_23_0_a>", "-H:+TrackNodeSourcePosition"),
@@ -137,6 +143,9 @@ public class DebugSymbolsTest {
             // We should somehow capture this semantically in an Enum or something. This is fragile...
             builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
 
+            assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "debug-symbols-smoke")),
+                    "debug-symbols-smoke executable does not exist. Compilation failed. Check the logs.");
+
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "--interpreter=mi", "./target/debug-symbols-smoke"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
@@ -161,12 +170,14 @@ public class DebugSymbolsTest {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
                 Logs.appendlnSection(report, appDir.getAbsolutePath());
                 Logs.appendln(report, String.join(" ", processBuilder.command()));
+                final long increasedTimeoutMs = (UsedVersion.getVersion(false)
+                        .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        3000, 500, TimeUnit.MILLISECONDS);
+                        increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
                 Logs.appendlnSection(report, stringBuffer.toString());
                 assertTrue(result,
-                        "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
+                        "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
 
                 carryOutGDBSession(stringBuffer, GDBSession.DEBUG_SYMBOLS_SMOKE, esvc, writer, report, false);
 
@@ -208,6 +219,9 @@ public class DebugSymbolsTest {
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
 
+            assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "quarkus-runner")),
+                    "Quarkus executable does not exist. Compilation failed. Check the logs.");
+
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand("gdb", "--interpreter=mi", "./target/quarkus-runner"));
             final Map<String, String> envA = processBuilder.environment();
             envA.put("PATH", System.getenv("PATH"));
@@ -231,9 +245,11 @@ public class DebugSymbolsTest {
 
             Logs.appendlnSection(report, appDir.getAbsolutePath());
             Logs.appendln(report, String.join(" ", processBuilder.command()));
+            final long increasedTimeoutMs = (UsedVersion.getVersion(false)
+                    .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
             boolean result = waitForBufferToMatch(report, stringBuffer,
                     Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                    60000, 500, TimeUnit.MILLISECONDS);
+                    increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
             Logs.appendlnSection(report, stringBuffer.toString());
             assertTrue(result,
                     "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
@@ -341,13 +357,14 @@ public class DebugSymbolsTest {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(gdbProcess.getOutputStream()))) {
                 Logs.appendlnSection(report, appDir.getAbsolutePath());
                 Logs.appendln(report, String.join(" ", processBuilder.command()));
+                final long increasedTimeoutMs = (UsedVersion.getVersion(true)
+                        .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
-                        3000, 500, TimeUnit.MILLISECONDS);
+                        increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
                 Logs.appendlnSection(report, stringBuffer.toString());
                 assertTrue(result,
-                        "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer.toString());
-
+                        "GDB session did not start well. Check the names, paths... Content was: " + stringBuffer);
 
                 writer.write("set confirm off\n");
                 writer.flush();
@@ -392,42 +409,70 @@ public class DebugSymbolsTest {
                     stringBuffer.delete(0, stringBuffer.length());
                     try {
                         if (cp.c.startsWith("GOTO URL")) {
+                            /* This one web request can block on a breakpoint, it might also come too early,
+                               so we need to retry it if necessary. */
+                            final AtomicBoolean failedToConnect = new AtomicBoolean(true);
                             final Runnable webRequest = () -> {
-                                try {
-                                    final String url = cp.c.split("URL ")[1];
-                                    final String content = WebpageTester.getUrlContents(url);
-                                    if (!cp.p.matcher(content).matches()) {
-                                        errorQueue.add("Content of URL " + url + " should have matched regexp " + cp.p.pattern() + " but it was this: " + content);
+                                final long gotoURLStart = System.currentTimeMillis();
+                                final long timeoutMs = (UsedVersion.getVersion(inContainer)
+                                        .compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_GOTO_URL_TIMEOUT_MS : GOTO_URL_TIMEOUT_MS;
+                                long durationMs = 0;
+                                final String url = cp.c.split("URL ")[1];
+                                while (failedToConnect.get() && durationMs < timeoutMs) {
+                                    try {
+                                        final String content = WebpageTester.getUrlContents(url);
+                                        failedToConnect.set(false);
+                                        if (!cp.p.matcher(content).matches()) {
+                                            errorQueue.add("Content of URL " + url + " should have matched regexp " + cp.p.pattern() +
+                                                    " but it was this: " + content);
+                                        }
+                                    } catch (IOException e) {
+                                        try {
+                                            Thread.sleep(GOTO_URL_SLEEP_MS);
+                                        } catch (InterruptedException x) {
+                                            throw new RuntimeException(x);
+                                        }
+                                        durationMs = System.currentTimeMillis() - gotoURLStart;
                                     }
-                                } catch (IOException e) {
-                                    gotoException = e;
+                                }
+                                if (failedToConnect.get()) {
+                                    errorQueue.add("Unexpected GOTO URL " + url + " connection failure in " + durationMs + "ms.");
                                 }
                             };
-                            int tryCount = MAX_GOTO_TRIES;
-                            do {
-                                tryCount--;
-                                esvc.submit(webRequest);
-                                Thread.sleep(100);
-                            } while (gotoException != null && tryCount > 0);
-                            if (gotoException != null) {
-                                fail("Unexpected GOTO failure: ", gotoException);
+                            esvc.submit(webRequest);
+                            Logs.appendln(report, cp.c);
+
+                            // We might want to just access a URL and check the content.
+                            // We also might want to access a URL to hit a breakpoint. In that case the thread above keeps trying
+                            // until the server is ready to talk, and then it hangs on the breakpoint, which is fine.
+                            // We don't want to keep spawning more URL accessing threads. We just need to know that the server
+                            // was ready to talk so as we can continue with the GDB session, e.g. by calling `bt`.
+                            // A simpler version would be to jam a hardcoded sleep instead. Immediately running `bt`
+                            // won't work as the breakpoint might not have been hit yet.
+                            final long start = System.currentTimeMillis();
+                            while (failedToConnect.get() && System.currentTimeMillis() - start < cp.timeoutMs) {
+                                try {
+                                    Thread.sleep(GOTO_URL_SLEEP_MS);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
+
                         } else {
                             writer.write(cp.c);
                             writer.flush();
                             Logs.appendln(report, cp.c);
-                            boolean m = waitForBufferToMatch(report, stringBuffer, cp.p, cp.timeoutSeconds, 1, TimeUnit.SECONDS);
+                            // Time unit is the same for timeout and sleep.
+                            boolean m = waitForBufferToMatch(report, stringBuffer, cp.p, cp.timeoutMs, 50, TimeUnit.MILLISECONDS);
                             Logs.appendlnSection(report, stringBuffer.toString());
                             if (!m) {
-                                errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern '" +
+                                errorQueue.add("Command '" + cp.c.trim() + "' did not match the expected pattern in time '" +
                                         cp.p.pattern() + "'.\nOutput was:\n" + stringBuffer);
                             }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
                         fail("Unexpected failure: ", e);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
                     }
                 }
         );

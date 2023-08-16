@@ -149,14 +149,16 @@ public class UsedVersion {
                 String mandrelVersion = mandrelVersion(vendorVersion);
                 String versNum = (isMandrel(vendorVersion) ? mandrelVersion : graalVersion);
                 Version vers = versionParse(versNum);
+                final String lastLine = lines.get(lines.size() - 1).trim();
                 VersionBuilder builder = new VersionBuilder();
-                return builder.jdkUsesSysLibs(false /* not implemented */)
-                       .beta("" /* not implemented */)
-                       .jdkFeature(v.feature())
-                       .jdkInterim(v.interim())
-                       .jdkUpdate(v.update())
-                       .version(vers)
-                       .build();
+                return builder
+                        .jdkUsesSysLibs(lastLine.contains("-LTS"))
+                        .beta("" /* not implemented */)
+                        .jdkFeature(v.feature())
+                        .jdkInterim(v.interim())
+                        .jdkUpdate(v.update())
+                        .version(vers)
+                        .build();
             } else {
                 return MVersion.UNKNOWN_VERSION;
             }
@@ -327,9 +329,11 @@ public class UsedVersion {
     }
 
     private static class VersionBuilder {
+        // OpenJDK versioning
         private int jdkInterim;
         private int jdkFeature;
         private int jdkUpdate;
+        // A trick to hunt for "-LTS" in the last line of version output, e.g. Red Hat Build Of OpenJDK
         private boolean jdkUsesSysLibs;
         private Version version;
         private String betaBits;
@@ -371,6 +375,7 @@ public class UsedVersion {
 
     static class InContainer {
         private static volatile MVersion mVersion = MVersion.of(true);
+
         static void resetInstance() { // used in tests
             mVersion = MVersion.of(true);
         }
@@ -378,6 +383,7 @@ public class UsedVersion {
 
     static class Locally {
         private static volatile MVersion mVersion = MVersion.of(false);
+
         static void resetInstance() { // used in tests
             mVersion = MVersion.of(false);
         }
