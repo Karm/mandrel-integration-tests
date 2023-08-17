@@ -163,8 +163,8 @@ public class JFRTest {
             builderRoutine(2, appJfr, report, cn, mn, appDir, processLog, null, null);
             builderRoutine(2, appNoJfr, report, cn, mn, appDir, processLog, null, null);
 
-            startComparisonForBenchmark("normal_case_benchmark", true, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr);
-            startComparisonForBenchmark("worst_case_benchmark", false, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr);
+            startComparisonForBenchmark("regular", true, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr);
+            startComparisonForBenchmark("work", false, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr);
 
             Logs.checkLog(cn, mn, appJfr, processLog);
         } finally {
@@ -177,9 +177,9 @@ public class JFRTest {
         }
     }
 
-    private void startComparisonForBenchmark(String benchmarkName, boolean checkThresholds, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog, File appDir, Apps appJfr, Apps appNoJfr) throws IOException, InterruptedException {
-        Map<String, Integer> measurementsJfr = runBenchmarkOnApp(benchmarkName, 5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
-        Map<String, Integer> measurementsNoJfr = runBenchmarkOnApp(benchmarkName, 5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
+    private void startComparisonForBenchmark(String endpoint, boolean checkThresholds, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog, File appDir, Apps appJfr, Apps appNoJfr) throws IOException, InterruptedException {
+        Map<String, Integer> measurementsJfr = runBenchmarkOnApp(endpoint, 5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
+        Map<String, Integer> measurementsNoJfr = runBenchmarkOnApp(endpoint, 5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
 
         long imageSizeDiff = (long) (Math.abs(measurementsJfr.get("imageSize") - measurementsNoJfr.get("imageSize")) * 100.0 / measurementsNoJfr.get("imageSize"));
         long timeToFirstOKRequestMsDiff = (long) (Math.abs(measurementsJfr.get("startup") - measurementsNoJfr.get("startup")) * 100.0 / measurementsNoJfr.get("startup"));
@@ -202,7 +202,7 @@ public class JFRTest {
                 .responseTime99Percentile(responseTime99PercentileDiff)
                 .build();
         Logs.logMeasurements(log, measurementsLog);
-        Logs.appendln(report, benchmarkName + " Measurements Diff %:");
+        Logs.appendln(report, endpoint + " Measurements Diff %:");
         Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
         if (checkThresholds) {
@@ -210,7 +210,7 @@ public class JFRTest {
         }
     }
 
-    private Map<String, Integer> runBenchmarkOnApp(String benchmarkName, int trials, Apps app, File appDir, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog) throws IOException, InterruptedException {
+    private Map<String, Integer> runBenchmarkOnApp(String endpoint, int trials, Apps app, File appDir, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog) throws IOException, InterruptedException {
         final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
         // Get image sizes
@@ -252,7 +252,7 @@ public class JFRTest {
             final HttpRequest uploadRequest = HttpRequest.newBuilder()
                     .uri(new URI(app.urlContent.urlContent[1][0]))
                     .header("Content-Type", "text/vnd.yaml")
-                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/"+ benchmarkName + ".hf.yaml")))
+                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/benchmark.hf.yaml")))
                     .build();
             final HttpResponse<String> releaseResponse = hc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
             assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
@@ -262,7 +262,7 @@ public class JFRTest {
             // Run the benchmark
             disableTurbo();
             final HttpRequest benchmarkRequest = HttpRequest.newBuilder()
-                    .uri(new URI(app.urlContent.urlContent[3][0]))
+                    .uri(new URI(app.urlContent.urlContent[3][0]+"?templateParam=ENDPOINT="+endpoint))
                     .GET()
                     .build();
             final HttpResponse<String> benchmarkResponse = hc.send(benchmarkRequest, HttpResponse.BodyHandlers.ofString());
@@ -315,7 +315,7 @@ public class JFRTest {
                     .responseTime99Percentile(measurements.get("p99"))
                     .build();
             Logs.logMeasurements(log, measurementsLog);
-            Logs.appendln(report, benchmarkName + " Measurements " + app.name() + ":");
+            Logs.appendln(report, endpoint + " Measurements " + app.name() + ":");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
             return measurements;
