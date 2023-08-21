@@ -55,9 +55,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0;
+import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
@@ -619,7 +619,7 @@ public class AppReproducersTest {
                 expected = Collections.unmodifiableSet(modifiable);
             }
             if (UsedVersion.jdkFeature(inContainer) >= 21) {
-                 // JDK 21 has fdlibm ported to Java. See JDK-8171407
+                // JDK 21 has fdlibm ported to Java. See JDK-8171407
                 Set<String> modifiable = new HashSet<>(expected);
                 modifiable.remove("libfdlibm.a");
                 expected = Collections.unmodifiableSet(modifiable);
@@ -889,59 +889,44 @@ public class AppReproducersTest {
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
-            validateDebugSmokeApp(processLog, cn, mn, process, app, jvmRunTookMs, nativeRunTookMs, report, null);
+            int count = 0;
+            // This magic hash is what the app is supposed to spit out.
+            // See ./apps/debug-symbols-smoke/src/main/java/debug_symbols_smoke/Main.java
+            final String magicHash = "b6951775b0375ea13fc977581e54eb36d483e95ed3bc1e62fcb8da59830f1ef9";
+            try (Scanner sc = new Scanner(processLog, UTF_8)) {
+                while (sc.hasNextLine()) {
+                    if (magicHash.equals(sc.nextLine().trim())) {
+                        count++;
+                    }
+                }
+            }
 
+            assertEquals(2, count, "There were two same hashes " + magicHash + " expected in the log. " +
+                    "One from JVM run and one for Native image run. " +
+                    "" + count + " such hashes were found. Check build-and-run.log and report.md.");
+
+            processStopper(process, false);
+            Logs.checkLog(cn, mn, app, processLog);
+            final Path measurementsLog = Paths.get(getLogsDir(cn, mn).toString(), "measurements.csv");
+
+            LogBuilder.Log logJVM = new LogBuilder()
+                    .app(app + "_JVM")
+                    .timeToFinishMs(jvmRunTookMs)
+                    .build();
+            LogBuilder.Log logNative = new LogBuilder()
+                    .app(app + "_NATIVE")
+                    .timeToFinishMs(nativeRunTookMs)
+                    .build();
+
+            Logs.logMeasurements(logJVM, measurementsLog);
+            Logs.logMeasurements(logNative, measurementsLog);
+            Logs.appendln(report, "Measurements:");
+            Logs.appendln(report, logJVM.headerMarkdown + "\n" + logJVM.lineMarkdown);
+            Logs.appendln(report, logNative.lineMarkdown);
+            Logs.checkThreshold(app, Logs.Mode.JVM, Logs.SKIP, Logs.SKIP, Logs.SKIP, jvmRunTookMs);
+            Logs.checkThreshold(app, Logs.Mode.NATIVE, Logs.SKIP, Logs.SKIP, Logs.SKIP, nativeRunTookMs);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
         }
-    }
-
-    public static void validateDebugSmokeApp(File processLog, String cn, String mn, Process process, Apps app,
-                                             long jvmRunTookMs, long nativeRunTookMs, StringBuilder report, String suffix)
-            throws IOException, InterruptedException {
-        // Test output and log measurements (time it took to run)
-
-        int count = 0;
-        // This magic hash is what the app is supposed to spit out.
-        // See ./apps/debug-symbols-smoke/src/main/java/debug_symbols_smoke/Main.java
-        final String magicHash = "b6951775b0375ea13fc977581e54eb36d483e95ed3bc1e62fcb8da59830f1ef9";
-        try (Scanner sc = new Scanner(processLog, UTF_8)) {
-            while (sc.hasNextLine()) {
-                if (magicHash.equals(sc.nextLine().trim())) {
-                    count++;
-                }
-            }
-        }
-
-        assertEquals(2, count, "There were two same hashes " + magicHash + " expected in the log. " +
-                "One from JVM run and one for Native image run. " +
-                "" + count + " such hashes were found. Check build-and-run.log and report.md.");
-
-        processStopper(process, false);
-        Logs.checkLog(cn, mn, app, processLog);
-        final Path measurementsLog = Paths.get(getLogsDir(cn, mn).toString(), "measurements.csv");
-
-        String suffixUpper = "";
-        String suffixLower = "";
-        if (suffix != null && !suffix.isEmpty()) {
-            suffixUpper = "_" + suffix.toUpperCase();
-            suffixLower = "_" + suffix.toLowerCase();
-        }
-
-        LogBuilder.Log logJVM = new LogBuilder()
-                .app(app + "_JVM" + suffixUpper)
-                .timeToFinishMs(jvmRunTookMs)
-                .build();
-        LogBuilder.Log logNative = new LogBuilder()
-                .app(app + "_NATIVE" + suffixUpper)
-                .timeToFinishMs(nativeRunTookMs)
-                .build();
-        Logs.logMeasurements(logJVM, measurementsLog);
-        Logs.logMeasurements(logNative, measurementsLog);
-        Logs.appendln(report, "Measurements:");
-        Logs.appendln(report, logJVM.headerMarkdown + "\n" + logJVM.lineMarkdown);
-        Logs.appendln(report, logNative.lineMarkdown);
-        Logs.checkThreshold(app, "jvm" + suffixLower, Logs.SKIP, Logs.SKIP, Logs.SKIP, jvmRunTookMs);
-        Logs.checkThreshold(app, "native" + suffixLower, Logs.SKIP, Logs.SKIP, Logs.SKIP, nativeRunTookMs);
     }
 }

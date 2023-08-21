@@ -214,22 +214,6 @@ public enum BuildAndRunCmds {
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
     }),
-    JFR_SMOKE(new String[][]{
-            new String[]{"mvn", "package"},
-            IS_THIS_WINDOWS ?
-                    new String[]{"powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\""}
-                    :
-                    new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
-            new String[]{"native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
-            new String[]{"java",
-                    JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
-                    "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
-                    "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
-            new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke",
-                    "-XX:+FlightRecorder",
-                    "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
-                    "-XX:FlightRecorderLogging=jfr"}
-    }),
     JFR_PERFORMANCE(new String[][]{
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr", "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler"},
             new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE"},
@@ -245,6 +229,24 @@ public enum BuildAndRunCmds {
             new String[]{"./target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_PLAINTEXT_PERFORMANCE"},
             new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network", "host", "quay.io/hyperfoil/hyperfoil", "standalone"}
     }),
+    JFR_SMOKE(new String[][]{
+            new String[]{"mvn", "package"},
+            IS_THIS_WINDOWS ?
+                    new String[]{"powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\""}
+                    :
+                    new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
+            new String[]{"native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+            new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{"java",
+                    JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
+                    "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
+                    "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"},
+            new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke",
+                    "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
+                    "-XX:FlightRecorderLogging=jfr"}
+    }),
     JFR_SMOKE_BUILDER_IMAGE(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
@@ -257,11 +259,18 @@ public enum BuildAndRunCmds {
                     CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-i",
                     "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
-                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run",
+                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run-java",
+                    BUILDER_IMAGE, "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{
+                    CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-i",
+                    "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
+                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run-java-jfr",
                     BUILDER_IMAGE,
                     JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
                     "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
                     "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{"./target/debug-symbols-smoke"},
             new String[]{
                     "./target/debug-symbols-smoke",
                     "-XX:+FlightRecorder",

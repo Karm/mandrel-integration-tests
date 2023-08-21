@@ -52,13 +52,13 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
-import static org.graalvm.tests.integration.AppReproducersTest.validateDebugSmokeApp;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
@@ -161,7 +161,7 @@ public class JFRTest {
             // Create JFR configuration file
             Commands.runCommand(
                     List.of("jfr", "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output",
-                            Path.of(BASE_DIR, appJfr.dir,"jfr-perf.jfc").toString())
+                            Path.of(BASE_DIR, appJfr.dir, "jfr-perf.jfc").toString())
             );
 
             // Build and run
@@ -176,11 +176,8 @@ public class JFRTest {
             Logs.checkLog(cn, mn, appJfr, processLog);
         } finally {
             cleanup(null, cn, mn, report, appJfr, processLog);
-            // The quarkus process already are stopped
-            if (appJfr.runtimeContainer != ContainerNames.NONE) {
-                stopAllRunningContainers();
-                removeContainers(appJfr.runtimeContainer.name, appJfr.runtimeContainer.name + "-build", appJfr.runtimeContainer.name + "-run");
-            }
+            stopAllRunningContainers();
+            removeContainers(ContainerNames.HYPERFOIL.name);
             enableTurbo();
         }
     }
@@ -214,18 +211,15 @@ public class JFRTest {
         Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
         if (checkThresholds) {
-            Logs.checkThreshold(appJfr, imageSizeDiff, rssKbDiff, timeToFirstOKRequestMsDiff, meanResponseTimeDiff, responseTime50PercentileDiff, responseTime90PercentileDiff);
+            Logs.checkThreshold(appJfr, Logs.Mode.DIFF_NATIVE, imageSizeDiff, rssKbDiff, timeToFirstOKRequestMsDiff, meanResponseTimeDiff, responseTime50PercentileDiff, responseTime90PercentileDiff);
         }
     }
 
     private Map<String, Integer> runBenchmarkOnApp(String endpoint, int trials, Apps app, File appDir, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog) throws IOException, InterruptedException {
-        final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-
         // Get image sizes
         final int imageSizeKB = Integer.parseInt(Commands.runCommand(
                 List.of("stat", "-c%s", Path.of(BASE_DIR, app.dir, "target", "jfr-native-image-performance-1.0.0-SNAPSHOT-runner_" + app.name()).toString())
         ).trim()) / 1024;
-
         LOGGER.info(app.name() + " image size " + imageSizeKB + " KB");
 
         Process process = null;
@@ -238,7 +232,7 @@ public class JFRTest {
                 if (process != null) {
                     processStopper(process, true, true);
                 }
-                List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[2]);
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[2]);
                 clearCaches(); //TODO consider using warm up instead of clearing caches
                 Logs.appendln(report, "Trial " + i + " in " + appDir.getAbsolutePath());
                 Logs.appendlnSection(report, String.join(" ", cmd));
@@ -262,6 +256,7 @@ public class JFRTest {
             WebpageTester.testWeb(app.urlContent.urlContent[2][0], 15, app.urlContent.urlContent[2][1], false);
 
             // Upload the benchmark
+            final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
             final HttpRequest uploadRequest = HttpRequest.newBuilder()
                     .uri(new URI(app.urlContent.urlContent[1][0]))
                     .header("Content-Type", "text/vnd.yaml")
@@ -270,7 +265,6 @@ public class JFRTest {
             final HttpResponse<String> releaseResponse = hc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
             assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
             LOGGER.info("Hyperfoil upload response code " + releaseResponse.statusCode());
-
 
             // Run the benchmark
             disableTurbo();
@@ -282,8 +276,9 @@ public class JFRTest {
             JSONObject benchmarkResponseJson = new JSONObject(benchmarkResponse.body());
             String id = benchmarkResponseJson.getString("id");
 
-            // Benchmark is configured to take 5s. There's probably a better way to wait for the benchmark to complete.
-            Thread.sleep(7000);
+            // Wait for benchmark to complete
+            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name,
+                    Pattern.compile(".*Successfully persisted run.*", Pattern.DOTALL), 30, 2, TimeUnit.SECONDS);
             enableTurbo();
 
             // Get the results
@@ -340,7 +335,7 @@ public class JFRTest {
             }
             // Stop container before stopping Hyperfoil process
             stopAllRunningContainers();
-            removeContainers(app.runtimeContainer.name);
+            removeContainers(ContainerNames.HYPERFOIL.name);
             if (hyperfoilProcess != null && hyperfoilProcess.isAlive()) {
                 processStopper(hyperfoilProcess, true);
             }
@@ -369,14 +364,24 @@ public class JFRTest {
             } else {
                 switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
             }
-            // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
+            // In this case, four last commands are used to run the app, JVM, JVM JFR, Native, Native JFR
+            builderRoutine(app.buildAndRunCmds.cmds.length - 4, app, report, cn, mn, appDir, processLog, null, switches);
 
             final File inputData = Path.of(BASE_DIR, app.dir, "target", "test_data.txt").toFile();
 
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 4]);
+            process = runCommand(cmd, appDir, processLog, app, inputData);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(30, TimeUnit.SECONDS);
+            long jvmRunTookMs = System.currentTimeMillis() - start;
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+
+            LOGGER.info("Running JVM JFR mode...");
+            start = System.currentTimeMillis();
+            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 3]);
             if (UsedVersion.jdkFeature(inContainer) >= 17) {
                 cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_17_FLIGHT_RECORDER.replacement));
             } else {
@@ -385,17 +390,27 @@ public class JFRTest {
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
-            long jvmRunTookMs = System.currentTimeMillis() - start;
+            long jvmJfrRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             LOGGER.info("Running Native mode...");
             start = System.currentTimeMillis();
-            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
             long nativeRunTookMs = System.currentTimeMillis() - start;
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+
+            LOGGER.info("Running Native mode JFR...");
+            start = System.currentTimeMillis();
+            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app, inputData);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(30, TimeUnit.SECONDS);
+            long nativeJfrRunTookMs = System.currentTimeMillis() - start;
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
@@ -408,12 +423,69 @@ public class JFRTest {
                 assertTrue(Files.size(path) > 1024, file + " seems too small. " + archivedLogLocation);
             }
 
-            validateDebugSmokeApp(processLog, cn, mn, process, app, jvmRunTookMs, nativeRunTookMs, report, "jfr");
+            int count = 0;
+            // This magic hash is what the app is supposed to spit out.
+            // See ./apps/debug-symbols-smoke/src/main/java/debug_symbols_smoke/Main.java
+            final String magicHash = "b6951775b0375ea13fc977581e54eb36d483e95ed3bc1e62fcb8da59830f1ef9";
+            try (Scanner sc = new Scanner(processLog, UTF_8)) {
+                while (sc.hasNextLine()) {
+                    if (magicHash.equals(sc.nextLine().trim())) {
+                        count++;
+                    }
+                }
+            }
+
+            assertEquals(4, count, "There were four same hashes " + magicHash + " expected in the log. " +
+                    "One from JVM run, one from JVM run with JFR, one for Native image run and one for Native image run with JFR. " +
+                    "" + count + " such hashes were found. Check build-and-run.log and report.md.");
+
+            processStopper(process, false);
+            Logs.checkLog(cn, mn, app, processLog);
+            final Path measurementsLog = Paths.get(getLogsDir(cn, mn).toString(), "measurements.csv");
+
+            LogBuilder.Log logJVM = new LogBuilder()
+                    .app(app + "_JVM")
+                    .timeToFinishMs(jvmRunTookMs)
+                    .build();
+            LogBuilder.Log logNative = new LogBuilder()
+                    .app(app + "_NATIVE")
+                    .timeToFinishMs(nativeRunTookMs)
+                    .build();
+            LogBuilder.Log logJVMJFR = new LogBuilder()
+                    .app(app + "_JVM_JFR")
+                    .timeToFinishMs(jvmJfrRunTookMs)
+                    .build();
+            LogBuilder.Log logNativeJFR = new LogBuilder()
+                    .app(app + "_NATIVE_JFR")
+                    .timeToFinishMs(nativeJfrRunTookMs)
+                    .build();
+            Logs.logMeasurements(logJVM, measurementsLog);
+            Logs.logMeasurements(logNative, measurementsLog);
+            Logs.logMeasurements(logJVMJFR, measurementsLog);
+            Logs.logMeasurements(logNativeJFR, measurementsLog);
+            Logs.appendln(report, "Measurements:");
+            Logs.appendln(report, logJVM.headerMarkdown + "\n" + logJVM.lineMarkdown);
+            Logs.appendln(report, logNative.lineMarkdown);
+            Logs.appendln(report, logJVMJFR.headerMarkdown + "\n" + logJVMJFR.lineMarkdown);
+            Logs.appendln(report, logNativeJFR.lineMarkdown);
+
+            Logs.checkThreshold(app, Logs.Mode.JVM, Logs.SKIP, Logs.SKIP, Logs.SKIP, jvmRunTookMs);
+            Logs.checkThreshold(app, Logs.Mode.NATIVE, Logs.SKIP, Logs.SKIP, Logs.SKIP, nativeRunTookMs);
+
+            long jvmRunTookMsDiff = (long) (Math.abs(jvmJfrRunTookMs - jvmRunTookMs) * 100.0 / jvmRunTookMs);
+            long nativeRunTookMsDiff = (long) (Math.abs(nativeJfrRunTookMs - nativeRunTookMs) * 100.0 / nativeRunTookMs);
+
+            Logs.checkThreshold(app, Logs.Mode.DIFF_JVM, Logs.SKIP, Logs.SKIP, Logs.SKIP, jvmRunTookMsDiff);
+            Logs.checkThreshold(app, Logs.Mode.DIFF_NATIVE, Logs.SKIP, Logs.SKIP, Logs.SKIP, nativeRunTookMsDiff);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
             if (app.runtimeContainer != ContainerNames.NONE) {
                 stopAllRunningContainers();
-                removeContainers(app.runtimeContainer.name, app.runtimeContainer.name + "-build", app.runtimeContainer.name + "-run");
+                removeContainers(
+                        app.runtimeContainer.name,
+                        app.runtimeContainer.name + "-build",
+                        app.runtimeContainer.name + "-run-java",
+                        app.runtimeContainer.name + "-run-java-jfr");
             }
         }
     }
