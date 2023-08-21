@@ -55,10 +55,10 @@ public enum URLContent {
             new String[]{"http://localhost:8080/s%C3%A5nt%20%C3%A4r%20livet", "žluťoučká, říká ďolíčkatý koníček"}}),
 
     JFR_PERF(new String[][]{
-            new String[]{"http://0.0.0.0:8080/hello/", "hello"},
-            new String[]{"http://0.0.0.0:8090/benchmark"},
-            new String[]{"http://0.0.0.0:8090/openapi", "openapi: 3.0.0"},
-            new String[]{"http://0.0.0.0:8090/benchmark/jfr-hyperfoil/start"},
+            new String[]{"http://localhost:8080/hello/", "hello"},
+            new String[]{"http://localhost:8090/benchmark"},
+            new String[]{"http://localhost:8090/openapi", "openapi: 3.0.0"},
+            new String[]{"http://localhost:8090/benchmark/jfr-hyperfoil/start"},
     }),
     HELIDON_QUICKSTART_SE(new String[][]{
             new String[]{"http://localhost:8080/greet", "Hello World!"},

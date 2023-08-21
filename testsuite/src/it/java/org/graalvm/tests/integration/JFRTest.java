@@ -21,6 +21,7 @@ package org.graalvm.tests.integration;
 
 import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
+import org.graalvm.tests.integration.utils.Commands;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
@@ -28,17 +29,15 @@ import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -141,6 +140,7 @@ public class JFRTest {
     @Test
     @Tag("jfr-perf")
     @Tag("jfr")
+    @DisabledOnOs({OS.WINDOWS})
     @IfMandrelVersion(min = "23.0.0") // Thread park event is introduced in 23.0
     public void jfrPerfTest(TestInfo testInfo) throws IOException, InterruptedException {
         Apps appJfr = Apps.JFR_PERFORMANCE;
@@ -174,6 +174,7 @@ public class JFRTest {
                 stopAllRunningContainers();
                 removeContainers(appJfr.runtimeContainer.name, appJfr.runtimeContainer.name + "-build", appJfr.runtimeContainer.name + "-run");
             }
+            enableTurbo();
         }
     }
 
@@ -214,13 +215,11 @@ public class JFRTest {
         final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
         // Get image sizes
-        String[] imageSizeCmd = new String[]{"stat", "-c%s", "../" + app.dir + "/target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_" + app.name()};
+        final int imageSizeKB = Integer.parseInt(Commands.runCommand(
+                List.of("stat", "-c%s", Path.of(BASE_DIR, app.dir, "target", "jfr-native-image-performance-1.0.0-SNAPSHOT-runner_" + app.name()).toString())
+        ).trim()) / 1024;
 
-        final ProcessBuilder processBuilder0 = new ProcessBuilder(imageSizeCmd);
-        Process p = processBuilder0.start();
-        BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
-        Integer imageSize = Integer.valueOf(processOutputReader.readLine()) / 1024;
-        LOGGER.info(app.name() + " image size " + imageSize);
+        LOGGER.info(app.name() + " image size " + imageSizeKB + " KB");
 
         Process process = null;
         Process hyperfoilProcess = null;
@@ -235,6 +234,8 @@ public class JFRTest {
                 List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[2]);
                 clearCaches(); //TODO consider using warm up instead of clearing caches
                 process = runCommand(cmd, appDir, processLog, app);
+                Logs.appendln(report, "Trial " + i + " in " + appDir.getAbsolutePath());
+                Logs.appendlnSection(report, String.join(" ", cmd));
                 assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
                 startupSum += WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
                 rssSum += getRSSkB(process.pid());
@@ -243,9 +244,14 @@ public class JFRTest {
             // Run Hyperfoil controller in container and expose port for test
             List<String> getAndStartHyperfoil = getRunCommand(app.buildAndRunCmds.cmds[3]);
             hyperfoilProcess = runCommand(getAndStartHyperfoil, appDir, processLog, app);
-            assertNotNull(hyperfoilProcess, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", getAndStartHyperfoil));
+            assertNotNull(hyperfoilProcess, "Hyperfoil failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
 
-            // Wait for Hyperfoil to start up
+            // Wait for Hyperfoil to download & start
+            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name,
+                    Pattern.compile(".*Hyperfoil controller listening.*", Pattern.DOTALL), 600, 5, TimeUnit.SECONDS);
+            // Wait for Hyperfoil to open endpoint
             WebpageTester.testWeb(app.urlContent.urlContent[2][0], 15, app.urlContent.urlContent[2][1], false);
 
             // Upload the benchmark
@@ -262,7 +268,7 @@ public class JFRTest {
             // Run the benchmark
             disableTurbo();
             final HttpRequest benchmarkRequest = HttpRequest.newBuilder()
-                    .uri(new URI(app.urlContent.urlContent[3][0]+"?templateParam=ENDPOINT="+endpoint))
+                    .uri(new URI(app.urlContent.urlContent[3][0] + "?templateParam=ENDPOINT=" + endpoint))
                     .GET()
                     .build();
             final HttpResponse<String> benchmarkResponse = hc.send(benchmarkRequest, HttpResponse.BodyHandlers.ofString());
@@ -275,7 +281,7 @@ public class JFRTest {
 
             // Get the results
             final HttpRequest resultsRequest = HttpRequest.newBuilder()
-                    .uri(new URI("http://0.0.0.0:8090/run/" + id + "/stats/all/json"))
+                    .uri(new URI("http://localhost:8090/run/" + id + "/stats/all/json"))
                     .GET()
                     .timeout(Duration.ofSeconds(3)) // set timeout to allow for cleanup, otherwise will stall at first request above
                     .build();
@@ -292,7 +298,7 @@ public class JFRTest {
             measurements.put("p99", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getJSONObject("percentileResponseTime").getInt("99.0"));
             measurements.put("startup", startupSum / trials);
             measurements.put("rss", rssSum / trials);
-            measurements.put("imageSize", imageSize);
+            measurements.put("imageSize", imageSizeKB);
 
             LOGGER.info("mean:" + measurements.get("mean")
                     + ", max:" + measurements.get("max")
@@ -305,7 +311,7 @@ public class JFRTest {
 
             LogBuilder logBuilder = new LogBuilder();
             LogBuilder.Log log = logBuilder.app(app)
-                    .executableSizeKb(imageSize)
+                    .executableSizeKb(imageSizeKB)
                     .timeToFirstOKRequestMs(measurements.get("startup"))
                     .rssKb(measurements.get("rss"))
                     .meanResponseTime(measurements.get("mean"))
