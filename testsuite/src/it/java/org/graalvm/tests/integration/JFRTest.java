@@ -57,6 +57,7 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
 import static org.graalvm.tests.integration.AppReproducersTest.validateDebugSmokeApp;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
@@ -157,6 +158,12 @@ public class JFRTest {
             cleanTarget(appJfr);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
+            // Create JFR configuration file
+            Commands.runCommand(
+                    List.of("jfr", "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output",
+                            Path.of(BASE_DIR, appJfr.dir,"jfr-perf.jfc").toString())
+            );
+
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
@@ -233,9 +240,9 @@ public class JFRTest {
                 }
                 List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[2]);
                 clearCaches(); //TODO consider using warm up instead of clearing caches
-                process = runCommand(cmd, appDir, processLog, app);
                 Logs.appendln(report, "Trial " + i + " in " + appDir.getAbsolutePath());
                 Logs.appendlnSection(report, String.join(" ", cmd));
+                process = runCommand(cmd, appDir, processLog, app);
                 assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
                 startupSum += WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
                 rssSum += getRSSkB(process.pid());
