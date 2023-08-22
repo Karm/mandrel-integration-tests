@@ -177,7 +177,7 @@ public class Logs {
             final String key = propPrefix + ".p50.latency";
             if (app.thresholdProperties.containsKey(key)) {
                 long p50Threshold = app.thresholdProperties.get(key);
-                assertThreshold(mean <= p50Threshold,
+                assertThreshold(p50 <= p50Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p50 response latency " +
                                 p50 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
                                 p50Threshold + "  threshold by " + percentageValOverTh(p50, p50Threshold) + "%.");
@@ -191,7 +191,7 @@ public class Logs {
             final String key = propPrefix + ".p90.latency";
             if (app.thresholdProperties.containsKey(key)) {
                 long p90Threshold = app.thresholdProperties.get(key);
-                assertThreshold(mean <= p90Threshold,
+                assertThreshold(p90 <= p90Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p90 response latency " +
                                 p90 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
                                 p90Threshold + "  threshold by " + percentageValOverTh(p90, p90Threshold) + "%.");

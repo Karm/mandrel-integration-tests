@@ -181,19 +181,26 @@ public class JFRTest {
             enableTurbo();
         }
     }
-
+    private static long getMeasurementDiff(String measurement, Map<String, Integer> measurementsJfr, Map<String, Integer> measurementsNoJfr){
+        if (measurementsJfr.get(measurement) == 0 || measurementsNoJfr.get(measurement) == 0) {
+            LOGGER.error(measurement + " should not be 0! JFR: "+measurementsJfr.get(measurement) + " No JFR: " + measurementsNoJfr.get(measurement));
+            return -1;
+        } else {
+            return (long) (Math.abs(measurementsJfr.get(measurement) - measurementsNoJfr.get(measurement)) * 100.0 / measurementsNoJfr.get(measurement));
+        }
+    }
     private void startComparisonForBenchmark(String endpoint, boolean checkThresholds, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog, File appDir, Apps appJfr, Apps appNoJfr) throws IOException, InterruptedException {
         Map<String, Integer> measurementsJfr = runBenchmarkOnApp(endpoint, 5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
         Map<String, Integer> measurementsNoJfr = runBenchmarkOnApp(endpoint, 5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
 
-        long imageSizeDiff = (long) (Math.abs(measurementsJfr.get("imageSize") - measurementsNoJfr.get("imageSize")) * 100.0 / measurementsNoJfr.get("imageSize"));
-        long timeToFirstOKRequestMsDiff = (long) (Math.abs(measurementsJfr.get("startup") - measurementsNoJfr.get("startup")) * 100.0 / measurementsNoJfr.get("startup"));
-        long rssKbDiff = (long) (Math.abs(measurementsJfr.get("rss") - measurementsNoJfr.get("rss")) * 100.0 / measurementsNoJfr.get("rss"));
-        long meanResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("mean") - measurementsNoJfr.get("mean")) * 100.0 / measurementsNoJfr.get("mean"));
-        long maxResponseTimeDiff = (long) (Math.abs(measurementsJfr.get("max") - measurementsNoJfr.get("max")) * 100.0 / measurementsNoJfr.get("max"));
-        long responseTime50PercentileDiff = (long) (Math.abs(measurementsJfr.get("p50") - measurementsNoJfr.get("p50")) * 100.0 / measurementsNoJfr.get("p50"));
-        long responseTime90PercentileDiff = (long) (Math.abs(measurementsJfr.get("p90") - measurementsNoJfr.get("p90")) * 100.0 / measurementsNoJfr.get("p90"));
-        long responseTime99PercentileDiff = (long) (Math.abs(measurementsJfr.get("p99") - measurementsNoJfr.get("p99")) * 100.0 / measurementsNoJfr.get("p99"));
+        long imageSizeDiff = getMeasurementDiff("imageSize",measurementsJfr, measurementsNoJfr);
+        long timeToFirstOKRequestMsDiff = getMeasurementDiff("startup",measurementsJfr, measurementsNoJfr);
+        long rssKbDiff = getMeasurementDiff("rss",measurementsJfr, measurementsNoJfr);
+        long meanResponseTimeDiff = getMeasurementDiff("mean",measurementsJfr, measurementsNoJfr);
+        long maxResponseTimeDiff = getMeasurementDiff("max",measurementsJfr, measurementsNoJfr);
+        long responseTime50PercentileDiff = getMeasurementDiff("p50",measurementsJfr, measurementsNoJfr);
+        long responseTime90PercentileDiff = getMeasurementDiff("p90",measurementsJfr, measurementsNoJfr);
+        long responseTime99PercentileDiff = getMeasurementDiff("p99",measurementsJfr, measurementsNoJfr);
 
         LogBuilder logBuilder = new LogBuilder();
         LogBuilder.Log log = logBuilder.app(appJfr)
@@ -207,6 +214,7 @@ public class JFRTest {
                 .responseTime99Percentile(responseTime99PercentileDiff)
                 .build();
         Logs.logMeasurements(log, measurementsLog);
+        Logs.appendln(report, "These values represent the % difference as calculated (measurement_JFR - measurement_no_JFR)/measurement_no_JFR");
         Logs.appendln(report, endpoint + " Measurements Diff %:");
         Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
 
