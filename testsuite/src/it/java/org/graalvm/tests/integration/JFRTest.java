@@ -153,6 +153,7 @@ public class JFRTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final Path measurementsLog = Paths.get(Logs.getLogsDir(cn, mn).toString(), "measurements.csv");
+        final Path jfrPerfJfc = Path.of(BASE_DIR, appJfr.dir, "jfr-perf.jfc");
         try {
             // Cleanup
             cleanTarget(appJfr);
@@ -161,7 +162,7 @@ public class JFRTest {
             // Create JFR configuration file
             Commands.runCommand(
                     List.of("jfr", "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output",
-                            Path.of(BASE_DIR, appJfr.dir, "jfr-perf.jfc").toString())
+                            jfrPerfJfc.toString())
             );
 
             // Build and run
@@ -175,32 +176,34 @@ public class JFRTest {
 
             Logs.checkLog(cn, mn, appJfr, processLog);
         } finally {
-            cleanup(null, cn, mn, report, appJfr, processLog);
+            cleanup(null, cn, mn, report, appJfr, processLog, jfrPerfJfc.toFile());
             stopAllRunningContainers();
             removeContainers(ContainerNames.HYPERFOIL.name);
             enableTurbo();
         }
     }
-    private static long getMeasurementDiff(String measurement, Map<String, Integer> measurementsJfr, Map<String, Integer> measurementsNoJfr){
+
+    private static long getMeasurementDiff(String measurement, Map<String, Integer> measurementsJfr, Map<String, Integer> measurementsNoJfr) {
         if (measurementsJfr.get(measurement) == 0 || measurementsNoJfr.get(measurement) == 0) {
-            LOGGER.error(measurement + " should not be 0! JFR: "+measurementsJfr.get(measurement) + " No JFR: " + measurementsNoJfr.get(measurement));
+            LOGGER.error(measurement + " should not be 0! JFR: " + measurementsJfr.get(measurement) + " No JFR: " + measurementsNoJfr.get(measurement));
             return -1;
         } else {
             return (long) (Math.abs(measurementsJfr.get(measurement) - measurementsNoJfr.get(measurement)) * 100.0 / measurementsNoJfr.get(measurement));
         }
     }
+
     private void startComparisonForBenchmark(String endpoint, boolean checkThresholds, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog, File appDir, Apps appJfr, Apps appNoJfr) throws IOException, InterruptedException {
         Map<String, Integer> measurementsJfr = runBenchmarkOnApp(endpoint, 5, appJfr, appDir, processLog, cn, mn, report, measurementsLog);
         Map<String, Integer> measurementsNoJfr = runBenchmarkOnApp(endpoint, 5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog);
 
-        long imageSizeDiff = getMeasurementDiff("imageSize",measurementsJfr, measurementsNoJfr);
-        long timeToFirstOKRequestMsDiff = getMeasurementDiff("startup",measurementsJfr, measurementsNoJfr);
-        long rssKbDiff = getMeasurementDiff("rss",measurementsJfr, measurementsNoJfr);
-        long meanResponseTimeDiff = getMeasurementDiff("mean",measurementsJfr, measurementsNoJfr);
-        long maxResponseTimeDiff = getMeasurementDiff("max",measurementsJfr, measurementsNoJfr);
-        long responseTime50PercentileDiff = getMeasurementDiff("p50",measurementsJfr, measurementsNoJfr);
-        long responseTime90PercentileDiff = getMeasurementDiff("p90",measurementsJfr, measurementsNoJfr);
-        long responseTime99PercentileDiff = getMeasurementDiff("p99",measurementsJfr, measurementsNoJfr);
+        long imageSizeDiff = getMeasurementDiff("imageSize", measurementsJfr, measurementsNoJfr);
+        long timeToFirstOKRequestMsDiff = getMeasurementDiff("startup", measurementsJfr, measurementsNoJfr);
+        long rssKbDiff = getMeasurementDiff("rss", measurementsJfr, measurementsNoJfr);
+        long meanResponseTimeDiff = getMeasurementDiff("mean", measurementsJfr, measurementsNoJfr);
+        long maxResponseTimeDiff = getMeasurementDiff("max", measurementsJfr, measurementsNoJfr);
+        long responseTime50PercentileDiff = getMeasurementDiff("p50", measurementsJfr, measurementsNoJfr);
+        long responseTime90PercentileDiff = getMeasurementDiff("p90", measurementsJfr, measurementsNoJfr);
+        long responseTime99PercentileDiff = getMeasurementDiff("p99", measurementsJfr, measurementsNoJfr);
 
         LogBuilder logBuilder = new LogBuilder();
         LogBuilder.Log log = logBuilder.app(appJfr)
