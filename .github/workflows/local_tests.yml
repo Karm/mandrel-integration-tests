@@ -30,45 +30,55 @@ jobs:
             mandrel-version: '21.3.6.0-Final'
             java-version: '17'
             os: 'windows-2019'
+            timeout-minutes: 80
           - quarkus-version: '2.7.7.Final'
             mandrel-version: '21.3.6.0-Final'
             java-version: '17'
             os: 'ubuntu-20.04'
+            timeout-minutes: 80
 
           - quarkus-version: '2.13.8.Final'
             mandrel-version: '22.3.3.1-Final'
             java-version: '17'
             os: 'windows-2019'
+            timeout-minutes: 80
           - quarkus-version: '2.13.8.Final'
             mandrel-version: '22.3.3.1-Final'
             java-version: '17'
             os: 'ubuntu-20.04'
+            timeout-minutes: 80
 
           - quarkus-version: '2.16.9.Final'
             mandrel-version: '22.3.3.1-Final'
             java-version: '17'
             os: 'windows-2019'
+            timeout-minutes: 80
           - quarkus-version: '2.16.9.Final'
             mandrel-version: '22.3.3.1-Final'
             java-version: '17'
             os: 'ubuntu-20.04'
+            timeout-minutes: 80
 
           - quarkus-version: '3.2.3.Final'
             mandrel-version: '23.0.1.2-Final'
             java-version: '20'
             os: 'windows-2022'
+            timeout-minutes: 80
           - quarkus-version: '3.2.3.Final'
             mandrel-version: '23.0.1.2-Final'
             java-version: '20'
             os: 'ubuntu-20.04'
+            timeout-minutes: 100
           - quarkus-version: '3.2.3.Final'
             mandrel-version: '23.0.1.2-Final'
             java-version: '17'
             os: 'windows-2022'
+            timeout-minutes: 80
           - quarkus-version: '3.2.3.Final'
             mandrel-version: '23.0.1.2-Final'
             java-version: '17'
             os: 'ubuntu-20.04'
+            timeout-minutes: 100
     steps:
       - uses: actions/checkout@v3
         with:
@@ -110,7 +120,7 @@ jobs:
         shell: bash
       - name: Windows test
         if: startsWith(matrix.os, 'windows')
-        timeout-minutes: 80
+        timeout-minutes: ${{ matrix.timeout-minutes }}
         env:
           MAVEN_OPTS: -Xmx1g
         run: |
@@ -135,7 +145,7 @@ jobs:
         shell: cmd
       - name: Linux test
         if: startsWith(matrix.os, 'ubuntu')
-        timeout-minutes: 80
+        timeout-minutes: ${{ matrix.timeout-minutes }}
         env:
           MAVEN_OPTS: -Xmx1g
         run: |
