@@ -12,6 +12,10 @@ public class GreetingService {
 
     private String getNextString(String text) {
         LockSupport.parkNanos(1);
+        // Why this second parkNanos call?
+        // It's probably not needed, but I added it to generate more events and as a way to slightly
+        // exercise the type repo code (by adding the object's class).
+        // Source: https://github.com/Karm/mandrel-integration-tests/pull/179#discussion_r1295944151
         LockSupport.parkNanos(this,1);
         return Integer.toString(text.hashCode() % (int) (Math.random() * 100));
     }

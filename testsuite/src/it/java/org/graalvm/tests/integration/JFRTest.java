@@ -137,6 +137,8 @@ public class JFRTest {
      * too much non-JFR overhead. This should help expose slowness in JFR substrateVM code. The "normal" case
      * hyperfoil benchmark is meant to be a more realistic representation of the impact of JFR. We only compare against
      * the defined thresholds with respect to the "normal" case benchmark.
+     *
+     * e.g. in "work Measurements Diff %:" report, timeToFirstOKRequestMs 47 means that JFR was 47% slower than no JFR.
      */
     @Test
     @Tag("jfr-perf")

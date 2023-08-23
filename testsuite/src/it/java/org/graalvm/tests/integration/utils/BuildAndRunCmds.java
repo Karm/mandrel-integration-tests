@@ -215,6 +215,12 @@ public enum BuildAndRunCmds {
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
     }),
     JFR_PERFORMANCE(new String[][]{
+            // Why do you need -H:+SignalHandlerBasedExecutionSampler?
+            // The recurring callback sampler runs by default and is biased. It also tends to sample a lot more than the
+            // SIGPROF based one (even though you can technically specify a desired rate). The SIGPROF one is what people
+            // should generally be using for now so I decided it was best to test that one.
+            // I don't think the difference between the two will be that huge anyway though.
+            // Source: https://github.com/Karm/mandrel-integration-tests/pull/179#discussion_r1295933521
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr", "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler"},
             new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE"},
             new String[]{"./target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE",
