@@ -493,7 +493,7 @@ public class PerfCheckTest {
                     LOGGER.info("Response code:" + response.statusCode());
                     LOGGER.info("Response body:" + response.body());
                     if (response.statusCode() != HttpResponseCodes.SC_CREATED) {
-                        LOGGER.error("Payload was NOT uploaded tot the collector server!");
+                        LOGGER.error("Payload was NOT uploaded to the collector server!");
                     }
                 }
             }

@@ -205,14 +205,35 @@ public enum BuildAndRunCmds {
                     new String[]{"powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\""}
                     :
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
-                    
-                    new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
-                            DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0.token,
-                            DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0.token,
-                            DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0.token,
-                            "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+
+            new String[]{"native-image", "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
+                    DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0.token,
+                    DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0.token,
+                    DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0.token,
+                    "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
+    }),
+    JFR_PERFORMANCE(new String[][]{
+            // Why do you need -H:+SignalHandlerBasedExecutionSampler?
+            // The recurring callback sampler runs by default and is biased. It also tends to sample a lot more than the
+            // SIGPROF based one (even though you can technically specify a desired rate). The SIGPROF one is what people
+            // should generally be using for now so I decided it was best to test that one.
+            // I don't think the difference between the two will be that huge anyway though.
+            // Source: https://github.com/Karm/mandrel-integration-tests/pull/179#discussion_r1295933521
+            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr", "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler"},
+            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE"},
+            new String[]{"./target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_JFR_PERFORMANCE",
+                    "-XX:+FlightRecorder",
+                    "-XX:StartFlightRecording=settings=" + BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/jfr-perf.jfc,filename=logs/flight-native.jfr",
+                    "-XX:FlightRecorderLogging=jfr"},
+            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/hyperfoil/hyperfoil:0.25.2", "standalone"}
+    }),
+    PLAINTEXT_PERFORMANCE(new String[][]{
+            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
+            new String[]{"mv", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner", "target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_PLAINTEXT_PERFORMANCE"},
+            new String[]{"./target/jfr-native-image-performance-1.0.0-SNAPSHOT-runner_PLAINTEXT_PERFORMANCE"},
+            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/hyperfoil/hyperfoil:0.25.2", "standalone"}
     }),
     JFR_SMOKE(new String[][]{
             new String[]{"mvn", "package"},
@@ -221,10 +242,12 @@ public enum BuildAndRunCmds {
                     :
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
             new String[]{"native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+            new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{"java",
                     JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
                     "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
                     "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke",
                     "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=filename=logs/flight-native.jfr",
@@ -242,11 +265,18 @@ public enum BuildAndRunCmds {
                     CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-i",
                     "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
-                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run",
+                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run-java",
+                    BUILDER_IMAGE, "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{
+                    CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-i",
+                    "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
+                    "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run-java-jfr",
                     BUILDER_IMAGE,
                     JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
                     "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
                     "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar"},
+            new String[]{"./target/debug-symbols-smoke"},
             new String[]{
                     "./target/debug-symbols-smoke",
                     "-XX:+FlightRecorder",

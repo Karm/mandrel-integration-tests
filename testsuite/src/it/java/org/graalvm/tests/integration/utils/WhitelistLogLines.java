@@ -187,7 +187,9 @@ public enum WhitelistLogLines {
             } else {
                 return new Pattern[]{
                         // https://github.com/oracle/graal/issues/3636
-                        Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*")
+                        Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
+                        // Hyperfoil spits this on GHA CI, cannot reproduce locally
+                        Pattern.compile(".*ControllerVerticle] Uncaught error: java.lang.NullPointerException.*")
                 };
             }
         }
