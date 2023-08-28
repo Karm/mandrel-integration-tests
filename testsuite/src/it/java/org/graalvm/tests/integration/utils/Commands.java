@@ -75,8 +75,11 @@ public class Commands {
     private static final Logger LOGGER = Logger.getLogger(Commands.class.getName());
 
     public static final String CONTAINER_RUNTIME = getProperty("QUARKUS_NATIVE_CONTAINER-RUNTIME", "docker");
+    public static final boolean ROOTLESS_CONTAINER_RUNTIME = Boolean.parseBoolean(getProperty("ROOTLESS_CONTAINER-RUNTIME", "false"));
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(getProperty("PODMAN_WITH_SUDO", "true"));
+    // Docker: Error response from daemon: No such container: {{.MemUsage}}. Stats work when called with sudo.
+    public static final boolean DOCKER_WITH_SUDO = Boolean.parseBoolean(getProperty("DOCKER_WITH_SUDO", "false"));
     public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(getProperty("FAIL_ON_PERF_REGRESSION", "true"));
 
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
@@ -134,6 +137,9 @@ public class Commands {
     }
 
     public static String getUnixUIDGID() {
+        if (ROOTLESS_CONTAINER_RUNTIME) {
+            return "0:0";
+        }
         final UnixSystem s = new UnixSystem();
         return s.getUid() + ":" + s.getGid();
     }
@@ -185,7 +191,7 @@ public class Commands {
         if (IS_THIS_WINDOWS) {
             runCmd.add("cmd");
             runCmd.add("/C");
-        } else if ("podman".equals(baseCommand[0]) && PODMAN_WITH_SUDO) {
+        } else if ("podman".equals(baseCommand[0]) && PODMAN_WITH_SUDO || "docker".equals(baseCommand[0]) && DOCKER_WITH_SUDO) {
             runCmd.add("sudo");
         }
         runCmd.addAll(Arrays.asList(baseCommand));
@@ -367,7 +373,7 @@ public class Commands {
                 throw new RuntimeException("Unexpected " + CONTAINER_RUNTIME + " command output. Check the daemon.");
             }
             while ((l = processOutputReader.readLine()) != null) {
-                Matcher m = ALPHANUMERIC_FIRST.matcher(l);
+                final Matcher m = ALPHANUMERIC_FIRST.matcher(l);
                 if (m.matches()) {
                     ids.add(m.group(1).trim());
                 }
@@ -378,7 +384,7 @@ public class Commands {
     }
 
     public static void stopAllRunningContainers() throws InterruptedException, IOException {
-        List<String> ids = getRunningContainersIDs();
+        final List<String> ids = getRunningContainersIDs();
         if (!ids.isEmpty()) {
             final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "stop"));
             cmd.addAll(ids);
@@ -430,6 +436,10 @@ public class Commands {
                      new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             while ((l = processOutputReader.readLine()) != null) {
+                if (l.contains("Error")) {
+                    LOGGER.error("Container: " + l);
+                    break;
+                }
                 final Matcher m = CONTAINER_STATS_MEMORY.matcher(l);
                 if (m.matches()) {
                     float value = Float.parseFloat(m.group(1));
@@ -546,18 +556,27 @@ public class Commands {
     }
 
     public static void clearCaches() throws IOException {
-        String[] cmd = new String[]{"sudo", "bash", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"};
-        LOGGER.info(runCommand(getRunCommand(cmd)));
+        if (IS_THIS_WINDOWS) {
+            throw new UnsupportedOperationException("Not implemented for Windows");
+        }
+        final String[] cmd = new String[]{"sudo", "bash", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"};
+        LOGGER.infof("Command: %s, Output: %s", String.join(" ", cmd), runCommand(getRunCommand(cmd)));
     }
 
     public static void disableTurbo() throws IOException {
-        String[] cmd = new String[]{"sudo", "bash", "-c", "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
-        LOGGER.info(runCommand(getRunCommand(cmd)));
+        if (IS_THIS_WINDOWS) {
+            throw new UnsupportedOperationException("Not implemented for Windows");
+        }
+        final String[] cmd = new String[]{"sudo", "bash", "-c", "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
+        LOGGER.infof("Command: %s, Output: %s", String.join(" ", cmd), runCommand(getRunCommand(cmd)));
     }
 
     public static void enableTurbo() throws IOException {
-        String[] cmd = new String[]{"sudo", "bash", "-c", "echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
-        LOGGER.info(runCommand(getRunCommand(cmd)));
+        if (IS_THIS_WINDOWS) {
+            throw new UnsupportedOperationException("Not implemented for Windows");
+        }
+        final String[] cmd = new String[]{"sudo", "bash", "-c", "echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
+        LOGGER.infof("Command: %s, Output: %s", String.join(" ", cmd), runCommand(getRunCommand(cmd)));
     }
 
     public static class ProcessRunner implements Runnable {
@@ -1087,7 +1106,7 @@ public class Commands {
         if (dir == null || Files.notExists(dir) || regexp == null) {
             throw new IllegalArgumentException("Path to " + dir + "must exist and regexp must nut be null.");
         }
-        File[] f = dir.toFile().listFiles(pathname -> {
+        final File[] f = dir.toFile().listFiles(pathname -> {
             if (pathname.isFile() && Files.isExecutable(pathname.toPath())) {
                 return regexp.matcher(pathname.getName()).matches();
             }

@@ -1,7 +1,7 @@
-diff --git a/builder-image-apps/quarkus-vertx/pom.xml b/builder-image-apps/quarkus-vertx/pom.xml
+diff --git a/apps/quarkus-vertx/pom.xml b/apps/quarkus-vertx/pom.xml
 index 4bbe1d3..7d47c9b 100644
---- a/builder-image-apps/quarkus-vertx/pom.xml
-+++ b/builder-image-apps/quarkus-vertx/pom.xml
+--- a/apps/quarkus-vertx/pom.xml
++++ b/apps/quarkus-vertx/pom.xml
 @@ -48,7 +48,7 @@
          </dependency>
          <dependency>
@@ -11,10 +11,10 @@ index 4bbe1d3..7d47c9b 100644
          </dependency>
          <dependency>
              <groupId>io.quarkus</groupId>
-diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
 index cf0796c..66c53c2 100644
---- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
-+++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
 @@ -18,19 +18,19 @@ package org.acme.vertx;
  
  import java.net.URI;
@@ -48,10 +48,10 @@ index cf0796c..66c53c2 100644
  
  import org.eclipse.microprofile.config.inject.ConfigProperty;
  import org.jboss.resteasy.annotations.jaxrs.PathParam;
-diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
 index ac167a0..c5c66fa 100644
---- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
-+++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
 @@ -18,11 +18,11 @@ package org.acme.vertx;
  import static java.util.concurrent.TimeUnit.MILLISECONDS;
  import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -69,10 +69,10 @@ index ac167a0..c5c66fa 100644
  
  import org.jboss.resteasy.annotations.jaxrs.PathParam;
  
-diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
 index 0cb587a..ba16e14 100644
---- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
-+++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
 @@ -15,7 +15,7 @@
   */
  package org.acme.vertx;
@@ -82,10 +82,10 @@ index 0cb587a..ba16e14 100644
  
  import io.quarkus.vertx.ConsumeEvent;
  
-diff --git a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
 index cc9c525..3650581 100644
---- a/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
-+++ b/builder-image-apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
 @@ -15,10 +15,10 @@
   */
  package org.acme.vertx;

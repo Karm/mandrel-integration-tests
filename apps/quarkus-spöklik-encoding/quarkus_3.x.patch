@@ -1,0 +1,18 @@
+diff --git "a/apps/quarkus-sp\303\266klik-encoding/src/main/java/org/acme/getting/started/\345\225\217\345\200\231Resource.java" "b/apps/quarkus-sp\303\266klik-encoding/src/main/java/org/acme/getting/started/\345\225\217\345\200\231Resource.java"
+index 80619cc..e902907 100644
+--- "a/apps/quarkus-sp\303\266klik-encoding/src/main/java/org/acme/getting/started/\345\225\217\345\200\231Resource.java"
++++ "b/apps/quarkus-sp\303\266klik-encoding/src/main/java/org/acme/getting/started/\345\225\217\345\200\231Resource.java"
+@@ -1,9 +1,9 @@
+ package org.acme.getting.started;
+ 
+-import javax.ws.rs.GET;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.Produces;
++import jakarta.ws.rs.core.MediaType;
+ 
+ @Path("/sånt är livet")
+ public class 問候Resource {

@@ -29,6 +29,8 @@ public enum ContainerNames {
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX("my-quarkus-mandrel-app-container"), // Probably no reason to call them differently?
     IMAGEIO_BUILDER_IMAGE("my-imageio-runner"),
     JFR_SMOKE_BUILDER_IMAGE("my-jfr-smoke-runner"),
+    JFR_PERFORMANCE_BUILDER_IMAGE("my-jfr-performance-runner"),
+    JFR_PLAINTEXT_BUILDER_IMAGE("my-jfr-plaintext-runner"),
     HYPERFOIL("hyperfoil-container"),
     NONE("NO_CONTAINER");
 

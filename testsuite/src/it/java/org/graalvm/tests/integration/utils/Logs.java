@@ -99,7 +99,7 @@ public class Logs {
                     "Skipping checking thresholds.");
             return;
         }
-        final String propPrefix = (IS_THIS_WINDOWS ? "windows" : "linux") + ((mode != Mode.NONE) ? "." + mode : "");
+        final String propPrefix = (IS_THIS_WINDOWS ? "windows" : "linflight-native.jfrux") + ((mode != Mode.NONE) ? "." + mode : "");
 
         if (executableSizeKb != SKIP) {
             final String key = propPrefix + ".executable.size.threshold.kB";
