@@ -68,7 +68,7 @@ jobs:
             mandrel-version: '23.0.1.2-Final'
             java-version: '20'
             os: 'ubuntu-20.04'
-            timeout-minutes: 100
+            timeout-minutes: 130
           - quarkus-version: '3.2.3.Final'
             mandrel-version: '23.0.1.2-Final'
             java-version: '17'
@@ -78,7 +78,7 @@ jobs:
             mandrel-version: '23.0.1.2-Final'
             java-version: '17'
             os: 'ubuntu-20.04'
-            timeout-minutes: 100
+            timeout-minutes: 130
     steps:
       - uses: actions/checkout@v3
         with:
