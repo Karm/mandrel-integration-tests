@@ -253,9 +253,21 @@ public class Commands {
         }
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input, Map<String, String> env) {
+    /**
+     * Note that if you provide a logFile, the process output goes to the logFile.
+     *
+     * @param command
+     * @param directory
+     * @param logFile
+     * @param app
+     * @param input
+     * @param env
+     * @return
+     * @throws IOException
+     */
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input, Map<String, String> env) throws IOException {
         // Skip the wait if the app runs as a container
-        if (app.runtimeContainer == ContainerNames.NONE) {
+        if (app != null && app.runtimeContainer == ContainerNames.NONE) {
             waitForExecutable(command, directory);
         }
         final ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -265,8 +277,13 @@ public class Commands {
             envA.putAll(env);
         }
         processBuilder.directory(directory)
-                .redirectErrorStream(true)
-                .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+                .redirectErrorStream(true);
+        if (logFile != null) {
+            final String c = "Command: " + String.join(" ", command) + "\n";
+            LOGGER.infof("Command: %s", command);
+            Files.write(logFile.toPath(), c.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+        }
         if (input != null) {
             processBuilder.redirectInput(input);
         }
@@ -302,11 +319,21 @@ public class Commands {
         return runCommand(command, new File("."));
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input) {
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input) throws IOException {
         return runCommand(command, directory, logFile, app, input, null);
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile, Apps app) {
+    /**
+     * Note that if you provide a logFile, the process output goes to the logFile.
+     *
+     * @param command
+     * @param directory
+     * @param logFile
+     * @param app
+     * @return
+     * @throws IOException
+     */
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app) throws IOException {
         return runCommand(command, directory, logFile, app, null, null);
     }
 
@@ -359,7 +386,9 @@ public class Commands {
     }
 
     public static List<String> getRunningContainersIDs() throws IOException, InterruptedException {
-        final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(CONTAINER_RUNTIME, "ps"));
+        final List<String> cmd = getRunCommand(CONTAINER_RUNTIME, "ps");
+        LOGGER.infof("Command: %s", cmd);
+        final ProcessBuilder processBuilder = new ProcessBuilder(cmd);
         final Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
         processBuilder.redirectErrorStream(true);
@@ -388,6 +417,7 @@ public class Commands {
         if (!ids.isEmpty()) {
             final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "stop"));
             cmd.addAll(ids);
+            LOGGER.infof("Command: %s", cmd);
             final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
             process.waitFor(5, TimeUnit.SECONDS);
         }
@@ -559,16 +589,16 @@ public class Commands {
         if (IS_THIS_WINDOWS) {
             throw new UnsupportedOperationException("Not implemented for Windows");
         }
-        final String[] cmd = new String[]{"sudo", "bash", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"};
-        LOGGER.infof("Command: %s, Output: %s", String.join(" ", cmd), runCommand(getRunCommand(cmd)));
+        final List<String> cmd = getRunCommand("sudo", "bash", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches");
+        LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
     }
 
     public static void disableTurbo() throws IOException {
         if (IS_THIS_WINDOWS) {
             throw new UnsupportedOperationException("Not implemented for Windows");
         }
-        final String[] cmd = new String[]{"sudo", "bash", "-c", "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
-        LOGGER.infof("Command: %s, Output: %s", String.join(" ", cmd), runCommand(getRunCommand(cmd)));
+        final List<String> cmd = getRunCommand("sudo", "bash", "-c", "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo");
+        LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
     }
 
     public static void enableTurbo() throws IOException {
@@ -618,7 +648,7 @@ public class Commands {
                     Files.createFile(log.toPath());
                 }
                 final String command = "Command: " + String.join(" ", this.command) + "\n";
-                System.out.println(command);
+                LOGGER.infof("Command: %s", this.command);
                 Files.write(log.toPath(), command.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
                 p = pb.start();
                 dumpAndLogProcessOutput(log, p, timeoutMinutes);

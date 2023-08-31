@@ -246,7 +246,7 @@ public enum BuildAndRunCmds {
             new String[]{CONTAINER_RUNTIME, "run", "--rm", "--network=host",
                     "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t",
-                    //"-v", BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/target/:/work:z",
+                    "-v", BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/logs:/tmp:z",
                     "--name", ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, "jfr-performance-app", "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=settings=/work/jfr-perf.jfc,filename=/tmp/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"},
@@ -261,7 +261,7 @@ public enum BuildAndRunCmds {
             new String[]{CONTAINER_RUNTIME, "run", "--rm", "--network=host",
                     "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t",
-                    //"-v", BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/target/:/work:z",
+                    //"-v", BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/logs:/tmp:z",
                     "--name", ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name, "jfr-plaintext-app"},
             new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/hyperfoil/hyperfoil:0.25.2", "standalone"}
     }),
