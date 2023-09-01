@@ -189,7 +189,11 @@ public enum WhitelistLogLines {
                         // https://github.com/oracle/graal/issues/3636
                         Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
                         // Hyperfoil spits this on GHA CI, cannot reproduce locally
-                        Pattern.compile(".*ControllerVerticle] Uncaught error: java.lang.NullPointerException.*")
+                        Pattern.compile(".*ControllerVerticle] Uncaught error: java.lang.NullPointerException.*"),
+                        // For some reason, Podman spits this when terminating Hyperfoil containers
+                        Pattern.compile(".*Could not retrieve exit code from event: died not found: unable to find event.*"),
+                        // Quarkus 3.x intermittently with JDK 20 based build...
+                        Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*")
                 };
             }
         }

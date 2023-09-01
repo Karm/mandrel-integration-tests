@@ -96,8 +96,8 @@
                 <module>apps/imageio</module>
                 <module>apps/reslocations</module>
                 <module>apps/debug-symbols-smoke</module>
-                <module>builder-image-apps/quarkus-spöklik-encoding</module>
-                <module>builder-image-apps/quarkus-vertx</module>
+                <module>apps/quarkus-spöklik-encoding</module>
+                <module>apps/quarkus-vertx</module>
             </modules>
         </profile>
     </profiles>

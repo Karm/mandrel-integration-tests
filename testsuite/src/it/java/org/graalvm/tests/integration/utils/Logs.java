@@ -28,7 +28,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -92,27 +94,32 @@ public class Logs {
         }
     }
 
-    public static void checkThreshold(Apps app, Mode mode, long executableSizeKb, long rssKb, long timeToFirstOKRequest, long timeToFinishMs, long mean, long p50, long p90) {
+    public static void checkThreshold(Apps app, Mode mode, long executableSizeKb, long rssKb, long timeToFirstOKRequest,
+                                      long timeToFinishMs, long mean, long p50, long p90) {
+
         if (app.thresholdProperties.isEmpty() &&
                 (executableSizeKb != SKIP || rssKb != SKIP || timeToFirstOKRequest != SKIP || timeToFinishMs != SKIP)) {
             LOGGER.warn("It seem there is no " + Path.of(BASE_DIR, app.dir, "threshold.properties. ") +
                     "Skipping checking thresholds.");
             return;
         }
-        final String propPrefix = (IS_THIS_WINDOWS ? "windows" : "linux") + ((mode != Mode.NONE) ? "." + mode : "");
+        final String propPrefix = (IS_THIS_WINDOWS ? "windows" : "linux") +
+                ((app.runtimeContainer != ContainerNames.NONE) ? ".container" : "") +
+                ((mode != Mode.NONE) ? "." + mode : "");
+        final Path properties = Path.of(BASE_DIR, app.dir, "threshold.properties");
+        final List<String> failures = new ArrayList<>();
 
         if (executableSizeKb != SKIP) {
             final String key = propPrefix + ".executable.size.threshold.kB";
             if (app.thresholdProperties.containsKey(key)) {
                 long executableSizeThresholdKb = app.thresholdProperties.get(key);
-                assertThreshold(executableSizeKb <= executableSizeThresholdKb,
+                assertThreshold(failures, executableSizeKb <= executableSizeThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " executable size " +
                                 ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "overhead is" : " is ") +
                                 executableSizeKb + " kB, which is over " +
                                 executableSizeThresholdKb + " kB threshold by " + percentageValOverTh(executableSizeKb, executableSizeThresholdKb) + "%.");
             } else {
-                LOGGER.error("executableSizeKb was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+                LOGGER.error("executableSizeKb was to be checked, but there is no " + key + " in " + properties);
             }
         }
 
@@ -120,14 +127,13 @@ public class Logs {
             final String key = propPrefix + ".time.to.first.ok.request.threshold.ms";
             if (app.thresholdProperties.containsKey(key)) {
                 long timeToFirstOKRequestThresholdMs = app.thresholdProperties.get(key);
-                assertThreshold(timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
+                assertThreshold(failures, timeToFirstOKRequest <= timeToFirstOKRequestThresholdMs,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " took " + timeToFirstOKRequest + " ms " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") +
                                 "to get the first OK request, which is over " +
                                 timeToFirstOKRequestThresholdMs + " ms threshold by " + percentageValOverTh(timeToFirstOKRequest, timeToFirstOKRequestThresholdMs) + "%.");
             } else {
-                LOGGER.error("timeToFirstOKRequest was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+                LOGGER.error("timeToFirstOKRequest was to be checked, but there is no " + key + " in " + properties);
             }
         }
 
@@ -135,13 +141,12 @@ public class Logs {
             final String key = propPrefix + ".RSS.threshold.kB";
             if (app.thresholdProperties.containsKey(key)) {
                 long rssThresholdKb = app.thresholdProperties.get(key);
-                assertThreshold(rssKb <= rssThresholdKb,
+                assertThreshold(failures, rssKb <= rssThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " consumed " + rssKb + " kB of RSS memory " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") + ", which is over " +
                                 rssThresholdKb + " kB threshold by " + percentageValOverTh(rssKb, rssThresholdKb) + "%.");
             } else {
-                LOGGER.error("rssKb was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+                LOGGER.error("rssKb was to be checked, but there is no " + key + " in " + properties);
             }
         }
 
@@ -149,13 +154,12 @@ public class Logs {
             final String key = propPrefix + ".time.to.finish.threshold.ms";
             if (app.thresholdProperties.containsKey(key)) {
                 long timeToFinishThresholdMs = app.thresholdProperties.get(key);
-                assertThreshold(timeToFinishMs <= timeToFinishThresholdMs,
+                assertThreshold(failures, timeToFinishMs <= timeToFinishThresholdMs,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " took " +
                                 timeToFinishMs + " ms " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") + "to finish, which is over " +
                                 timeToFinishThresholdMs + " ms threshold by " + percentageValOverTh(timeToFinishMs, timeToFinishThresholdMs) + "%.");
             } else {
-                LOGGER.error("timeToFinishMs was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+                LOGGER.error("timeToFinishMs was to be checked, but there is no " + key + " in " + properties);
             }
         }
 
@@ -163,13 +167,12 @@ public class Logs {
             final String key = propPrefix + ".mean.latency";
             if (app.thresholdProperties.containsKey(key)) {
                 long meanThreshold = app.thresholdProperties.get(key);
-                assertThreshold(mean <= meanThreshold,
+                assertThreshold(failures, mean <= meanThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has mean response latency " +
                                 mean + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") + " , which is over " +
                                 meanThreshold + " threshold by " + percentageValOverTh(mean, meanThreshold) + "%.");
             } else {
-                LOGGER.error("mean was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+                LOGGER.error("mean was to be checked, but there is no " + key + " in " + properties);
             }
         }
 
@@ -177,13 +180,12 @@ public class Logs {
             final String key = propPrefix + ".p50.latency";
             if (app.thresholdProperties.containsKey(key)) {
                 long p50Threshold = app.thresholdProperties.get(key);
-                assertThreshold(p50 <= p50Threshold,
+                assertThreshold(failures, p50 <= p50Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p50 response latency " +
                                 p50 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
                                 p50Threshold + "  threshold by " + percentageValOverTh(p50, p50Threshold) + "%.");
             } else {
-                LOGGER.error("p99 was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+                LOGGER.error("p99 was to be checked, but there is no " + key + " in " + properties);
             }
         }
 
@@ -191,22 +193,23 @@ public class Logs {
             final String key = propPrefix + ".p90.latency";
             if (app.thresholdProperties.containsKey(key)) {
                 long p90Threshold = app.thresholdProperties.get(key);
-                assertThreshold(p90 <= p90Threshold,
+                assertThreshold(failures, p90 <= p90Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p90 response latency " +
                                 p90 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
                                 p90Threshold + "  threshold by " + percentageValOverTh(p90, p90Threshold) + "%.");
             } else {
-                LOGGER.error("p90 was to be checked, but there is no " + key + " in " +
-                        Path.of(BASE_DIR, app.dir, "threshold.properties"));
+                LOGGER.error("p90 was to be checked, but there is no " + key + " in " + properties);
             }
         }
+
+        assertTrue(failures.isEmpty(), "\n" + String.join("\n", failures) + "\n");
     }
 
-    public static void assertThreshold(boolean condition, String message) {
-        if (FAIL_ON_PERF_REGRESSION) {
-            assertTrue(condition, message);
-        } else {
-            if (!condition) {
+    public static void assertThreshold(List<String> failures, boolean condition, String message) {
+        if (!condition) {
+            if (FAIL_ON_PERF_REGRESSION) {
+                failures.add(message);
+            } else {
                 LOGGER.error(message);
             }
         }
@@ -229,8 +232,12 @@ public class Logs {
     }
 
     public static void archiveLog(String testClass, String testMethod, File log) throws IOException {
-        if (log == null || !log.exists()) {
-            LOGGER.warn("log must be a valid, existing file. Skipping operation.");
+        if (log == null) {
+            LOGGER.warn("log must not be null. Skipping operation.");
+            return;
+        }
+        if (!log.exists()) {
+            LOGGER.warn(log + " must be a valid, existing file. Skipping operation.");
             return;
         }
         if (StringUtils.isBlank(testClass)) {
@@ -270,13 +277,13 @@ public class Logs {
     }
 
     public static Path getLogsDir(String testClass, String testMethod) throws IOException {
-        final Path destDir = new File(getLogsDir(testClass).toString() + File.separator + testMethod).toPath();
+        final Path destDir = new File(getLogsDir(testClass) + File.separator + testMethod).toPath();
         Files.createDirectories(destDir);
         return destDir;
     }
 
     public static Path getLogsDir(String testClass) throws IOException {
-        final Path destDir = new File(getLogsDir().toString() + File.separator + testClass).toPath();
+        final Path destDir = new File(getLogsDir() + File.separator + testClass).toPath();
         Files.createDirectories(destDir);
         return destDir;
     }
