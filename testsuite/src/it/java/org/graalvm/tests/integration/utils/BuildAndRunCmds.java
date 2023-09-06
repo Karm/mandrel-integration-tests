@@ -228,13 +228,13 @@ public enum BuildAndRunCmds {
                     "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=settings=" + BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/jfr-perf.jfc,filename=logs/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/hyperfoil/hyperfoil:0.25.2", "standalone"}
+            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
     }),
     PLAINTEXT_PERFORMANCE(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-DfinalName=jfr-plaintext"},
             new String[]{"./target/jfr-plaintext-runner"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/hyperfoil/hyperfoil:0.25.2", "standalone"}
+            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
     }),
     JFR_PERFORMANCE_BUILDER_IMAGE(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
@@ -250,7 +250,7 @@ public enum BuildAndRunCmds {
                     "--name", ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, "jfr-performance-app", "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=settings=/work/jfr-perf.jfc,filename=/tmp/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/hyperfoil/hyperfoil:0.25.2", "standalone"}
+            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
     }),
     PLAINTEXT_PERFORMANCE_BUILDER_IMAGE(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
@@ -263,7 +263,7 @@ public enum BuildAndRunCmds {
                     "-t",
                     //"-v", BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/logs:/tmp:z",
                     "--name", ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name, "jfr-plaintext-app"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/hyperfoil/hyperfoil:0.25.2", "standalone"}
+            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
     }),
     JFR_SMOKE(new String[][]{
             new String[]{"mvn", "package"},

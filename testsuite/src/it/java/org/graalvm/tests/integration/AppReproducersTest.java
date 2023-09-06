@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
@@ -646,11 +647,25 @@ public class AppReproducersTest {
             if (metaINF.exists()) {
                 FileUtils.cleanDirectory(metaINF);
             }
-            new File(appDir, "dependency-reduced-pom.xml").delete();
-            final File fontConfigDir = new File(appDir, "?");
-            if (fontConfigDir.exists()) {
-                FileUtils.forceDelete(fontConfigDir);
-            }
+            Stream.of(
+                    new File(appDir, "?"),
+                    new File(appDir, ".cache"),
+                    new File(appDir, ".java"),
+                    new File(appDir, "dependency-reduced-pom.xml")
+            ).forEach(f -> {
+                try {
+                    if (f.exists()) {
+                        if (f.isDirectory()) {
+                            FileUtils.deleteDirectory(f);
+                        } else {
+                            f.delete();
+                        }
+                    }
+                } catch (IOException e) {
+                    // We ignore it...
+                    e.printStackTrace();
+                }
+            });
             controlData.keySet().forEach(f -> new File(appDir, f).delete());
         }
     }

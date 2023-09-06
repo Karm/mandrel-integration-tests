@@ -359,7 +359,9 @@ public class Commands {
         long timeoutMillis = unit.toMillis(timeout);
         long sleepMillis = unit.toMillis(sleep);
         long startMillis = System.currentTimeMillis();
-        final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(CONTAINER_RUNTIME, "logs", containerName));
+        final List<String> cmd = getRunCommand(CONTAINER_RUNTIME, "logs", containerName);
+        LOGGER.infof("Command: %s", cmd);
+        final ProcessBuilder processBuilder = new ProcessBuilder(cmd);
         final Map<String, String> envA = processBuilder.environment();
         envA.put("PATH", System.getenv("PATH"));
         processBuilder.redirectErrorStream(true);
@@ -431,6 +433,7 @@ public class Commands {
 
     public static void stopRunningContainer(String containerName) throws InterruptedException, IOException {
         final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "stop", containerName));
+        LOGGER.infof("Command: %s", cmd);
         final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
         process.waitFor(5, TimeUnit.SECONDS);
     }
@@ -443,6 +446,7 @@ public class Commands {
 
     public static void removeContainer(String containerName) throws InterruptedException, IOException {
         final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "rm", containerName, "--force"));
+        LOGGER.infof("Command: %s", cmd);
         final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
         process.waitFor(5, TimeUnit.SECONDS);
     }
@@ -456,8 +460,10 @@ public class Commands {
     13.43MiB / 11.28GiB
      */
     public static long getContainerMemoryKb(String containerName) throws IOException, InterruptedException {
-        final ProcessBuilder pa = new ProcessBuilder(getRunCommand(
-                CONTAINER_RUNTIME, "stats", "--no-stream", "--format", "table {{.MemUsage}}", containerName));
+        final List<String> cmd = getRunCommand(
+                CONTAINER_RUNTIME, "stats", "--no-stream", "--format", "table {{.MemUsage}}", containerName);
+        LOGGER.infof("Command: %s", cmd);
+        final ProcessBuilder pa = new ProcessBuilder(cmd);
         final Map<String, String> envA = pa.environment();
         envA.put("PATH", System.getenv("PATH"));
         pa.redirectErrorStream(true);
@@ -468,6 +474,10 @@ public class Commands {
             while ((l = processOutputReader.readLine()) != null) {
                 if (l.contains("Error")) {
                     LOGGER.error("Container: " + l);
+                    if (l.contains("No such container: {{.MemUsage}}")) {
+                        LOGGER.error("You don't have the right to call `stats' on " + containerName + " container. " +
+                                "You might have to set " + ("podman".equals(CONTAINER_RUNTIME) ? "PODMAN_WITH_SUDO" : "DOCKER_WITH_SUDO") + " to true.");
+                    }
                     break;
                 }
                 final Matcher m = CONTAINER_STATS_MEMORY.matcher(l);
@@ -587,7 +597,8 @@ public class Commands {
 
     public static void clearCaches() throws IOException {
         if (IS_THIS_WINDOWS) {
-            throw new UnsupportedOperationException("Not implemented for Windows");
+            LOGGER.infof("Not implemented for Windows");
+            return;
         }
         final List<String> cmd = getRunCommand("sudo", "bash", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches");
         LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
@@ -595,18 +606,41 @@ public class Commands {
 
     public static void disableTurbo() throws IOException {
         if (IS_THIS_WINDOWS) {
-            throw new UnsupportedOperationException("Not implemented for Windows");
+            LOGGER.infof("Not implemented for Windows");
+            return;
         }
-        final List<String> cmd = getRunCommand("sudo", "bash", "-c", "echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo");
-        LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
+        final File intel = new File("/sys/devices/system/cpu/intel_pstate/no_turbo");
+        if (intel.exists()) {
+            final List<String> cmd = getRunCommand("sudo", "bash", "-c", "echo 1 > " + intel.getAbsolutePath());
+            LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
+            return;
+        }
+        final File amd = new File("/sys/devices/system/cpu/cpufreq/boost");
+        if (amd.exists()) {
+            final List<String> cmd = getRunCommand("sudo", "bash", "-c", "echo 0 > " + amd.getAbsolutePath());
+            LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
+            return;
+        }
+        LOGGER.infof("Neither Intel nor AMD turbo boost control found. This is either a vm or a different system.");
     }
 
     public static void enableTurbo() throws IOException {
         if (IS_THIS_WINDOWS) {
-            throw new UnsupportedOperationException("Not implemented for Windows");
+            LOGGER.infof("Not implemented for Windows");
         }
-        final String[] cmd = new String[]{"sudo", "bash", "-c", "echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo"};
-        LOGGER.infof("Command: %s, Output: %s", String.join(" ", cmd), runCommand(getRunCommand(cmd)));
+        final File intel = new File("/sys/devices/system/cpu/intel_pstate/no_turbo");
+        if (intel.exists()) {
+            final List<String> cmd = getRunCommand("sudo", "bash", "-c", "echo 0 > " + intel.getAbsolutePath());
+            LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
+            return;
+        }
+        final File amd = new File("/sys/devices/system/cpu/cpufreq/boost");
+        if (amd.exists()) {
+            final List<String> cmd = getRunCommand("sudo", "bash", "-c", "echo 1 > " + amd.getAbsolutePath());
+            LOGGER.infof("Command: %s, Output: %s", cmd, runCommand(cmd));
+            return;
+        }
+        LOGGER.infof("Neither Intel nor AMD turbo boost control found. This is either a vm or a different system.");
     }
 
     public static class ProcessRunner implements Runnable {
