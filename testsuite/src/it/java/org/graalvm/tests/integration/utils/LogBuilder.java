@@ -66,7 +66,7 @@ public class LogBuilder {
     private String app = null;
 
     public LogBuilder buildTimeMs(long buildTimeMs) {
-        if (buildTimeMs <= 0) {
+        if (buildTimeMs < 0) {
             throw new IllegalArgumentException("buildTimeMs must be a positive long, was: " + buildTimeMs);
         }
         this.buildTimeMs = buildTimeMs;
@@ -74,7 +74,7 @@ public class LogBuilder {
     }
 
     public LogBuilder timeToFirstOKRequestMs(long timeToFirstOKRequestMs) {
-        if (timeToFirstOKRequestMs <= 0) {
+        if (timeToFirstOKRequestMs < 0) {
             throw new IllegalArgumentException("timeToFirstOKRequestMs must be a positive long, was: " + timeToFirstOKRequestMs);
         }
         this.timeToFirstOKRequestMs = timeToFirstOKRequestMs;
@@ -82,7 +82,7 @@ public class LogBuilder {
     }
 
     public LogBuilder timeToFinishMs(long timeToFinishMs) {
-        if (timeToFinishMs <= 0) {
+        if (timeToFinishMs < 0) {
             throw new IllegalArgumentException("timeToFinishMs must be a positive long, was: " + timeToFinishMs);
         }
         this.timeToFinishMs = timeToFinishMs;
@@ -90,7 +90,7 @@ public class LogBuilder {
     }
 
     public LogBuilder executableSizeKb(long executableSizeKb) {
-        if (executableSizeKb <= 0) {
+        if (executableSizeKb < 0) {
             throw new IllegalArgumentException("executableSizeKb must be a positive long, was: " + executableSizeKb);
         }
         this.executableSizeKb = executableSizeKb;
@@ -98,7 +98,7 @@ public class LogBuilder {
     }
 
     public LogBuilder rssKb(long rssKb) {
-        if (rssKb <= 0) {
+        if (rssKb < 0) {
             throw new IllegalArgumentException("rssKb must be a positive long, was: " + rssKb);
         }
         this.rssKb = rssKb;
@@ -141,7 +141,7 @@ public class LogBuilder {
     }
 
     public LogBuilder openedFiles(long openedFiles) {
-        if (openedFiles <= 0) {
+        if (openedFiles < 0) {
             throw new IllegalArgumentException("openedFiles must be a positive long, was: " + openedFiles);
         }
         this.openedFiles = openedFiles;

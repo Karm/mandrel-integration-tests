@@ -107,6 +107,8 @@ public class RuntimesSmokeTest {
             }
             long buildEnds = System.currentTimeMillis();
             assertTrue(processLog.exists());
+            assertTrue(findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*")).exists(),
+                    "No executable found. Compilation failed. Check the logs.");
 
             // Run
             LOGGER.info("Running...");
@@ -146,6 +148,7 @@ public class RuntimesSmokeTest {
                         .build();
                 // Running as a container
             } else {
+                //  -runner is a Quarkus specific name, but we don't test Helidon in container anyway...
                 executableSizeKb = findExecutable(Path.of(appDir.getAbsolutePath(), "target"),
                         Pattern.compile(".*-runner")).length() / 1024L;
                 rssKb = getContainerMemoryKb(app.runtimeContainer.name);
