@@ -57,9 +57,9 @@ import static java.awt.image.BufferedImage.TYPE_BYTE_BINARY;
 
 // $ rm -rf src/main/resources/META-INF/* mytest* target
 // $ mvn clean package
-// $ java -agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image -jar target/imageio.jar
+// $ java -Djava.awt.headless=true -agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image -jar target/imageio.jar
 // $ jar uf target/imageio.jar -C src/main/resources/ META-INF
-// $ native-image -H:IncludeResources=Grace_M._Hopper.jp2,MyFreeMono.ttf,MyFreeSerif.ttf --no-fallback -jar target/imageio.jar target/imageio
+// $ native-image -J-Djava.awt.headless=true --no-fallback -jar target/imageio.jar target/imageio
 // $ rm -rf mytest*
 // $ ./target/imageio -Djava.awt.headless=true -Djava.home=$(pwd)
 public class Main {
