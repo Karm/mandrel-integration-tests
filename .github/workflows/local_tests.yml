@@ -26,17 +26,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - quarkus-version: '2.7.7.Final'
-            mandrel-version: '21.3.6.0-Final'
-            java-version: '17'
-            os: 'windows-2019'
-            timeout-minutes: 80
-          - quarkus-version: '2.7.7.Final'
-            mandrel-version: '21.3.6.0-Final'
-            java-version: '17'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 80
-
           - quarkus-version: '2.13.8.Final'
             mandrel-version: '22.3.3.1-Final'
             java-version: '17'
