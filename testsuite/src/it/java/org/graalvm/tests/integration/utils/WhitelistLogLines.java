@@ -148,6 +148,9 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             return new Pattern[]{
+                    // Experimental options not being unlocked, produces warnings, yet it's driven by the helidon-maven-plugin
+                    Pattern.compile(".*The option '.*' is experimental and must be enabled via '-H:\\+UnlockExperimentalVMOptions' in the future.*"),
+                    Pattern.compile(".*Please re-evaluate whether any experimental option is required, and either remove or unlock it.*"),
                     // Unused argument on new Graal
                     Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
                     // --allow-incomplete-classpath not available in new GraalVM https://github.com/Karm/mandrel-integration-tests/issues/76
