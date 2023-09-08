@@ -19,11 +19,13 @@
  */
 package org.graalvm.tests.integration;
 
+import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -38,6 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
@@ -70,6 +73,9 @@ public class RuntimesSmokeTest {
     public static final String BASE_DIR = getBaseDir();
 
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        testRuntime(testInfo, app, null);
+    }
+    public void testRuntime(TestInfo testInfo, Apps app, Map<String, String> switchReplacements) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         Process process = null;
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
@@ -87,7 +93,7 @@ public class RuntimesSmokeTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             long buildStarts = System.currentTimeMillis();
-            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, switchReplacements);
             long buildEnds = System.currentTimeMillis();
             assertTrue(findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*")).exists(),
                     "No executable found. Compilation failed. Check the logs.");
@@ -173,17 +179,23 @@ public class RuntimesSmokeTest {
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
         Apps app = Apps.QUARKUS_FULL_MICROPROFILE;
+        final Map<String, String> switches;
+        if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+            switches = Map.of("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
+        } else {
+            switches = null;
+        }
         if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
             try {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
                         Path.of(BASE_DIR, app.dir).toFile());
-                testRuntime(testInfo, app);
+                testRuntime(testInfo, app, switches);
             } finally {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
                         Path.of(BASE_DIR, app.dir).toFile());
             }
         } else {
-            testRuntime(testInfo, app);
+            testRuntime(testInfo, app, switches);
         }
     }
 
