@@ -190,17 +190,18 @@ public class RuntimesSmokeTest {
     @Test
     @Tag("quarkus")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
+        Apps app = Apps.QUARKUS_FULL_MICROPROFILE;
         if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
             try {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
-                testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+                        Path.of(BASE_DIR, app.dir).toFile());
+                testRuntime(testInfo, app);
             } finally {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+                        Path.of(BASE_DIR, app.dir).toFile());
             }
         } else {
-            testRuntime(testInfo, Apps.QUARKUS_FULL_MICROPROFILE);
+            testRuntime(testInfo, app);
         }
     }
 
@@ -208,17 +209,18 @@ public class RuntimesSmokeTest {
     @Tag("builder-image")
     @Tag("quarkus")
     public void quarkusEncodingIssues(TestInfo testInfo) throws IOException, InterruptedException {
+        Apps apps = Apps.QUARKUS_BUILDER_IMAGE_ENCODING;
         if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
             try {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_BUILDER_IMAGE_ENCODING.dir).toFile());
-                testRuntime(testInfo, Apps.QUARKUS_BUILDER_IMAGE_ENCODING);
+                        Path.of(BASE_DIR, apps.dir).toFile());
+                testRuntime(testInfo, apps);
             } finally {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_BUILDER_IMAGE_ENCODING.dir).toFile());
+                        Path.of(BASE_DIR, apps.dir).toFile());
             }
         } else {
-            testRuntime(testInfo, Apps.QUARKUS_BUILDER_IMAGE_ENCODING);
+            testRuntime(testInfo, apps);
         }
     }
 

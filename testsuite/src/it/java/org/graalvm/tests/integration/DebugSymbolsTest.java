@@ -212,7 +212,7 @@ public class DebugSymbolsTest {
             // Patch for compatibility
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+                        Path.of(BASE_DIR, app.dir).toFile());
             }
 
             // Build
@@ -278,7 +278,7 @@ public class DebugSymbolsTest {
             cleanup(null, cn, mn, report, app, processLog);
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, Apps.QUARKUS_FULL_MICROPROFILE.dir).toFile());
+                        Path.of(BASE_DIR, app.dir).toFile());
             }
         }
     }
