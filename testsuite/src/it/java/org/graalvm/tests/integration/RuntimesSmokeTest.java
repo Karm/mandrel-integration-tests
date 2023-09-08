@@ -20,7 +20,6 @@
 package org.graalvm.tests.integration;
 
 import org.graalvm.tests.integration.utils.Apps;
-import org.graalvm.tests.integration.utils.Commands;
 import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
@@ -38,14 +37,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
+import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.findExecutable;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
@@ -90,23 +86,9 @@ public class RuntimesSmokeTest {
             }
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
-            // The last command is reserved for running it
-            assertTrue(app.buildAndRunCmds.cmds.length > 1);
             long buildStarts = System.currentTimeMillis();
-            Logs.appendln(report, "# " + cn + ", " + mn);
-            for (int i = 0; i < app.buildAndRunCmds.cmds.length - 1; i++) {
-                // We cannot run commands in parallel, we need them to follow one after another
-                ExecutorService buildService = Executors.newFixedThreadPool(1);
-                List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
-                buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 30)); // Timeout for Maven downloading the Internet
-                Logs.appendln(report, (new Date()).toString());
-                Logs.appendln(report, appDir.getAbsolutePath());
-                Logs.appendlnSection(report, String.join(" ", cmd));
-                buildService.shutdown();
-                buildService.awaitTermination(30, TimeUnit.MINUTES);
-            }
+            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
             long buildEnds = System.currentTimeMillis();
-            assertTrue(processLog.exists());
             assertTrue(findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*")).exists(),
                     "No executable found. Compilation failed. Check the logs.");
 
