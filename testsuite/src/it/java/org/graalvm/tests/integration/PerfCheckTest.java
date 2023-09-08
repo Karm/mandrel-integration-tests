@@ -55,6 +55,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -416,11 +417,14 @@ public class PerfCheckTest {
             }
 
             // Build executables
-            final Map<String, String> switches;
+            final Map<String, String> switches = new HashMap<>();
             if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
+                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
+                if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+                    switches.put("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
+                }
             } else {
-                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
+                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
             }
             builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
 
