@@ -1062,7 +1062,7 @@ public class Commands {
      *               "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
      *               "-H:-ParseOnce," +
      *               "-H:BuildOutputJSONFile=quarkus-json_minus-ParseOnce.json",
-     *               "-Dfinal.name=quarkus-json_-ParseOnce"},
+     *               "-Dcustom.final.name=quarkus-json_-ParseOnce"},
      * //@formatter:on
      */
     public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,

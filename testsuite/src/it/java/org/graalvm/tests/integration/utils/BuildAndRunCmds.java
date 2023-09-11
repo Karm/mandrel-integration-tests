@@ -94,14 +94,14 @@ public enum BuildAndRunCmds {
                             "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
                             "-H:-ParseOnce" +
                             GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
-                    "-Dfinal.name=quarkus-json_-ParseOnce"},
+                    "-Dcustom.final.name=quarkus-json_-ParseOnce"},
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-Dquarkus.native.additional-build-args=" +
                             "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
                             "-H:+ParseOnce" +
                             GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce",
-                    "-Dfinal.name=quarkus-json_+ParseOnce"},
-            new String[]{"mvn", "package", "-Dfinal.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
+                    "-Dcustom.final.name=quarkus-json_+ParseOnce"},
+            new String[]{"mvn", "package", "-Dcustom.final.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             //-XX:+UseShenandoahGC
             //-XX:+UseSerialGC
             //-XX:+UseG1GC
@@ -115,8 +115,8 @@ public enum BuildAndRunCmds {
                     "-Dquarkus.native.additional-build-args=" +
                             "-R:MaxHeapSize=" + MX_HEAP_MB + "m" +
                             GRAALVM_BUILD_OUTPUT_JSON_FILE,
-                    "-Dfinal.name=quarkus-json"},
-            new String[]{"mvn", "package", "-Dfinal.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
+                    "-Dcustom.final.name=quarkus-json"},
+            new String[]{"mvn", "package", "-Dcustom.final.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{"perf", "stat", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar"},
             new String[]{"perf", "stat", "--delay", "1000", "./target/quarkus-json-runner", "-XX:+PrintGC"},
     }),

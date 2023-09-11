@@ -84,5 +84,27 @@
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
         </profile>
+        <profile>
+            <id>custom-final-name-not-set</id>
+            <activation>
+                <property>
+                    <name>!custom.final.name</name>
+                </property>
+            </activation>
+            <properties>
+                <final.name>quarkus-json-test</final.name>
+            </properties>
+        </profile>
+        <profile>
+            <id>custom-final-name-set</id>
+            <activation>
+                <property>
+                    <name>custom.final.name</name>
+                </property>
+            </activation>
+            <properties>
+                <final.name>${custom.final.name}</final.name>
+            </properties>
+        </profile>
     </profiles>
 </project>
