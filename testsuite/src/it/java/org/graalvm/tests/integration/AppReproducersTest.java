@@ -803,7 +803,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("versions")
-    @IfMandrelVersion(max = "23.1") // Skip it for 23.1+. It has the graal-sdk split and mandrel no longer includes polyglot.jar
+    @IfMandrelVersion(max = "23.0.99") // Skip it for 23.1+. It has the graal-sdk split and mandrel no longer includes polyglot.jar
     public void versionsParsingMandrel(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.VERSIONS;
         LOGGER.info("Testing app: " + app);
