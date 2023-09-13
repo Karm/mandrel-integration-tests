@@ -318,8 +318,13 @@ public class JFRTest {
                                                    String cn, String mn, StringBuilder report, Path measurementsLog,
                                                    boolean inContainer) throws IOException, InterruptedException {
 
+
+        Map<String, String> switches = null;
+        if (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0) {
+            switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
+        }
         // Container build requires an additional step: docker build...
-        builderRoutine(inContainer ? 2 : 1, app, report, cn, mn, appDir, processLog, null, null);
+        builderRoutine(inContainer ? 2 : 1, app, report, cn, mn, appDir, processLog, null, switches);
 
         Process process = null;
         Process hyperfoilProcess = null;
