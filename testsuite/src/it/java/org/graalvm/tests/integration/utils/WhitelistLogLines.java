@@ -114,6 +114,9 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"),
                     // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
                     Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
+                    // netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
+                    Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
+                    Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*")
             };
         }
     },
@@ -198,7 +201,10 @@ public enum WhitelistLogLines {
                         // Again Hyperfoil and Podman. There might be something odd with stopping those agents? Not a Quaruks/Mandrel issue.
                         Pattern.compile(".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"),
                         // Quarkus 3.x intermittently with JDK 20 based build...
-                        Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*")
+                        Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"),
+                        // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
+                        Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
+                        Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*")
                 };
             }
         }
