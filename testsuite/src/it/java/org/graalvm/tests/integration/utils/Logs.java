@@ -117,7 +117,7 @@ public class Logs {
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " executable size " +
                                 ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "overhead is" : " is ") +
                                 executableSizeKb + " kB, which is over " +
-                                executableSizeThresholdKb + " kB threshold by " + percentageValOverTh(executableSizeKb, executableSizeThresholdKb) + "%.");
+                                executableSizeThresholdKb + " kB threshold by " + percentageValOverTh(executableSizeKb, executableSizeThresholdKb) + "%.", false);
             } else {
                 LOGGER.error("executableSizeKb was to be checked, but there is no " + key + " in " + properties);
             }
@@ -131,7 +131,7 @@ public class Logs {
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " took " + timeToFirstOKRequest + " ms " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") +
                                 "to get the first OK request, which is over " +
-                                timeToFirstOKRequestThresholdMs + " ms threshold by " + percentageValOverTh(timeToFirstOKRequest, timeToFirstOKRequestThresholdMs) + "%.");
+                                timeToFirstOKRequestThresholdMs + " ms threshold by " + percentageValOverTh(timeToFirstOKRequest, timeToFirstOKRequestThresholdMs) + "%.", true);
             } else {
                 LOGGER.error("timeToFirstOKRequest was to be checked, but there is no " + key + " in " + properties);
             }
@@ -144,7 +144,7 @@ public class Logs {
                 assertThreshold(failures, rssKb <= rssThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " consumed " + rssKb + " kB of RSS memory " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") + ", which is over " +
-                                rssThresholdKb + " kB threshold by " + percentageValOverTh(rssKb, rssThresholdKb) + "%.");
+                                rssThresholdKb + " kB threshold by " + percentageValOverTh(rssKb, rssThresholdKb) + "%.", false);
             } else {
                 LOGGER.error("rssKb was to be checked, but there is no " + key + " in " + properties);
             }
@@ -157,7 +157,7 @@ public class Logs {
                 assertThreshold(failures, timeToFinishMs <= timeToFinishThresholdMs,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " took " +
                                 timeToFinishMs + " ms " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") + "to finish, which is over " +
-                                timeToFinishThresholdMs + " ms threshold by " + percentageValOverTh(timeToFinishMs, timeToFinishThresholdMs) + "%.");
+                                timeToFinishThresholdMs + " ms threshold by " + percentageValOverTh(timeToFinishMs, timeToFinishThresholdMs) + "%.", true);
             } else {
                 LOGGER.error("timeToFinishMs was to be checked, but there is no " + key + " in " + properties);
             }
@@ -170,7 +170,7 @@ public class Logs {
                 assertThreshold(failures, mean <= meanThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has mean response latency " +
                                 mean + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") + " , which is over " +
-                                meanThreshold + " threshold by " + percentageValOverTh(mean, meanThreshold) + "%.");
+                                meanThreshold + " threshold by " + percentageValOverTh(mean, meanThreshold) + "%.", true);
             } else {
                 LOGGER.error("mean was to be checked, but there is no " + key + " in " + properties);
             }
@@ -183,7 +183,7 @@ public class Logs {
                 assertThreshold(failures, p50 <= p50Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p50 response latency " +
                                 p50 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
-                                p50Threshold + "  threshold by " + percentageValOverTh(p50, p50Threshold) + "%.");
+                                p50Threshold + "  threshold by " + percentageValOverTh(p50, p50Threshold) + "%.", true);
             } else {
                 LOGGER.error("p99 was to be checked, but there is no " + key + " in " + properties);
             }
@@ -196,7 +196,7 @@ public class Logs {
                 assertThreshold(failures, p90 <= p90Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p90 response latency " +
                                 p90 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
-                                p90Threshold + "  threshold by " + percentageValOverTh(p90, p90Threshold) + "%.");
+                                p90Threshold + "  threshold by " + percentageValOverTh(p90, p90Threshold) + "%.", true);
             } else {
                 LOGGER.error("p90 was to be checked, but there is no " + key + " in " + properties);
             }
@@ -205,9 +205,11 @@ public class Logs {
         assertTrue(failures.isEmpty(), "\n" + String.join("\n", failures) + "\n");
     }
 
-    public static void assertThreshold(List<String> failures, boolean condition, String message) {
+    public static void assertThreshold(List<String> failures, boolean condition, String message, boolean timeSensitive) {
         if (!condition) {
-            if (FAIL_ON_PERF_REGRESSION) {
+            if (FAIL_ON_PERF_REGRESSION == FailOnPerfRegressionEnum.TRUE ||
+                    (FAIL_ON_PERF_REGRESSION == FailOnPerfRegressionEnum.TIME_SENSITIVE && timeSensitive) ||
+                    (FAIL_ON_PERF_REGRESSION == FailOnPerfRegressionEnum.NON_TIME_SENSITIVE && !timeSensitive)) {
                 failures.add(message);
             } else {
                 LOGGER.error(message);
