@@ -80,7 +80,7 @@ public class Commands {
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(getProperty("PODMAN_WITH_SUDO", "true"));
     // Docker: Error response from daemon: No such container: {{.MemUsage}}. Stats work when called with sudo.
     public static final boolean DOCKER_WITH_SUDO = Boolean.parseBoolean(getProperty("DOCKER_WITH_SUDO", "false"));
-    public static final boolean FAIL_ON_PERF_REGRESSION = Boolean.parseBoolean(getProperty("FAIL_ON_PERF_REGRESSION", "true"));
+    public static final FailOnPerfRegressionEnum FAIL_ON_PERF_REGRESSION = FailOnPerfRegressionEnum.valueOf(getProperty("FAIL_ON_PERF_REGRESSION", "true").toUpperCase());
 
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
