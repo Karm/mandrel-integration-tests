@@ -26,6 +26,7 @@ import org.jboss.logging.Logger;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,6 +70,12 @@ import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
  * GraalVM Runtime Environment GraalVM CE (build 20+34-jvmci-23.0-b10)
  * Substrate VM GraalVM CE (build 20+34, serial gc)
  *
+ * or
+ *
+ * native-image 22 2024-03-19
+ * GraalVM Runtime Environment GraalVM CE 22-dev+15.1 (build 22+15-jvmci-b01)
+ * Substrate VM GraalVM CE 22-dev+15.1 (build 22+15, serial gc)
+ *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 public class UsedVersion {
@@ -96,6 +103,11 @@ public class UsedVersion {
 
     // Implements version parsing after https://github.com/oracle/graal/pull/6302
     static final class VersionParseHelper {
+
+        private static final Map<Integer, String> GRAAL_MAPPING = Map.of(22, "24.0",
+                                                                         23, "24.1",
+                                                                         24, "25.0",
+                                                                         25, "25.1");
 
         private static final String JVMCI_BUILD_PREFIX = "jvmci-";
         private static final String MANDREL_VERS_PREFIX = "Mandrel-";
@@ -145,7 +157,7 @@ public class UsedVersion {
                 String vendorVersion = secondMatcher.group(VENDOR_VERSION_GROUP);
 
                 String buildInfo = secondMatcher.group(BUILD_INFO_GROUP);
-                String graalVersion = graalVersion(buildInfo);
+                String graalVersion = graalVersion(buildInfo, v.feature());
                 String mandrelVersion = mandrelVersion(vendorVersion);
                 String versNum = (isMandrel(vendorVersion) ? mandrelVersion : graalVersion);
                 Version vers = versionParse(versNum);
@@ -191,7 +203,11 @@ public class UsedVersion {
             return null;
         }
 
-        private static String graalVersion(String buildInfo) {
+        private static String graalVersion(String buildInfo, int jdkFeatureVers) {
+            if (jdkFeatureVers >= 22) {
+                // short-circuit new version scheme with a mapping
+                return GRAAL_MAPPING.get(Integer.valueOf(jdkFeatureVers));
+            }
             if (buildInfo == null) {
                 return null;
             }
