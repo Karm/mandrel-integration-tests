@@ -202,6 +202,15 @@ public class JFRTest {
 
             generateJFRConfigurationFile(inContainer, jfrPerfJfc, processLog);
 
+
+            Map<String, String> switches = null;
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0) {
+                switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
+            }
+            // Container build requires an additional step: docker build...
+            builderRoutine(inContainer ? 2 : 1, appJfr, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(inContainer ? 2 : 1, appNoJfr, report, cn, mn, appDir, processLog, null, switches);
+
             startComparisonForBenchmark(Endpoint.REGULAR, true, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr, inContainer);
             LOGGER.info("REGULAR workload completed.");
             startComparisonForBenchmark(Endpoint.WORK, false, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr, inContainer);
@@ -222,6 +231,8 @@ public class JFRTest {
             removeContainers(ContainerNames.HYPERFOIL.name);
             if (!inContainer) {
                 removeContainers(appJfr.runtimeContainer.name, appNoJfr.runtimeContainer.name);
+            } else{
+                removeContainers(ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name);
             }
             enableTurbo();
         }
@@ -240,9 +251,9 @@ public class JFRTest {
                                              StringBuilder report, Path measurementsLog, File appDir, Apps appJfr, Apps appNoJfr,
                                              boolean inContainer) throws IOException, InterruptedException {
 
-        final Map<String, Integer> measurementsJfr = runBenchmarkOnApp(endpoint, 5, appJfr, appDir, processLog,
+        final Map<String, Integer> measurementsJfr = runBenchmarkForApp(endpoint, 5, appJfr, appDir, processLog,
                 cn, mn, report, measurementsLog, inContainer);
-        final Map<String, Integer> measurementsNoJfr = runBenchmarkOnApp(endpoint, 5, appNoJfr, appDir, processLog,
+        final Map<String, Integer> measurementsNoJfr = runBenchmarkForApp(endpoint, 5, appNoJfr, appDir, processLog,
                 cn, mn, report, measurementsLog, inContainer);
 
         LOGGER.info("JFR measurementsJfr records: " + measurementsJfr.size() + ", measurementsNoJfr records: " + measurementsNoJfr.size());
@@ -314,17 +325,9 @@ public class JFRTest {
         }
     }
 
-    private Map<String, Integer> runBenchmarkOnApp(Endpoint endpoint, int trials, Apps app, File appDir, File processLog,
-                                                   String cn, String mn, StringBuilder report, Path measurementsLog,
-                                                   boolean inContainer) throws IOException, InterruptedException {
-
-
-        Map<String, String> switches = null;
-        if (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0) {
-            switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
-        }
-        // Container build requires an additional step: docker build...
-        builderRoutine(inContainer ? 2 : 1, app, report, cn, mn, appDir, processLog, null, switches);
+    private Map<String, Integer> runBenchmarkForApp(Endpoint endpoint, int trials, Apps app, File appDir, File processLog,
+                                                    String cn, String mn, StringBuilder report, Path measurementsLog,
+                                                    boolean inContainer) throws IOException, InterruptedException {
 
         Process process = null;
         Process hyperfoilProcess = null;
@@ -468,10 +471,7 @@ public class JFRTest {
             if (process != null && process.isAlive()) {
                 processStopper(process, true);
             }
-            removeContainers(
-                    ContainerNames.HYPERFOIL.name,
-                    ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name,
-                    ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name);
+            removeContainers(ContainerNames.HYPERFOIL.name);
             if (hyperfoilProcess != null && hyperfoilProcess.isAlive()) {
                 processStopper(hyperfoilProcess, true);
             }
