@@ -223,7 +223,7 @@ public enum BuildAndRunCmds {
             // should generally be using for now so I decided it was best to test that one.
             // I don't think the difference between the two will be that huge anyway though.
             // Source: https://github.com/Karm/mandrel-integration-tests/pull/179#discussion_r1295933521
-            new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr",
+            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr",
                     "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler",
                     "-DfinalName=jfr-perf"},
             new String[]{"./target/jfr-perf-runner",
@@ -233,7 +233,7 @@ public enum BuildAndRunCmds {
             new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
     }),
     PLAINTEXT_PERFORMANCE(new String[][]{
-            new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+            new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-DfinalName=jfr-plaintext"},
             new String[]{"./target/jfr-plaintext-runner"},
             new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
