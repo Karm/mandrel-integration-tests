@@ -29,11 +29,11 @@ jobs:
         include:
           - quarkus-version: '2.13.8.Final'
             mandrel-builder-image: '22.3-java17'
-          - quarkus-version: '2.16.9.Final'
+          - quarkus-version: '2.16.11.Final'
             mandrel-builder-image: '22.3-java17'
-          - quarkus-version: '3.2.3.Final'
+          - quarkus-version: '3.2.6.Final'
             mandrel-builder-image: 'jdk-17'
-          - quarkus-version: '3.2.3.Final'
+          - quarkus-version: '3.2.6.Final'
             mandrel-builder-image: 'jdk-20'
     steps:
       - uses: actions/checkout@v3
