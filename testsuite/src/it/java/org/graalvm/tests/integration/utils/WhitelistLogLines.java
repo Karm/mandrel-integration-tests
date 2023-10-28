@@ -45,7 +45,9 @@ public enum WhitelistLogLines {
                     Pattern.compile("WARNING.* reflective access.*"),
                     Pattern.compile("WARNING: All illegal access operations.*"),
                     Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"),
-                    Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*")
+                    Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*"),
+                    // JAVA_HOME (e.g. 17) != GRAALVM_HOME (e.g. 21)
+                    Pattern.compile(".*system modules path not set in conjunction with -source .*")
             };
         }
     },
