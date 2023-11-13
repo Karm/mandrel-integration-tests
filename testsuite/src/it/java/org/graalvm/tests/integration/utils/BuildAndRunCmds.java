@@ -155,6 +155,11 @@ public enum BuildAndRunCmds {
             new String[]{"native-image", "-J-Duser.country=CA", "-J-Duser.language=fr", "-jar", "target/timezones.jar", "target/timezones"},
             new String[]{IS_THIS_WINDOWS ? "target\\timezones.exe" : "./target/timezones"}
     }),
+    CALENDARS(new String[][]{
+        new String[]{"mvn", "package"},
+        new String[]{"native-image", "--link-at-build-time=calendar.Main", "-jar", "target/calendars.jar", "target/calendars"},
+        new String[]{IS_THIS_WINDOWS ? "target\\calendars.exe" : "./target/calendars"}
+    }),
     RECORDANNOTATIONS(new String[][]{
             new String[]{"mvn", "package"},
             new String[]{"native-image", "--no-fallback", "-jar", "target/recordannotations.jar", "target/recordannotations"},

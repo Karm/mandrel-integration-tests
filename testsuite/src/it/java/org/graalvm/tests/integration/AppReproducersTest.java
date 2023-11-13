@@ -745,6 +745,46 @@ public class AppReproducersTest {
             cleanup(process, cn, mn, report, app, processLog);
         }
     }
+    
+    @Test
+    @Tag("calendars")
+    @IfMandrelVersion(min = "22.3.5") // The fix for this test is in 22.3.5 and better
+    public void calendarsBakedIn(TestInfo testInfo) throws IOException, InterruptedException {
+        final Apps app = Apps.CALENDARS;
+        LOGGER.info("Testing app: " + app);
+        Process process = null;
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        try {
+            // Cleanup
+            cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // Build
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+
+            builderRoutine(app, report, cn, mn, appDir, processLog);
+
+            LOGGER.info("Running...");
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+
+            final Pattern p = Pattern.compile(".*Year: (?:1|1086), dayOfYear: 1, type: (?:japanese|buddhist|gregory).*");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+
+            processStopper(process, false);
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            cleanup(process, cn, mn, report, app, processLog);
+        }
+    }
 
     @Test
     @Tag("jdk-17")
