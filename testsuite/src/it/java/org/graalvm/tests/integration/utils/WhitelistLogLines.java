@@ -118,7 +118,9 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
                     // netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
                     Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
-                    Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*")
+                    Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"),
+                    // Allow-list spurious deprecation warning until the bug is fixed: https://github.com/quarkusio/quarkus/issues/37072
+                    Pattern.compile(".*\\[io\\.qua\\.run\\.con\\.DeprecatedRuntimePropertiesRecorder\\] \\(main\\) The 'quarkus\\.http\\.auth\\.form\\.redirect-after-login' config property is deprecated and should not be used anymore.*")
             };
         }
     },
