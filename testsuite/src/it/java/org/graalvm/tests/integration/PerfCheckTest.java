@@ -27,6 +27,7 @@ import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.Uploader;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpResponseCodes;
@@ -397,6 +398,7 @@ public class PerfCheckTest {
 
     @Test
     @IfMandrelVersion(min = "21.3")
+    @IfQuarkusVersion(max = "3.5.999")
     public void testQuarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_FULL_MICROPROFILE_PERF;
         LOGGER.info("Testing app: " + app);

@@ -25,6 +25,7 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
@@ -206,6 +207,7 @@ public class DebugSymbolsTest {
     @Test
     @Tag("debugSymbolsQuarkus")
     @DisabledOnOs({OS.WINDOWS})
+    @IfQuarkusVersion(max = "3.5.999")
     public void debugSymbolsQuarkus(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_QUARKUS_FULL_MICROPROFILE;
         LOGGER.info("Testing app: " + app);
