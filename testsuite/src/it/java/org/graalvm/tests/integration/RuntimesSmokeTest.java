@@ -25,6 +25,7 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
@@ -177,6 +178,7 @@ public class RuntimesSmokeTest {
 
     @Test
     @Tag("quarkus")
+    @IfQuarkusVersion(max = "3.5.999")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
         Apps app = Apps.QUARKUS_FULL_MICROPROFILE;
         final Map<String, String> switches;
