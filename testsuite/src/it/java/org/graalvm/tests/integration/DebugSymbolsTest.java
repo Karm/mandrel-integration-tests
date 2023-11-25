@@ -25,7 +25,6 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.GDBSession;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
-import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
@@ -207,7 +206,6 @@ public class DebugSymbolsTest {
     @Test
     @Tag("debugSymbolsQuarkus")
     @DisabledOnOs({OS.WINDOWS})
-    @IfQuarkusVersion(max = "3.5.999")
     public void debugSymbolsQuarkus(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_QUARKUS_FULL_MICROPROFILE;
         LOGGER.info("Testing app: " + app);
@@ -216,15 +214,22 @@ public class DebugSymbolsTest {
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
+        final String patch;
+        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.6.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+            patch = "quarkus_3.6.x.patch";
+        } else if (QUARKUS_VERSION.majorIs(3)) {
+            patch = "quarkus_3.x.patch";
+        } else {
+            patch = null;
+        }
         try {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Patch for compatibility
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, app.dir).toFile());
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", patch), appDir);
             }
 
             // Build
@@ -294,9 +299,8 @@ public class DebugSymbolsTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, app.dir).toFile());
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
     }

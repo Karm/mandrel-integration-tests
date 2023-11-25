@@ -41,6 +41,7 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*maven-error-diagnostics.*"),
                     // Download https://repo.maven.apache.org/maven2/com/google/errorprone
                     Pattern.compile(".*com/google/errorprone/error_prone.*"),
+                    Pattern.compile(".*com.google.errorprone:error_prone_annotations:jar:sources.*"),
                     // JDK:
                     Pattern.compile("WARNING.* reflective access.*"),
                     Pattern.compile("WARNING: All illegal access operations.*"),
@@ -118,7 +119,9 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
                     // netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
                     Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
-                    Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*")
+                    Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"),
+                    // We don't run any OpenTracing collector point for simplicity, hence the exception. Q 3.6.0+ specific.
+                    Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*")
             };
         }
     },
