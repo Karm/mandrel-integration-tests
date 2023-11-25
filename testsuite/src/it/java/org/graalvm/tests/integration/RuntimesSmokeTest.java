@@ -25,7 +25,7 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
-import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
+import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
@@ -178,7 +178,6 @@ public class RuntimesSmokeTest {
 
     @Test
     @Tag("quarkus")
-    @IfQuarkusVersion(max = "3.5.999")
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
         Apps app = Apps.QUARKUS_FULL_MICROPROFILE;
         final Map<String, String> switches;
@@ -187,14 +186,22 @@ public class RuntimesSmokeTest {
         } else {
             switches = null;
         }
-        if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
+
+        final String patch;
+        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.6.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+            patch = "quarkus_3.6.x.patch";
+        } else if (QUARKUS_VERSION.majorIs(3)) {
+            patch = "quarkus_3.x.patch";
+        } else {
+            patch = null;
+        }
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        if (patch != null) {
             try {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, app.dir).toFile());
+                runCommand(getRunCommand("git", "apply", patch), appDir);
                 testRuntime(testInfo, app, switches);
             } finally {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, app.dir).toFile());
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         } else {
             testRuntime(testInfo, app, switches);

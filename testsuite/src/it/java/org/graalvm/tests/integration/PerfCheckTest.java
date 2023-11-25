@@ -27,7 +27,7 @@ import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.Uploader;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
-import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
+import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpResponseCodes;
@@ -398,7 +398,6 @@ public class PerfCheckTest {
 
     @Test
     @IfMandrelVersion(min = "21.3")
-    @IfQuarkusVersion(max = "3.5.999")
     public void testQuarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_FULL_MICROPROFILE_PERF;
         LOGGER.info("Testing app: " + app);
@@ -408,22 +407,32 @@ public class PerfCheckTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final List<Map<String, String>> reports = new ArrayList<>(2);
+        final String patch;
+        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.6.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+            patch = "quarkus_3.6.x.patch";
+        } else if (QUARKUS_VERSION.majorIs(3)) {
+            patch = "quarkus_3.x.patch";
+        } else {
+            patch = null;
+        }
         try {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", patch), appDir);
             }
 
             // Build executables
             final Map<String, String> switches = new HashMap<>();
             if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
                 if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+                    switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
                     switches.put("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
+                } else {
+                    switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
                 }
             } else {
                 switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
@@ -515,8 +524,8 @@ public class PerfCheckTest {
                     "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
     }

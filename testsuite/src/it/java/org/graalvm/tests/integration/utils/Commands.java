@@ -59,6 +59,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -1106,27 +1107,31 @@ public class Commands {
         builderRoutine(steps, app, report, cn, mn, appDir, processLog, null, null);
     }
 
-    public static List<String> replaceSwitchesInCmd(List<String> cmd, Map<String, String> switchReplacements) {
-        final List<String> l = new ArrayList<>(cmd.size());
+    public static List<String> replaceSwitchesInCmd(final List<String> cmd, final Map<String, String> switchReplacements) {
+        final List<String> newCmd = new ArrayList<>(cmd.size());
         cmd.forEach(c -> {
-            final String k = c.trim();
-            if (switchReplacements.containsKey(k)) {
-                final String replacement = switchReplacements.get(k);
+            String segment = c.trim();
+            if (switchReplacements.containsKey(segment)) {
+                final String replacement = switchReplacements.get(segment);
                 if (!replacement.isEmpty()) {
-                    l.add(replacement);
+                    newCmd.add(replacement);
                 }
             } else {
                 // Some switches could be nested in e.g. -Dquarkus.native.additional-build-args=,
-                // thus not found by simple cmd lookup above.
-                final String key = switchReplacements.keySet().stream().filter(k::contains).findFirst().orElse(null);
-                if (key != null) {
-                    l.add(k.replace(key, switchReplacements.get(key)));
+                // thus not found by simple cmd lookup above. There could be more keys to replace too,
+                // so we need to iterate until all substitutions in a segment are done. Yes. I am beginning to wonder too.
+                final List<String> keys = switchReplacements.keySet().stream().filter(segment::contains).collect(Collectors.toList());
+                if (!keys.isEmpty()) {
+                    for (String key : keys) {
+                        segment = segment.replace(key, switchReplacements.get(key));
+                    }
+                    newCmd.add(segment);
                 } else {
-                    l.add(c);
+                    newCmd.add(c);
                 }
             }
         });
-        return l;
+        return newCmd;
     }
 
     // Copied from

@@ -115,7 +115,7 @@ public class Logs {
                 long executableSizeThresholdKb = app.thresholdProperties.get(key);
                 assertThreshold(failures, executableSizeKb <= executableSizeThresholdKb,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " executable size " +
-                                ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "overhead is" : " is ") +
+                                ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "overhead is" : "is ") +
                                 executableSizeKb + " kB, which is over " +
                                 executableSizeThresholdKb + " kB threshold by " + percentageValOverTh(executableSizeKb, executableSizeThresholdKb) + "%.", false);
             } else {
