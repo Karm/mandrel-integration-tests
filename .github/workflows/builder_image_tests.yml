@@ -27,14 +27,16 @@ jobs:
       matrix:
         os: [ ubuntu-20.04 ]
         include:
-          - quarkus-version: '2.13.8.Final'
+          - quarkus-version: '2.13.9.Final'
             mandrel-builder-image: '22.3-java17'
-          - quarkus-version: '2.16.11.Final'
+          - quarkus-version: '2.16.12.Final'
             mandrel-builder-image: '22.3-java17'
-          - quarkus-version: '3.2.6.Final'
+          - quarkus-version: '3.2.9.Final'
             mandrel-builder-image: 'jdk-17'
-          - quarkus-version: '3.2.6.Final'
-            mandrel-builder-image: 'jdk-20'
+          - quarkus-version: '3.5.3'
+            mandrel-builder-image: 'jdk-21'
+          - quarkus-version: '3.6.0'
+            mandrel-builder-image: 'jdk-21'
     steps:
       - uses: actions/checkout@v3
         with:

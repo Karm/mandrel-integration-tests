@@ -908,27 +908,9 @@ public class AppReproducersTest {
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            Map<String, String> switches = new HashMap<>();
-            Version version = UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE);
-            if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
-                switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);
-            } else {
-                switches.put(UnlockExperimentalVMOptions_23_1.token, "");
-                switches.put(LockExperimentalVMOptions_23_1.token, "");
-            }
-            if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
-                switches.put(TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement);
-                switches.put(DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement);
-                switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
-            } else {
-                switches.put(TrackNodeSourcePosition_23_0.token, "");
-                switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
-                switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
-            }
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, getSwitches(app));
 
             final File inputData = new File(BASE_DIR + File.separator + app.dir + File.separator + "target" + File.separator + "test_data.txt");
 
@@ -965,8 +947,8 @@ public class AppReproducersTest {
             }
 
             assertEquals(2, count, "There were two same hashes " + magicHash + " expected in the log. " +
-                    "One from JVM run and one for Native image run. " +
-                    "" + count + " such hashes were found. Check build-and-run.log and report.md.");
+                    "One from JVM run and one for Native image run. " + count +
+                    " such hashes were found. Check build-and-run.log and report.md.");
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
@@ -991,5 +973,27 @@ public class AppReproducersTest {
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
         }
+    }
+
+    private static Map<String, String> getSwitches(Apps app) {
+        final Map<String, String> switches = new HashMap<>();
+        final Version version = UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE);
+        if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
+            switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
+            switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);
+        } else {
+            switches.put(UnlockExperimentalVMOptions_23_1.token, "");
+            switches.put(LockExperimentalVMOptions_23_1.token, "");
+        }
+        if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
+            switches.put(TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement);
+            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement);
+            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
+        } else {
+            switches.put(TrackNodeSourcePosition_23_0.token, "");
+            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
+            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
+        }
+        return switches;
     }
 }

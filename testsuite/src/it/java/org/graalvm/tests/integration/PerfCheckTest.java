@@ -144,19 +144,7 @@ public class PerfCheckTest {
             }
 
             // Build executables
-            final Map<String, String> switches;
-            if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-                switches = Map.of(
-                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce", "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_minus-ParseOnce.json",
-                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_plus-ParseOnce.json"
-                );
-            } else {
-                switches = Map.of(
-                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce", "",
-                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", ""
-                );
-            }
-            builderRoutine(3, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(3, app, null, null, null, appDir, processLog, null, getSwitches1());
             assertTrue(processLog.exists());
 
             int line = 0;
@@ -287,13 +275,7 @@ public class PerfCheckTest {
             }
 
             // Build executables
-            final Map<String, String> switches;
-            if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
-            } else {
-                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
-            }
-            builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(2, app, null, null, null, appDir, processLog, null, getSwitches2());
 
             int line = 0;
             for (int i = 2; i >= 1; i--) {
@@ -426,18 +408,7 @@ public class PerfCheckTest {
             }
 
             // Build executables
-            final Map<String, String> switches = new HashMap<>();
-            if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-                if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
-                    switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
-                    switches.put("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
-                } else {
-                    switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
-                }
-            } else {
-                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
-            }
-            builderRoutine(2, app, null, null, null, appDir, processLog, null, switches);
+            builderRoutine(2, app, null, null, null, appDir, processLog, null, getSwitches3());
 
             int line = 0;
             for (int i = 2; i >= 1; i--) {
@@ -528,5 +499,67 @@ public class PerfCheckTest {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
+    }
+
+    private static Map<String, String> getSwitches1() {
+        final Map<String, String> switches;
+        if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
+            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+                switches = Map.of(
+                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
+                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_minus-ParseOnce.json,-H:-UnlockExperimentalVMOptions",
+                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce",
+                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_plus-ParseOnce.json,-H:-UnlockExperimentalVMOptions",
+                        "-H:-ParseOnce", "-H:+UnlockExperimentalVMOptions,-H:-ParseOnce,-H:-UnlockExperimentalVMOptions",
+                        "-H:+ParseOnce", "-H:+UnlockExperimentalVMOptions,-H:+ParseOnce,-H:-UnlockExperimentalVMOptions"
+                );
+            } else {
+                switches = Map.of(
+                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
+                        "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_minus-ParseOnce.json",
+                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce",
+                        "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_plus-ParseOnce.json"
+                );
+            }
+        } else {
+            switches = Map.of(
+                    GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce", "",
+                    GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", ""
+            );
+        }
+        return switches;
+    }
+
+    private static Map<String, String> getSwitches2() {
+        final Map<String, String> switches;
+        if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
+            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE,
+                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
+            } else {
+                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE,
+                        "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
+            }
+        } else {
+            switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
+        }
+        return switches;
+    }
+
+    private static Map<String, String> getSwitches3() {
+        final Map<String, String> switches = new HashMap<>();
+        if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
+            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE,
+                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
+                switches.put("-H:Log=registerResource:",
+                        "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
+            } else {
+                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
+            }
+        } else {
+            switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
+        }
+        return switches;
     }
 }

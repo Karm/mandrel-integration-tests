@@ -43,7 +43,10 @@ import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -131,27 +134,9 @@ public class DebugSymbolsTest {
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            Map<String, String> switches = new HashMap<>();
-            Version version = UsedVersion.getVersion(false);
-            if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
-                switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);
-            } else {
-                switches.put(UnlockExperimentalVMOptions_23_1.token, "");
-                switches.put(LockExperimentalVMOptions_23_1.token, "");
-            }
-            if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
-                switches.put(TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement);
-                switches.put(DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement);
-                switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
-            } else {
-                switches.put(TrackNodeSourcePosition_23_0.token, "");
-                switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
-                switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
-            }
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, getSwitches());
 
             assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "debug-symbols-smoke")),
                     "debug-symbols-smoke executable does not exist. Compilation failed. Check the logs.");
@@ -201,6 +186,28 @@ public class DebugSymbolsTest {
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
         }
+    }
+
+    private static Map<String, String> getSwitches() {
+        final Map<String, String> switches = new HashMap<>();
+        final Version version = UsedVersion.getVersion(false);
+        if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
+            switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
+            switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);
+        } else {
+            switches.put(UnlockExperimentalVMOptions_23_1.token, "");
+            switches.put(LockExperimentalVMOptions_23_1.token, "");
+        }
+        if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
+            switches.put(TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement);
+            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement);
+            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
+        } else {
+            switches.put(TrackNodeSourcePosition_23_0.token, "");
+            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
+            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
+        }
+        return switches;
     }
 
     @Test
@@ -327,10 +334,12 @@ public class DebugSymbolsTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final Pattern dbReady = Pattern.compile(".*ready to accept connections.*");
+        final Pattern appStarted = Pattern.compile(".*started.*");
         try {
             // Cleanup
             cleanTarget(app);
             stopAllRunningContainers();
+            removeContainers(app.runtimeContainer.name, "quarkus_test_db");
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             if (applySourcesPatch()) {
@@ -340,14 +349,30 @@ public class DebugSymbolsTest {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
-            // Build & Run
+            // Build app and start db
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            builderRoutine(app.buildAndRunCmds.cmds.length, app, report, cn, mn, appDir, processLog);
-
+            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
+
+            // Start app
+            LOGGER.info("Running...");
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            runCommand(cmd, appDir, processLog, app);
+            Files.writeString(processLog.toPath(), String.join(" ", cmd) + "\n", StandardOpenOption.APPEND,
+                    StandardOpenOption.CREATE);
+            Logs.appendln(report, (new Date()).toString());
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            waitForContainerLogToMatch(app.runtimeContainer.name, appStarted, 5, 1, TimeUnit.SECONDS);
+
+            // Sanity check that the app works before we commence debugging
+            LOGGER.info("Testing web page content...");
+            WebpageTester.testWeb(app.urlContent.urlContent[0][0], 20, app.urlContent.urlContent[0][1], false);
 
             // Check the log now to make sure there are no install failures
             // before gdb session starts.
+            runCommand(getRunCommand(CONTAINER_RUNTIME, "logs", app.runtimeContainer.name),
+                    appDir, processLog, app).waitFor(5, TimeUnit.SECONDS);
             Logs.checkLog(cn, mn, app, processLog);
 
             // GDB process
@@ -355,7 +380,8 @@ public class DebugSymbolsTest {
             // Q 1.11.7.Final and Mandrel 20.3.2 needs work/application.debug
             // Is Q 2.x baking debug symbols to the main executable too?
             final ProcessBuilder processBuilder = new ProcessBuilder(getRunCommand(
-                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb", "--interpreter=mi", "/work/application.debug", "1"))
+                    CONTAINER_RUNTIME, "exec", "-i", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "/usr/bin/gdb",
+                    "--interpreter=mi", "/work/application.debug", "1"))
                     .directory(appDir)
                     .redirectErrorStream(true);
             final Map<String, String> envA = processBuilder.environment();
@@ -400,10 +426,8 @@ public class DebugSymbolsTest {
 
             gdbProcess.waitFor(1, TimeUnit.SECONDS);
 
-            final Process process = runCommand(
-                    getRunCommand(CONTAINER_RUNTIME, "logs", app.runtimeContainer.name),
-                    appDir, processLog, app);
-            process.waitFor(5, TimeUnit.SECONDS);
+            runCommand(getRunCommand(CONTAINER_RUNTIME, "logs", app.runtimeContainer.name),
+                    appDir, processLog, app).waitFor(5, TimeUnit.SECONDS);
 
             processStopper(gdbProcess, true);
             stopRunningContainers(app.runtimeContainer.name, "quarkus_test_db");

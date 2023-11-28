@@ -357,9 +357,9 @@ public class Commands {
     }
 
     public static boolean waitForContainerLogToMatch(String containerName, Pattern pattern, long timeout, long sleep, TimeUnit unit) throws IOException, InterruptedException {
-        long timeoutMillis = unit.toMillis(timeout);
-        long sleepMillis = unit.toMillis(sleep);
-        long startMillis = System.currentTimeMillis();
+        final long timeoutMillis = unit.toMillis(timeout);
+        final long sleepMillis = unit.toMillis(sleep);
+        final long startMillis = System.currentTimeMillis();
         final List<String> cmd = getRunCommand(CONTAINER_RUNTIME, "logs", containerName);
         LOGGER.infof("Command: %s", cmd);
         final ProcessBuilder processBuilder = new ProcessBuilder(cmd);
@@ -367,7 +367,7 @@ public class Commands {
         envA.put("PATH", System.getenv("PATH"));
         processBuilder.redirectErrorStream(true);
         while (System.currentTimeMillis() - startMillis < timeoutMillis) {
-            Process p = processBuilder.start();
+            final Process p = processBuilder.start();
             try (BufferedReader processOutputReader =
                          new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
                 String l;
