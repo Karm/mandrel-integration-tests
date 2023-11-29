@@ -129,11 +129,11 @@ public enum BuildAndRunCmds {
                     "--name", ContainerNames.QUARKUS_BUILDER_IMAGE_ENCODING.name, "my-quarkus-mandrel-app"}
     }),
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new String[][]{
+            new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                     "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                     "-Dquarkus.native.builder-image=" + BUILDER_IMAGE,
                     "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
-            new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-f", "src/main/docker/Dockerfile.native", "-t", "my-quarkus-mandrel-app", "."},
             new String[]{CONTAINER_RUNTIME, "run", "--network=host", "--ulimit", "memlock=-1:-1", "-it", "-d", "--rm=true",
                     "--name", "quarkus_test_db", "-e", "POSTGRES_USER=quarkus_test", "-e", "POSTGRES_PASSWORD=quarkus_test",

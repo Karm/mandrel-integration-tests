@@ -101,7 +101,7 @@ public class RuntimesSmokeTest {
 
             // Run
             LOGGER.info("Running...");
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
             process = runCommand(cmd, appDir, processLog, app);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));

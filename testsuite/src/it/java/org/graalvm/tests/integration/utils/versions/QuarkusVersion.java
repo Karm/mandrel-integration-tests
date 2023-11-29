@@ -32,7 +32,7 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     private final String gitSHA;
 
     public QuarkusVersion() {
-        this(getProperty("QUARKUS_VERSION", "2.13.7.Final"));
+        this(getProperty("QUARKUS_VERSION", "2.13.9.Final"));
     }
 
     public QuarkusVersion(String version) {

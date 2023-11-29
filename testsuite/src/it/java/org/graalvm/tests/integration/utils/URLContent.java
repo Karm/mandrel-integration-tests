@@ -60,12 +60,16 @@ public enum URLContent {
             new String[]{"http://localhost:8090/openapi", "openapi: 3.0.0"},
             new String[]{"http://localhost:8090/benchmark/jfr-hyperfoil/start"},
     }),
+
     HELIDON_QUICKSTART_SE(new String[][]{
             new String[]{"http://localhost:8080/greet", "Hello World!"},
             new String[]{"http://localhost:8080/greet/Karm", "Hello Karm!"},
             new String[]{"http://localhost:8080/health", "\"UP\""},
             new String[]{"http://localhost:8080/metrics", "availableProcessors"}
-    });
+    }),
+
+    DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(new String[][]{
+        new String[]{"http://localhost:8080/fruits", "\"name\":\"Apple\""}});
 
     public final String[][] urlContent;
 

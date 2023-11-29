@@ -70,7 +70,7 @@ public enum Apps {
             BuildAndRunCmds.DEBUG_QUARKUS_FULL_MICROPROFILE,
             ContainerNames.NONE),
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX("apps" + File.separator + "quarkus-vertx",
-            URLContent.NONE,
+            URLContent.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX,
             WhitelistLogLines.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX,
             BuildAndRunCmds.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX,
             ContainerNames.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX),

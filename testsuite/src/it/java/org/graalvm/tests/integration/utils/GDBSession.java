@@ -260,11 +260,15 @@ public enum GDBSession {
         @Override
         public CP[] get(boolean inContainer) {
             // The huge timeout is needed because it takes a very long time to set a breakpoint, even after: https://github.com/graalvm/mandrel/pull/545
-            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
-            return new CP[]{
+            final long increasedTimeoutMs = (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 0, 0)) >= 0)
+                    ? CMD_LONG_TIMEOUT_MS
+                    : CMD_DEFAULT_TIMEOUT_MS;
+            return new CP[] {
                     SHOW_VERSION,
                     new CP("b Fruit.java:48\n",
-                            Pattern.compile(".*Breakpoint 1.*file org/acme/vertx/Fruit.java,.*line 48.*", Pattern.DOTALL), increasedTimeoutMs),
+                            Pattern.compile(".*Breakpoint 1.*file[ =\"]*org/acme/vertx/Fruit.java\"?,.*line[ =\"]*48.*",
+                                    Pattern.DOTALL),
+                            increasedTimeoutMs),
                     new CP("c&\n",
                             Pattern.compile(".*", Pattern.DOTALL)),
                     new CP("GOTO URL http://localhost:8080/fruits",
@@ -272,7 +276,8 @@ public enum GDBSession {
                     new CP("bt\n",
                             Pattern.compile(".*at org/acme/vertx/Fruit.java:48.*", Pattern.DOTALL)),
                     new CP("list\n",
-                            Pattern.compile(".*48.*return client.query\\(\"SELECT id, name FROM fruits ORDER BY name ASC.*", Pattern.DOTALL)),
+                            Pattern.compile(".*48.*return client.query\\(\"SELECT id, name FROM fruits ORDER BY name ASC.*",
+                                    Pattern.DOTALL)),
                     new CP("c&\n",
                             Pattern.compile(".*Continuing.*", Pattern.DOTALL)),
             };
