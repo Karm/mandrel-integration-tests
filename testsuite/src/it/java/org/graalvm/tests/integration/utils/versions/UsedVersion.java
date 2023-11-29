@@ -105,9 +105,9 @@ public class UsedVersion {
     static final class VersionParseHelper {
 
         private static final Map<Integer, String> GRAAL_MAPPING = Map.of(22, "24.0",
-                                                                         23, "24.1",
-                                                                         24, "25.0",
-                                                                         25, "25.1");
+                23, "24.1",
+                24, "25.0",
+                25, "25.1");
 
         private static final String JVMCI_BUILD_PREFIX = "jvmci-";
         private static final String MANDREL_VERS_PREFIX = "Mandrel-";
@@ -232,7 +232,8 @@ public class UsedVersion {
      * Mandrel Version plus additional metadata, e.g. jdkUsesSysLibs
      */
     private static final class MVersion {
-        private static final MVersion UNKNOWN_VERSION = new MVersion(null, false, UNDEFINED, UNDEFINED, UNDEFINED, "beta-unknown");
+        private static final MVersion UNKNOWN_VERSION = new MVersion(null, false, UNDEFINED, UNDEFINED, UNDEFINED,
+                "beta-unknown");
         private static final Logger LOGGER = Logger.getLogger(MVersion.class.getName());
         private static final Pattern VERSION_PATTERN = Pattern.compile(
                 "(?:GraalVM|native-image)(?: Version)? (?<version>[^ ]*).*" +
@@ -245,7 +246,8 @@ public class UsedVersion {
         private final int jdkUpdate;
         private final String betaBits;
 
-        private MVersion(Version version, boolean jdkUsesSysLibs, int jdkFeature, int jdkInterim, int jdkUpdate, String betaBits) {
+        private MVersion(Version version, boolean jdkUsesSysLibs, int jdkFeature, int jdkInterim, int jdkUpdate,
+                String betaBits) {
             this.version = version;
             this.jdkUsesSysLibs = jdkUsesSysLibs;
             this.jdkFeature = jdkFeature;
@@ -265,7 +267,8 @@ public class UsedVersion {
                 mandrelVersion = UNKNOWN_VERSION;
             }
             LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d%s.",
-                    mandrelVersion.version.toString(), inContainer ? "in container" : "installed locally on PATH", mandrelVersion.jdkFeature, mandrelVersion.jdkInterim, mandrelVersion.jdkUpdate, mandrelVersion.betaBits);
+                    mandrelVersion.version.toString(), inContainer ? "in container" : "installed locally on PATH",
+                    mandrelVersion.jdkFeature, mandrelVersion.jdkInterim, mandrelVersion.jdkUpdate, mandrelVersion.betaBits);
             return mandrelVersion;
         }
 
@@ -305,8 +308,9 @@ public class UsedVersion {
             }
             MVersion mandrelVersion = builder.build();
             if (mandrelVersion.jdkFeature == UNDEFINED) {
-                LOGGER.warn("Failed to correctly parse Java feature (major) version from native-image version command output. " +
-                        "JDK version constraints in tests won't work reliably.");
+                LOGGER.warn(
+                        "Failed to correctly parse Java feature (major) version from native-image version command output. " +
+                                "JDK version constraints in tests won't work reliably.");
             }
             return mandrelVersion;
         }
@@ -330,13 +334,15 @@ public class UsedVersion {
                 }
             } else {
                 final String TEST_TESTSUITE_ABSOLUTE_PATH = System.getProperty("FAKE_NATIVE_IMAGE_DIR", "");
-                final List<String> cmd = getRunCommand(TEST_TESTSUITE_ABSOLUTE_PATH + (IS_THIS_WINDOWS ? "native-image.cmd" : "native-image"), "--version");
+                final List<String> cmd = getRunCommand(
+                        TEST_TESTSUITE_ABSOLUTE_PATH + (IS_THIS_WINDOWS ? "native-image.cmd" : "native-image"), "--version");
                 LOGGER.info("Running command " + cmd + " to determine Mandrel version used.");
                 try {
                     out = Commands.runCommand(cmd);
                 } catch (IOException e) {
                     throw new RuntimeException("Is native-image command available? Check if you are not trying " +
-                            "to run tests expecting locally installed native-image without having one. -Ptestsuite-builder-image is the " +
+                            "to run tests expecting locally installed native-image without having one. -Ptestsuite-builder-image is the "
+                            +
                             "correct profile for running without locally installed native-image.", e);
                 }
             }
@@ -408,12 +414,12 @@ public class UsedVersion {
     public static int[] featureInterimUpdate(Pattern pattern, String version, int defaultValue) {
         final Matcher m = pattern.matcher(version);
         if (!m.matches()) {
-            return new int[]{defaultValue, defaultValue, defaultValue};
+            return new int[] { defaultValue, defaultValue, defaultValue };
         }
         final String jFeature = m.group("jfeature");
         final String jInterim = m.group("jinterim");
         final String jUpdate = m.group("jupdate");
-        return new int[]{
+        return new int[] {
                 jFeature == null ? defaultValue : Integer.parseInt(jFeature),
                 jInterim == null ? defaultValue : Integer.parseInt(jInterim),
                 jUpdate == null ? defaultValue : Integer.parseInt(jUpdate)

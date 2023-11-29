@@ -44,20 +44,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 @Tag("reproducers")
-public class StaticDistroChecks {
+public class StaticDistroTest {
 
     @Test
-    @IfMandrelVersion(min = "22.2")
-    public void spaceInPath_22(TestInfo testInfo) throws IOException {
-        spaceInPath(testInfo);
-    }
-
-    @Test
-    @IfMandrelVersion(min = "21.3.3", max = "21.3.999")
-    public void spaceInPath_21(TestInfo testInfo) throws IOException {
-        spaceInPath(testInfo);
-    }
-
+    @IfMandrelVersion(min = "22.3")
     public void spaceInPath(TestInfo testInfo) throws IOException {
         final Path graalHomeSpace = Path.of(System.getProperty("java.io.tmpdir"), "there are spaces");
         try {
@@ -66,19 +56,13 @@ public class StaticDistroChecks {
             final Path graalHome = Path.of(home.replaceAll(File.separator + "+$", ""));
             assertTrue(Files.exists(Path.of(graalHome.toString(), "bin")), "There is something wrong with GRAALVM_HOME.");
             final File graalHomeSpaceBin = new File(graalHomeSpace.toFile(), "bin");
-            runCommand(IS_THIS_WINDOWS ?
-                    List.of("xcopy", graalHome.toString(), graalHomeSpace.toString(), "/E", "/H", "/B", "/Q", "/I") :
-                    List.of("cp", graalHome.toString(), graalHomeSpace.toString(), "-Rpd")
-            );
-            final String result = runCommand(IS_THIS_WINDOWS ?
-                            List.of("cmd", "/C", "native-image", "--version") :
-                            List.of("sh", "native-image", "--version")
-                    , graalHomeSpaceBin,
-                    Map.of("GRAALVM_HOME", graalHomeSpace.toString(),
-                            "PATH", graalHomeSpaceBin.getAbsolutePath() + File.pathSeparator + System.getenv("PATH")));
+            runCommand(IS_THIS_WINDOWS
+                    ? List.of("xcopy", graalHome.toString(), graalHomeSpace.toString(), "/E", "/H", "/B", "/Q", "/I")
+                    : List.of("cp", graalHome.toString(), graalHomeSpace.toString(), "-Rpd"));
+            final String result = runCommand(IS_THIS_WINDOWS ? List.of("cmd", "/C", "native-image", "--version") : List.of("sh", "native-image", "--version"), graalHomeSpaceBin,
+                    Map.of("GRAALVM_HOME", graalHomeSpace.toString(), "PATH", graalHomeSpaceBin.getAbsolutePath() + File.pathSeparator + System.getenv("PATH")));
             final Pattern p = Pattern.compile("(?:GraalVM|native-image).*Java Version.*", Pattern.DOTALL);
-            assertTrue(p.matcher(result).matches(), "Correct --version output expected. Got: `" + result + "', " +
-                    "possibly https://github.com/oracle/graal/pull/4635");
+            assertTrue(p.matcher(result).matches(), "Correct --version output expected. Got: `" + result + "', " + "possibly https://github.com/oracle/graal/pull/4635");
         } finally {
             if (Files.exists(graalHomeSpace)) {
                 FileUtils.deleteDirectory(graalHomeSpace.toFile());

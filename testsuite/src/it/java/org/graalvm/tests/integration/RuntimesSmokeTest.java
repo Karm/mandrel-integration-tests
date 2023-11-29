@@ -76,6 +76,7 @@ public class RuntimesSmokeTest {
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         testRuntime(testInfo, app, null);
     }
+
     public void testRuntime(TestInfo testInfo, Apps app, Map<String, String> switchReplacements) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         Process process = null;
@@ -96,8 +97,7 @@ public class RuntimesSmokeTest {
             long buildStarts = System.currentTimeMillis();
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, switchReplacements);
             long buildEnds = System.currentTimeMillis();
-            assertTrue(findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*")).exists(),
-                    "No executable found. Compilation failed. Check the logs.");
+            assertTrue(findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*")).exists(), "No executable found. Compilation failed. Check the logs.");
 
             // Run
             LOGGER.info("Running...");
@@ -122,39 +122,24 @@ public class RuntimesSmokeTest {
             long executableSizeKb;
             // Running without a container
             if (app.runtimeContainer == ContainerNames.NONE) {
-                executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(),
-                        app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1][0])) / 1024L;
+                executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(), app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1][0])) / 1024L;
                 rssKb = getRSSkB(process.pid());
                 final long openedFiles = getOpenedFDs(process.pid());
                 processStopper(process, false);
-                log = new LogBuilder()
-                        .app(app)
-                        .buildTimeMs(buildEnds - buildStarts)
-                        .timeToFirstOKRequestMs(timeToFirstOKRequest)
-                        .executableSizeKb(executableSizeKb)
-                        .rssKb(rssKb)
-                        .openedFiles(openedFiles)
-                        .build();
+                log = new LogBuilder().app(app).buildTimeMs(buildEnds - buildStarts).timeToFirstOKRequestMs(timeToFirstOKRequest).executableSizeKb(executableSizeKb).rssKb(rssKb)
+                        .openedFiles(openedFiles).build();
                 // Running as a container
             } else {
                 //  -runner is a Quarkus specific name, but we don't test Helidon in container anyway...
-                executableSizeKb = findExecutable(Path.of(appDir.getAbsolutePath(), "target"),
-                        Pattern.compile(".*-runner")).length() / 1024L;
+                executableSizeKb = findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*-runner")).length() / 1024L;
                 rssKb = getContainerMemoryKb(app.runtimeContainer.name);
                 stopRunningContainer(app.runtimeContainer.name);
-                log = new LogBuilder()
-                        .app(app)
-                        .buildTimeMs(buildEnds - buildStarts)
-                        .timeToFirstOKRequestMs(timeToFirstOKRequest)
-                        .executableSizeKb(executableSizeKb)
-                        .rssKb(rssKb)
-                        .build();
+                log = new LogBuilder().app(app).buildTimeMs(buildEnds - buildStarts).timeToFirstOKRequestMs(timeToFirstOKRequest).executableSizeKb(executableSizeKb).rssKb(rssKb).build();
             }
 
             LOGGER.info("Gonna wait for ports closed...");
             // Release ports
-            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-                    "Main port is still open");
+            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60), "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
             Path measurementsLog = Paths.get(Logs.getLogsDir(cn, mn).toString(), "measurements.csv");
             Logs.logMeasurements(log, measurementsLog);
@@ -215,12 +200,10 @@ public class RuntimesSmokeTest {
         Apps apps = Apps.QUARKUS_BUILDER_IMAGE_ENCODING;
         if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
             try {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, apps.dir).toFile());
+                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), Path.of(BASE_DIR, apps.dir).toFile());
                 testRuntime(testInfo, apps);
             } finally {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, apps.dir).toFile());
+                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), Path.of(BASE_DIR, apps.dir).toFile());
             }
         } else {
             testRuntime(testInfo, apps);
@@ -229,7 +212,7 @@ public class RuntimesSmokeTest {
 
     @Test
     @Tag("helidon")
-    @DisabledOnOs({OS.WINDOWS})
+    @DisabledOnOs({ OS.WINDOWS })
     // No Windows. https://github.com/oracle/helidon/issues/2230
     public void helidonQuickStart(TestInfo testInfo) throws IOException, InterruptedException {
         testRuntime(testInfo, Apps.HELIDON_QUICKSTART_SE);

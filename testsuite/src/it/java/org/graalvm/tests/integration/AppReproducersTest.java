@@ -148,171 +148,6 @@ public class AppReproducersTest {
         }
     }
 
-    @Test
-    @Tag("resources")
-    @IfMandrelVersion(min = "21.3", max = "21.999")
-    public void resLocationsA(TestInfo testInfo) throws IOException, InterruptedException {
-        final String expectedOutput = "" +
-                "Resources folders:\n" +
-                "0:  N/A\n" +
-                "1:  N/A\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  NO_SLASH FOLDER\n" +
-                "5:  NO_SLASH FOLDER\n" +
-                "6:  NO_SLASH FOLDER\n" +
-                "7:  NO_SLASH FOLDER\n" +
-                "8:  N/A\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: N/A\n" +
-                "\n" +
-                "iio-plugin.properties:\n" +
-                "0:  N/A\n" +
-                "1:  APP\n" +
-                "2:  N/A\n" +
-                "3:  JDK\n" +
-                "4:  JDK\n" +
-                "5:  APP\n" +
-                "6:  N/A\n" +
-                "7:  JDK\n" +
-                "8:  JDK\n" +
-                "9:  APP\n" +
-                "10: N/A\n" +
-                "11: JDK\n" +
-                "12: APP\n" +
-                "13: N/A\n" +
-                "14: JDK\n" +
-                "15: N/A\n" +
-                "16: JDK\n" +
-                "17: APP\n" +
-                "18: N/A\n" +
-                "19: JDK\n" +
-                "20: JDK\n" +
-                "21: APP\n" +
-                "22: N/A\n" +
-                "23: JDK\n" +
-                "24: JDK\n" +
-                "25: APP\n" +
-                "26: N/A\n" +
-                "27: JDK\n" +
-                "28: APP\n" +
-                "29: N/A\n" +
-                "30: JDK\n" +
-                "31: N/A\n";
-        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
-    }
-
-    @Test
-    @Tag("resources")
-    @IfMandrelVersion(min = "22.0", max = "22.0")
-    public void resLocationsB(TestInfo testInfo) throws IOException, InterruptedException {
-        final String expectedOutput = "" +
-                "Resources folders:\n" +
-                "0:  N/A\n" +
-                "1:  N/A\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  NO_SLASH FOLDER\n" +
-                "5:  NO_SLASH FOLDER\n" +
-                "6:  NO_SLASH FOLDER\n" +
-                "7:  NO_SLASH FOLDER\n" +
-                "8:  N/A\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: N/A\n" +
-                "\n" +
-                "iio-plugin.properties:\n" +
-                "0:  N/A\n" +
-                "1:  APP\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  JDK\n" +
-                "5:  N/A\n" +
-                "6:  N/A\n" +
-                "7:  JDK\n" +
-                "8:  JDK\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: JDK\n" +
-                "12: APP\n" +
-                "13: N/A\n" +
-                "14: N/A\n" +
-                "15: N/A\n" +
-                "16: JDK\n" +
-                "17: N/A\n" +
-                "18: N/A\n" +
-                "19: JDK\n" +
-                "20: JDK\n" +
-                "21: N/A\n" +
-                "22: N/A\n" +
-                "23: JDK\n" +
-                "24: JDK\n" +
-                "25: N/A\n" +
-                "26: N/A\n" +
-                "27: JDK\n" +
-                "28: N/A\n" +
-                "29: N/A\n" +
-                "30: JDK\n" +
-                "31: N/A\n";
-        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
-    }
-
-    @Test
-    @Tag("resources")
-    @IfMandrelVersion(min = "22.1", max = "22.2")
-    public void resLocationsC(TestInfo testInfo) throws IOException, InterruptedException {
-        final String expectedOutput = "" +
-                "Resources folders:\n" +
-                "0:  N/A\n" +
-                "1:  N/A\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  NO_SLASH FOLDER\n" +
-                "5:  SLASH FOLDER\n" +
-                "6:  N/A\n" +
-                "7:  N/A\n" +
-                "8:  N/A\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: N/A\n" +
-                "\n" +
-                "iio-plugin.properties:\n" +
-                "0:  N/A\n" +
-                "1:  APP\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  JDK\n" +
-                "5:  N/A\n" +
-                "6:  N/A\n" +
-                "7:  JDK\n" +
-                "8:  JDK\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: JDK\n" +
-                "12: APP\n" +
-                "13: N/A\n" +
-                "14: N/A\n" +
-                "15: N/A\n" +
-                "16: JDK\n" +
-                "17: N/A\n" +
-                "18: N/A\n" +
-                "19: JDK\n" +
-                "20: JDK\n" +
-                "21: N/A\n" +
-                "22: N/A\n" +
-                "23: JDK\n" +
-                "24: JDK\n" +
-                "25: N/A\n" +
-                "26: N/A\n" +
-                "27: JDK\n" +
-                "28: N/A\n" +
-                "29: N/A\n" +
-                "30: JDK\n" +
-                "31: N/A\n";
-        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
-    }
-
     /**
      * Resources handling changed:
      * 3: N/A -> JDK
@@ -477,8 +312,8 @@ public class AppReproducersTest {
             assertTrue(errors.isEmpty(), "Something changed in how the resources are handled. " +
                     "Check comments on https://github.com/oracle/graal/issues/4326 and https://github.com/quarkusio/quarkus/pull/22403. " +
                     "See discrepancies: " + errors.keySet().stream()
-                    .map(key -> "Expected: " + key + ", Actual: " + errors.get(key))
-                    .collect(Collectors.joining("\n", "\n", "\n")));
+                            .map(key -> "Expected: " + key + ", Actual: " + errors.get(key))
+                            .collect(Collectors.joining("\n", "\n", "\n")));
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
@@ -495,7 +330,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("imageio")
-    @DisabledOnOs({OS.WINDOWS}) // AWT support is not there yet
+    @DisabledOnOs({ OS.WINDOWS }) // AWT support is not there yet
     @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO);
@@ -540,8 +375,7 @@ public class AppReproducersTest {
                     "mytest_toP.png",
                     "mytest_toS.png",
                     "mytest.wbmp",
-                    "mytest_Resized_Grace_M._Hopper.png"
-            );
+                    "mytest_Resized_Grace_M._Hopper.png");
 
             pictures.forEach(f -> {
                 try {
@@ -609,7 +443,8 @@ public class AppReproducersTest {
 
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
-            Set<String> expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libnet.a", "libnio.a", "libzip.a");
+            Set<String> expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libnet.a",
+                    "libnio.a", "libzip.a");
             if (UsedVersion.getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
                 // The set of static libs for imageio is smaller beginning with Mandrel 23+ as
                 // it has dynamic AWT support.
@@ -649,6 +484,7 @@ public class AppReproducersTest {
             if (metaINF.exists()) {
                 FileUtils.cleanDirectory(metaINF);
             }
+            //@formatter:off
             Stream.of(
                     new File(appDir, "?"),
                     new File(appDir, ".cache"),
@@ -668,6 +504,7 @@ public class AppReproducersTest {
                     e.printStackTrace();
                 }
             });
+            //@formatter:on
             controlData.keySet().forEach(f -> new File(appDir, f).delete());
         }
     }
@@ -701,6 +538,7 @@ public class AppReproducersTest {
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
 
+            //@formatter:off
             /*
             ...about encoding and output on Windows vs. Linux:
             Linux output:
@@ -728,7 +566,9 @@ public class AppReproducersTest {
 
             So we use UTF-8 on Linux and windows-1252 on Windows...and that corresponds to Charset.defaultCharset(). Went the full circle on this.
             */
+            //@formatter:on
             final Pattern p = Pattern.compile(".*heure normale.*Europe centrale.*");
+            //@formatter:off
             /*
             Ad the aforementioned regexp:
             JDK 11 prints the same both for country=CA and country=FR, i.e.:
@@ -736,8 +576,10 @@ public class AppReproducersTest {
             JDK 17 prints this only for country=FR while it does something else for country=CA:
                 heure normale de l’Europe centrale
              */
-            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log. " +
-                    "There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
+            //@formatter:on
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()),
+                    "Expected pattern " + p + " was not found in the log. " +
+                            "There might be a problem with timezones inclusion. See https://github.com/oracle/graal/issues/2776");
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
@@ -745,7 +587,7 @@ public class AppReproducersTest {
             cleanup(process, cn, mn, report, app, processLog);
         }
     }
-    
+
     @Test
     @Tag("calendars")
     @IfMandrelVersion(min = "22.3.5") // The fix for this test is in 22.3.5 and better
@@ -777,7 +619,7 @@ public class AppReproducersTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             final Pattern p = Pattern.compile(".*Year: (?:1|1086), dayOfYear: 1, type: (?:japanese|buddhist|gregory).*");
-            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p + " was not found in the log.");
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
@@ -789,19 +631,7 @@ public class AppReproducersTest {
     @Test
     @Tag("jdk-17")
     @Tag("recordannotations")
-    @IfMandrelVersion(min = "21.3.1.1", max = "21.3.999", minJDK = "17")
-    public void recordAnnotationsWork21_3(TestInfo testInfo) throws IOException, InterruptedException {
-        recordAnnotationsWork(testInfo);
-    }
-
-    @Test
-    @Tag("jdk-17")
-    @Tag("recordannotations")
     @IfMandrelVersion(min = "22.1", minJDK = "17")
-    public void recordAnnotationsWorkPost22_1(TestInfo testInfo) throws IOException, InterruptedException {
-        recordAnnotationsWork(testInfo);
-    }
-
     public void recordAnnotationsWork(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.RECORDANNOTATIONS;
         LOGGER.info("Testing app: " + app);
@@ -830,11 +660,14 @@ public class AppReproducersTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             final Pattern p = Pattern.compile(".*RCA annotation: @recordannotations\\.RCA.*");
-            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()),
+                    "Expected pattern " + p + " was not found in the log.");
             final Pattern p2 = Pattern.compile(".*annotation: @recordannotations\\.RCA.*");
-            assertTrue(searchLogLines(p2, processLog, Charset.defaultCharset()), "Expected pattern " + p2.toString() + " was not found in the log.");
+            assertTrue(searchLogLines(p2, processLog, Charset.defaultCharset()),
+                    "Expected pattern " + p2 + " was not found in the log.");
             final Pattern p3 = Pattern.compile(".*annotation: @recordannotations\\.RCA2.*");
-            assertTrue(searchLogLines(p3, processLog, Charset.defaultCharset()), "Expected pattern " + p3.toString() + " was not found in the log.");
+            assertTrue(searchLogLines(p3, processLog, Charset.defaultCharset()),
+                    "Expected pattern " + p3 + " was not found in the log.");
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
@@ -912,7 +745,7 @@ public class AppReproducersTest {
             // We should somehow capture this semantically in an Enum or something. This is fragile...
             builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, getSwitches(app));
 
-            final File inputData = new File(BASE_DIR + File.separator + app.dir + File.separator + "target" + File.separator + "test_data.txt");
+            final File inputData = Path.of(BASE_DIR, app.dir, "target", "test_data.txt").toFile();
 
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();

@@ -75,7 +75,8 @@ public class LogBuilder {
 
     public LogBuilder timeToFirstOKRequestMs(long timeToFirstOKRequestMs) {
         if (timeToFirstOKRequestMs < 0) {
-            throw new IllegalArgumentException("timeToFirstOKRequestMs must be a positive long, was: " + timeToFirstOKRequestMs);
+            throw new IllegalArgumentException(
+                    "timeToFirstOKRequestMs must be a positive long, was: " + timeToFirstOKRequestMs);
         }
         this.timeToFirstOKRequestMs = timeToFirstOKRequestMs;
         return this;
@@ -104,6 +105,7 @@ public class LogBuilder {
         this.rssKb = rssKb;
         return this;
     }
+
     public LogBuilder meanResponseTime(long meanResponseTime) {
         if (meanResponseTime < 0) {
             throw new IllegalArgumentException("meanResponseTime must be a positive long, was: " + meanResponseTime);
@@ -111,6 +113,7 @@ public class LogBuilder {
         this.meanResponseTime = meanResponseTime;
         return this;
     }
+
     public LogBuilder maxResponseTime(long maxResponseTime) {
         if (maxResponseTime < 0) {
             throw new IllegalArgumentException("maxResponseTime must be a positive long, was: " + maxResponseTime);
@@ -118,23 +121,29 @@ public class LogBuilder {
         this.maxResponseTime = maxResponseTime;
         return this;
     }
+
     public LogBuilder responseTime50Percentile(long responseTime50Percentile) {
         if (responseTime50Percentile < 0) {
-            throw new IllegalArgumentException("responseTime50Percentile must be a positive long, was: " + responseTime50Percentile);
+            throw new IllegalArgumentException(
+                    "responseTime50Percentile must be a positive long, was: " + responseTime50Percentile);
         }
         this.responseTime50Percentile = responseTime50Percentile;
         return this;
     }
+
     public LogBuilder responseTime90Percentile(long responseTime90Percentile) {
         if (responseTime90Percentile < 0) {
-            throw new IllegalArgumentException("responseTime90Percentile must be a positive long, was: " + responseTime90Percentile);
+            throw new IllegalArgumentException(
+                    "responseTime90Percentile must be a positive long, was: " + responseTime90Percentile);
         }
         this.responseTime90Percentile = responseTime90Percentile;
         return this;
     }
+
     public LogBuilder responseTime99Percentile(long responseTime99Percentile) {
         if (responseTime99Percentile < 0) {
-            throw new IllegalArgumentException("responseTime99Percentile must be a positive long, was: " + responseTime99Percentile);
+            throw new IllegalArgumentException(
+                    "responseTime99Percentile must be a positive long, was: " + responseTime99Percentile);
         }
         this.responseTime99Percentile = responseTime99Percentile;
         return this;

@@ -37,19 +37,21 @@
         <!-- General TS deps -->
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <!--<maven.compiler.release>11</maven.compiler.release>-->
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven.failsafe.version>2.22.2</maven.failsafe.version>
         <maven-jar-plugin.version></maven-jar-plugin.version>
         <maven.build.helper.version>3.0.0</maven.build.helper.version>
+        <formatter-plugin.version>2.23.0</formatter-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.jupiter.version>5.7.1</junit.jupiter.version>
-        <resteasy.version>4.3.0.Final</resteasy.version>
+        <resteasy.version>4.4.3.Final</resteasy.version>
         <commons.lang.version>3.9</commons.lang.version>
         <jboss-logging.version>3.4.1.Final</jboss-logging.version>
-        <log4j.version>2.13.2</log4j.version>
+        <log4j.version>2.17.1</log4j.version>
         <org.json.version>20230227</org.json.version>
 
         <!-- Test to be executed by default (should be all of them) -->
@@ -99,6 +101,8 @@
                 <module>apps/quarkus-spöklik-encoding</module>
                 <module>apps/quarkus-vertx</module>
                 <module>apps/calendars</module>
+                <!-- Would require language level 14+ -->
+                <!--<module>apps/recordannotations</module>-->
             </modules>
         </profile>
     </profiles>

@@ -35,7 +35,7 @@ public enum WhitelistLogLines {
     ALL {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Harmless download, e.g.
                     // Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-error-diagnostics...
                     Pattern.compile(".*maven-error-diagnostics.*"),
@@ -45,51 +45,58 @@ public enum WhitelistLogLines {
                     // JDK:
                     Pattern.compile("WARNING.* reflective access.*"),
                     Pattern.compile("WARNING: All illegal access operations.*"),
-                    Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"),
-                    Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*"),
+                    Pattern.compile(
+                            "WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"),
+                    Pattern.compile(
+                            "WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*"),
                     // JAVA_HOME (e.g. 17) != GRAALVM_HOME (e.g. 21)
                     Pattern.compile(".*system modules path not set in conjunction with -source .*"),
                     // It's accompanied by a list of all warnings, so this particular one can be white-listed globally
-                    Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"),
+                    Pattern.compile(
+                            ".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"),
             };
         }
     },
     NONE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{};
+            return new Pattern[] {};
         }
     },
     IMAGEIO {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
-                    Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
+                    Pattern.compile(
+                            "Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
                     // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
-                    Pattern.compile("Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found.")
+                    Pattern.compile(
+                            "Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found.")
             };
         }
     },
     IMAGEIO_BUILDER_IMAGE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Dnf warnings...
                     Pattern.compile(".*librhsm-WARNING.*"),
                     // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
                     Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
                     // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
-                    Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
+                    Pattern.compile(
+                            "Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
                     // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
-                    Pattern.compile("Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found.")
+                    Pattern.compile(
+                            "Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found.")
             };
         }
     },
     QUARKUS_FULL_MICROPROFILE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Well, the RestClient demo probably should do some cleanup before shutdown...?
                     Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"),
                     // Unused argument on new Graal; Quarkus uses it for backward compatibility.
@@ -114,22 +121,26 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Unable to make the Vert.x cache directory.*"),
                     // Not sure, definitely not Mandrel related though
                     Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-                    Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
+                    Pattern.compile(
+                            ".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
                     // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
-                    Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"),
+                    Pattern.compile(
+                            ".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"),
                     // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
                     Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
                     // netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                    Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
+                    Pattern.compile(
+                            ".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
                     // We don't run any OpenTracing collector point for simplicity, hence the exception. Q 3.6.0+ specific.
-                    Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*")
+                    Pattern.compile(
+                            ".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*")
             };
         }
     },
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Container image build
                     Pattern.compile(".*lib.*-WARNING .*"),
                     // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
@@ -144,14 +155,18 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*"),
                     // Not sure, definitely not Mandrel related though
                     Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-                    Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
-                    Pattern.compile(".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead."),
+                    Pattern.compile(
+                            ".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
+                    Pattern.compile(
+                            ".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead."),
                     // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
                     Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
                     // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
-                    Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
+                    Pattern.compile(
+                            ".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
                     // Deprecated/to be updated with Rest Easy Reactive
-                    Pattern.compile(".*The option '-H:ReflectionConfigurationResources=META-INF/native-image/io.netty/netty-transport/reflection-config.json' is experimental.*"),
+                    Pattern.compile(
+                            ".*The option '-H:ReflectionConfigurationResources=META-INF/native-image/io.netty/netty-transport/reflection-config.json' is experimental.*"),
                     Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"),
             };
         }
@@ -159,9 +174,10 @@ public enum WhitelistLogLines {
     HELIDON_QUICKSTART_SE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Experimental options not being unlocked, produces warnings, yet it's driven by the helidon-maven-plugin
-                    Pattern.compile(".*The option '.*' is experimental and must be enabled via '-H:\\+UnlockExperimentalVMOptions' in the future.*"),
+                    Pattern.compile(
+                            ".*The option '.*' is experimental and must be enabled via '-H:\\+UnlockExperimentalVMOptions' in the future.*"),
                     // Unused argument on new Graal
                     Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
                     // --allow-incomplete-classpath not available in new GraalVM https://github.com/Karm/mandrel-integration-tests/issues/76
@@ -175,7 +191,7 @@ public enum WhitelistLogLines {
     QUARKUS_BUILDER_IMAGE_ENCODING {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
                     Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"),
                     Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
@@ -185,9 +201,11 @@ public enum WhitelistLogLines {
                     // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
                     Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
                     // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
-                    Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
+                    Pattern.compile(
+                            ".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
                     // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                    Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
+                    Pattern.compile(
+                            ".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
             };
         }
     },
@@ -195,13 +213,14 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) <= 0) {
-                return new Pattern[]{
+                return new Pattern[] {
                         // https://github.com/oracle/graal/issues/3636
                         Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
                         // https://github.com/oracle/graal/issues/4431
-                        Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*")};
+                        Pattern.compile(
+                                ".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*") };
             } else {
-                return new Pattern[]{
+                return new Pattern[] {
                         // https://github.com/oracle/graal/issues/3636
                         Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
                         // Hyperfoil spits this on GHA CI, cannot reproduce locally
@@ -209,11 +228,13 @@ public enum WhitelistLogLines {
                         // For some reason, Podman spits this when terminating Hyperfoil containers
                         Pattern.compile(".*Could not retrieve exit code from event: died not found: unable to find event.*"),
                         // Again Hyperfoil and Podman. There might be something odd with stopping those agents? Not a Quaruks/Mandrel issue.
-                        Pattern.compile(".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"),
+                        Pattern.compile(
+                                ".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"),
                         // Quarkus 3.x intermittently with JDK 20 based build...
                         Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"),
                         // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                        Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
+                        Pattern.compile(
+                                ".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
                 };
             }
         }
@@ -221,8 +242,9 @@ public enum WhitelistLogLines {
     RESLOCATIONS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
-                    Pattern.compile(".*com\\.sun\\.imageio\\.plugins\\.common.*is internal proprietary API and may be removed in a future release.*")
+            return new Pattern[] {
+                    Pattern.compile(
+                            ".*com\\.sun\\.imageio\\.plugins\\.common.*is internal proprietary API and may be removed in a future release.*")
             };
         }
     };

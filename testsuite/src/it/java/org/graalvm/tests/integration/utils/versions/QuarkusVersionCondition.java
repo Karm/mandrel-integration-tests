@@ -33,8 +33,7 @@ import static org.junit.platform.commons.support.AnnotationSupport.findAnnotatio
 
 public class QuarkusVersionCondition implements ExecutionCondition {
 
-    private static final ConditionEvaluationResult ENABLED_BY_DEFAULT =
-            enabled("@IfQuarkusVersion is not present");
+    private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = enabled("@IfQuarkusVersion is not present");
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(
@@ -49,9 +48,9 @@ public class QuarkusVersionCondition implements ExecutionCondition {
 
     private ConditionEvaluationResult disableIfVersionMismatch(IfQuarkusVersion annotation, AnnotatedElement element) {
         QuarkusVersion usedVersion = Commands.QUARKUS_VERSION;
-        final boolean quarkusConstraintSatisfied =
-                (annotation.min().isBlank() || usedVersion.compareTo(new QuarkusVersion(annotation.min())) >= 0) &&
-                        (annotation.max().isBlank() || usedVersion.compareTo(new QuarkusVersion(annotation.max())) <= 0);
+        final boolean quarkusConstraintSatisfied = (annotation.min().isBlank()
+                || usedVersion.compareTo(new QuarkusVersion(annotation.min())) >= 0) &&
+                (annotation.max().isBlank() || usedVersion.compareTo(new QuarkusVersion(annotation.max())) <= 0);
         if (quarkusConstraintSatisfied) {
             return enabled(format(
                     "%s is enabled as Quarkus version %s does satisfy constraints: min: %s, max: %s",

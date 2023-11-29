@@ -172,7 +172,8 @@ public enum Apps {
     public final Map<String, Long> thresholdProperties = new HashMap<>();
     public final ContainerNames runtimeContainer;
 
-    Apps(String dir, URLContent urlContent, WhitelistLogLines whitelistLogLines, BuildAndRunCmds buildAndRunCmds, ContainerNames runtimeContainer) {
+    Apps(String dir, URLContent urlContent, WhitelistLogLines whitelistLogLines, BuildAndRunCmds buildAndRunCmds,
+            ContainerNames runtimeContainer) {
         this.dir = dir;
         this.urlContent = urlContent;
         this.whitelistLogLines = whitelistLogLines;

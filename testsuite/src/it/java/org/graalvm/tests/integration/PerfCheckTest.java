@@ -89,7 +89,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 @Tag("perfcheck")
-@DisabledOnOs({OS.WINDOWS}) // We need to replace perf with wmic & Dr.Memory or something
+@DisabledOnOs({ OS.WINDOWS }) // We need to replace perf with wmic & Dr.Memory or something
 public class PerfCheckTest {
 
     private static final Logger LOGGER = Logger.getLogger(PerfCheckTest.class.getName());
@@ -103,18 +103,12 @@ public class PerfCheckTest {
     public static Map<String, String> populateHeader(Map<String, String> report) {
         report.put("arch", getProperty("perf.app.arch", System.getProperty("os.arch")));
         report.put("os", getProperty("perf.app.os", System.getProperty("os.name")));
-        report.put("quarkusVersion", QUARKUS_VERSION.isSnapshot() ?
-                QUARKUS_VERSION.getGitSHA() + '.' + QUARKUS_VERSION.getVersionString() : QUARKUS_VERSION.getVersionString());
+        report.put("quarkusVersion", QUARKUS_VERSION.isSnapshot() ? QUARKUS_VERSION.getGitSHA() + '.' + QUARKUS_VERSION.getVersionString() : QUARKUS_VERSION.getVersionString());
         report.put("mandrelVersion", UsedVersion.getVersion(false).toString());
-        report.put("jdkVersion", String.format("%s.%s.%s", UsedVersion.jdkFeature(false),
-                UsedVersion.jdkInterim(false), UsedVersion.jdkUpdate(false)));
-        report.put("ramAvailableMB", Long.toString(
-                ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getFreePhysicalMemorySize()
-                        / 1024 / 1024));
-        report.put("coresAvailable", Integer.toString(
-                ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()));
-        report.put("runnerDescription",
-                getProperty("PERF_APP_RUNNER_DESCRIPTION", ""));
+        report.put("jdkVersion", String.format("%s.%s.%s", UsedVersion.jdkFeature(false), UsedVersion.jdkInterim(false), UsedVersion.jdkUpdate(false)));
+        report.put("ramAvailableMB", Long.toString(((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getFreePhysicalMemorySize() / 1024 / 1024));
+        report.put("coresAvailable", Integer.toString(ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()));
+        report.put("runnerDescription", getProperty("PERF_APP_RUNNER_DESCRIPTION", ""));
         report.put("testApp", "https://github.com/Karm/mandrel-integration-tests/apps/quarkus-json/");
         report.put("maxHeapSizeMB", String.valueOf(MX_HEAP_MB));
         return report;
@@ -158,20 +152,13 @@ public class PerfCheckTest {
                 report.put("timeToFirstOKRequestMs", String.valueOf(timeToFirstOKRequestMs));
                 // Test web pages
                 try (final ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(app.urlContent.urlContent[1][0]).openStream());
-                     final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
+                        final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
                     fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                 }
-                final String[] headers = new String[]{
-                        "Content-Type", "application/json",
-                        "Accept", "text/plain"
-                };
-                final HttpRequest releaseRequest = HttpRequest.newBuilder()
-                        .method("POST", HttpRequest.BodyPublishers.ofFile(json.toPath()))
-                        .version(HttpClient.Version.HTTP_1_1)
+                final String[] headers = new String[] { "Content-Type", "application/json", "Accept", "text/plain" };
+                final HttpRequest releaseRequest = HttpRequest.newBuilder().method("POST", HttpRequest.BodyPublishers.ofFile(json.toPath())).version(HttpClient.Version.HTTP_1_1)
                         //[3][0] - uses sha-256, [2][0] just deserialization
-                        .uri(new URI(app.urlContent.urlContent[3][0]))
-                        .headers(headers)
-                        .build();
+                        .uri(new URI(app.urlContent.urlContent[3][0])).headers(headers).build();
                 final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
                 for (int j = 0; j < HEAVY_REQUESTS; j++) {
                     final HttpResponse<String> releaseResponse = hc.send(releaseRequest, HttpResponse.BodyHandlers.ofString());
@@ -196,8 +183,7 @@ public class PerfCheckTest {
                 report.put("branches", String.valueOf(pr.branches));
                 report.put("branchMisses", String.valueOf(pr.branchMisses));
                 report.put("secondsTimeElapsed", String.valueOf(pr.secondsTimeElapsed));
-                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-                        "Main port is still open");
+                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60), "Main port is still open");
                 final Commands.SerialGCLog l;
                 if (!statsFor.contains("-jar")) {
                     long executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(), statsFor.split(" ")[0])) / 1024L;
@@ -231,18 +217,15 @@ public class PerfCheckTest {
                 }
             }
             LOGGER.info("Gonna wait for ports closed...");
-            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-                    "Main port is still open");
+            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60), "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             Files.deleteIfExists(json.toPath());
             if (process != null) {
                 processStopper(process, true);
             }
-            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target",
-                    "quarkus-json_-ParseOnce-native-image-source-jar", "quarkus-json_minus-ParseOnce.json").toFile());
-            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target",
-                    "quarkus-json_+ParseOnce-native-image-source-jar", "quarkus-json_plus-ParseOnce.json").toFile());
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus-json_-ParseOnce-native-image-source-jar", "quarkus-json_minus-ParseOnce.json").toFile());
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus-json_+ParseOnce-native-image-source-jar", "quarkus-json_plus-ParseOnce.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
@@ -288,20 +271,13 @@ public class PerfCheckTest {
                 report.put("timeToFirstOKRequestMs", String.valueOf(timeToFirstOKRequestMs));
                 // Test web pages
                 try (final ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(app.urlContent.urlContent[1][0]).openStream());
-                     final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
+                        final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
                     fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                 }
-                final String[] headers = new String[]{
-                        "Content-Type", "application/json",
-                        "Accept", "text/plain"
-                };
-                final HttpRequest releaseRequest = HttpRequest.newBuilder()
-                        .method("POST", HttpRequest.BodyPublishers.ofFile(json.toPath()))
-                        .version(HttpClient.Version.HTTP_1_1)
+                final String[] headers = new String[] { "Content-Type", "application/json", "Accept", "text/plain" };
+                final HttpRequest releaseRequest = HttpRequest.newBuilder().method("POST", HttpRequest.BodyPublishers.ofFile(json.toPath())).version(HttpClient.Version.HTTP_1_1)
                         //[3][0] - uses sha-256, [2][0] just deserialization
-                        .uri(new URI(app.urlContent.urlContent[3][0]))
-                        .headers(headers)
-                        .build();
+                        .uri(new URI(app.urlContent.urlContent[3][0])).headers(headers).build();
                 final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
                 for (int j = 0; j < HEAVY_REQUESTS; j++) {
                     final HttpResponse<String> releaseResponse = hc.send(releaseRequest, HttpResponse.BodyHandlers.ofString());
@@ -326,8 +302,7 @@ public class PerfCheckTest {
                 report.put("branches", String.valueOf(pr.branches));
                 report.put("branchMisses", String.valueOf(pr.branchMisses));
                 report.put("secondsTimeElapsed", String.valueOf(pr.secondsTimeElapsed));
-                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-                        "Main port is still open");
+                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60), "Main port is still open");
                 final Commands.SerialGCLog l;
                 if (!statsFor.contains("-jar")) {
                     long executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(), statsFor.split(" ")[0])) / 1024L;
@@ -360,16 +335,14 @@ public class PerfCheckTest {
                 }
             }
             LOGGER.info("Gonna wait for ports closed...");
-            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-                    "Main port is still open");
+            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60), "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             Files.deleteIfExists(json.toPath());
             if (process != null) {
                 processStopper(process, true);
             }
-            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target",
-                    "quarkus-json-native-image-source-jar", "quarkus-json.json").toFile());
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus-json-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
@@ -451,8 +424,7 @@ public class PerfCheckTest {
                 report.put("branches", String.valueOf(pr.branches));
                 report.put("branchMisses", String.valueOf(pr.branchMisses));
                 report.put("secondsTimeElapsed", String.valueOf(pr.secondsTimeElapsed));
-                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-                        "Main port is still open");
+                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60), "Main port is still open");
                 final Commands.SerialGCLog l;
                 if (!statsFor.contains("-jar")) {
                     long executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(), statsFor.split(" ")[0])) / 1024L;
@@ -484,15 +456,13 @@ public class PerfCheckTest {
                 }
             }
             LOGGER.info("Gonna wait for ports closed...");
-            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-                    "Main port is still open");
+            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60), "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             if (process != null) {
                 processStopper(process, true);
             }
-            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(),
-                    "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
             if (patch != null) {
@@ -505,27 +475,18 @@ public class PerfCheckTest {
         final Map<String, String> switches;
         if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
             if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches = Map.of(
-                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
+                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
                         ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_minus-ParseOnce.json,-H:-UnlockExperimentalVMOptions",
                         GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce",
-                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_plus-ParseOnce.json,-H:-UnlockExperimentalVMOptions",
-                        "-H:-ParseOnce", "-H:+UnlockExperimentalVMOptions,-H:-ParseOnce,-H:-UnlockExperimentalVMOptions",
-                        "-H:+ParseOnce", "-H:+UnlockExperimentalVMOptions,-H:+ParseOnce,-H:-UnlockExperimentalVMOptions"
-                );
+                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_plus-ParseOnce.json,-H:-UnlockExperimentalVMOptions", "-H:-ParseOnce",
+                        "-H:+UnlockExperimentalVMOptions,-H:-ParseOnce,-H:-UnlockExperimentalVMOptions", "-H:+ParseOnce",
+                        "-H:+UnlockExperimentalVMOptions,-H:+ParseOnce,-H:-UnlockExperimentalVMOptions");
             } else {
-                switches = Map.of(
-                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
-                        "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_minus-ParseOnce.json",
-                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce",
-                        "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_plus-ParseOnce.json"
-                );
+                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce", "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_minus-ParseOnce.json",
+                        GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_plus-ParseOnce.json");
             }
         } else {
-            switches = Map.of(
-                    GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce", "",
-                    GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", ""
-            );
+            switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce", "", GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce", "");
         }
         return switches;
     }
@@ -534,11 +495,9 @@ public class PerfCheckTest {
         final Map<String, String> switches;
         if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
             if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE,
-                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
+                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
             } else {
-                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE,
-                        "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
+                switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
             }
         } else {
             switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE, "");
@@ -550,10 +509,8 @@ public class PerfCheckTest {
         final Map<String, String> switches = new HashMap<>();
         if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
             if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE,
-                        ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
-                switches.put("-H:Log=registerResource:",
-                        "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
+                switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
+                switches.put("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
             } else {
                 switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json");
             }

@@ -76,12 +76,14 @@ public class Commands {
     private static final Logger LOGGER = Logger.getLogger(Commands.class.getName());
 
     public static final String CONTAINER_RUNTIME = getProperty("QUARKUS_NATIVE_CONTAINER-RUNTIME", "docker");
-    public static final boolean ROOTLESS_CONTAINER_RUNTIME = Boolean.parseBoolean(getProperty("ROOTLESS_CONTAINER-RUNTIME", "false"));
+    public static final boolean ROOTLESS_CONTAINER_RUNTIME = Boolean
+            .parseBoolean(getProperty("ROOTLESS_CONTAINER-RUNTIME", "false"));
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(getProperty("PODMAN_WITH_SUDO", "true"));
     // Docker: Error response from daemon: No such container: {{.MemUsage}}. Stats work when called with sudo.
     public static final boolean DOCKER_WITH_SUDO = Boolean.parseBoolean(getProperty("DOCKER_WITH_SUDO", "false"));
-    public static final FailOnPerfRegressionEnum FAIL_ON_PERF_REGRESSION = FailOnPerfRegressionEnum.valueOf(getProperty("FAIL_ON_PERF_REGRESSION", "true").toUpperCase());
+    public static final FailOnPerfRegressionEnum FAIL_ON_PERF_REGRESSION = FailOnPerfRegressionEnum
+            .valueOf(getProperty("FAIL_ON_PERF_REGRESSION", "true").toUpperCase());
 
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
@@ -94,7 +96,8 @@ public class Commands {
     // While this looks like an env value it isn't. In particular keep the '-' in '[...]BUILDER-IMAGE'
     // as that's used in CI which uses -Dquarkus.native.builder-image=<value> alternative. See
     // getProperty() function for details.
-    public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE", "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
+    public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE",
+            "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
 
     // Debug sessions, GDB commands related timeouts
     // How long to wait for a gdb command output to match a certain regexp:
@@ -112,7 +115,7 @@ public class Commands {
 
     public static String getProperty(String key, String defaultValue) {
         String prop = null;
-        final String[] alternatives = new String[]{
+        final String[] alternatives = new String[] {
                 key.toUpperCase().replaceAll("[\\.-]+", "_"),
                 key.toLowerCase().replaceAll("_+", ".")
         };
@@ -199,7 +202,8 @@ public class Commands {
         return runCmd;
     }
 
-    public static boolean waitForTcpClosed(String host, int port, long loopTimeoutS) throws InterruptedException, UnknownHostException {
+    public static boolean waitForTcpClosed(String host, int port, long loopTimeoutS)
+            throws InterruptedException, UnknownHostException {
         final InetAddress address = InetAddress.getByName(host);
         long now = System.currentTimeMillis();
         final long startTime = now;
@@ -231,7 +235,7 @@ public class Commands {
      * There might be this weird glitch where native-image command completes
      * but the FS does not appear to have the resulting binary ready and executable for the
      * next process *immediately*. Hence, this small wait that mitigates this glitch.
-     *
+     * <p>
      * Note that nothing happens at the end of the timeout and the TS hopes for the best.
      *
      * @param command
@@ -266,7 +270,8 @@ public class Commands {
      * @return
      * @throws IOException
      */
-    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input, Map<String, String> env) throws IOException {
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input,
+            Map<String, String> env) throws IOException {
         // Skip the wait if the app runs as a container
         if (app != null && app.runtimeContainer == ContainerNames.NONE) {
             waitForExecutable(command, directory);
@@ -320,7 +325,8 @@ public class Commands {
         return runCommand(command, new File("."));
     }
 
-    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input) throws IOException {
+    public static Process runCommand(List<String> command, File directory, File logFile, Apps app, File input)
+            throws IOException {
         return runCommand(command, directory, logFile, app, input, null);
     }
 
@@ -342,21 +348,24 @@ public class Commands {
         try {
             if (IS_THIS_WINDOWS) {
                 if (!force) {
-                    final Process p = Runtime.getRuntime().exec(new String[]{
-                            BASE_DIR + File.separator + "testsuite" + File.separator + "src" + File.separator + "it" + File.separator + "resources" + File.separator +
-                                    "CtrlC.exe ", Long.toString(pid)});
+                    final Process p = Runtime.getRuntime().exec(new String[] {
+                            BASE_DIR + File.separator + "testsuite" + File.separator + "src" + File.separator + "it"
+                                    + File.separator + "resources" + File.separator +
+                                    "CtrlC.exe ",
+                            Long.toString(pid) });
                     p.waitFor(1, TimeUnit.MINUTES);
                 }
-                Runtime.getRuntime().exec(new String[]{"cmd", "/C", "taskkill", "/PID", Long.toString(pid), "/F", "/T"});
+                Runtime.getRuntime().exec(new String[] { "cmd", "/C", "taskkill", "/PID", Long.toString(pid), "/F", "/T" });
             } else {
-                Runtime.getRuntime().exec(new String[]{"kill", force ? "-9" : "-15", Long.toString(pid)});
+                Runtime.getRuntime().exec(new String[] { "kill", force ? "-9" : "-15", Long.toString(pid) });
             }
         } catch (IOException | InterruptedException e) {
             LOGGER.error(e.getMessage(), e);
         }
     }
 
-    public static boolean waitForContainerLogToMatch(String containerName, Pattern pattern, long timeout, long sleep, TimeUnit unit) throws IOException, InterruptedException {
+    public static boolean waitForContainerLogToMatch(String containerName, Pattern pattern, long timeout, long sleep,
+            TimeUnit unit) throws IOException, InterruptedException {
         final long timeoutMillis = unit.toMillis(timeout);
         final long sleepMillis = unit.toMillis(sleep);
         final long startMillis = System.currentTimeMillis();
@@ -368,8 +377,8 @@ public class Commands {
         processBuilder.redirectErrorStream(true);
         while (System.currentTimeMillis() - startMillis < timeoutMillis) {
             final Process p = processBuilder.start();
-            try (BufferedReader processOutputReader =
-                         new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+            try (BufferedReader processOutputReader = new BufferedReader(
+                    new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
                 String l;
                 while ((l = processOutputReader.readLine()) != null) {
                     if (pattern.matcher(l).matches()) {
@@ -397,8 +406,8 @@ public class Commands {
         processBuilder.redirectErrorStream(true);
         final Process p = processBuilder.start();
         final List<String> ids = new ArrayList<>();
-        try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader processOutputReader = new BufferedReader(
+                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l = processOutputReader.readLine();
             // Skip the first line
             if (l == null || !l.startsWith("CONTAINER ID")) {
@@ -453,12 +462,12 @@ public class Commands {
     }
 
     /*
-    No idea if Docker works with 1024 and Podman with 1000 :-)
-    $ podman stats --no-stream --format "table {{.MemUsage}}" my-quarkus-mandrel-app-container
-    table 18.06MB / 12.11GB
-    $ docker stats --no-stream --format "table {{.MemUsage}}" my-quarkus-mandrel-app-container
-    MEM USAGE / LIMIT
-    13.43MiB / 11.28GiB
+     * No idea if Docker works with 1024 and Podman with 1000 :-)
+     * $ podman stats --no-stream --format "table {{.MemUsage}}" my-quarkus-mandrel-app-container
+     * table 18.06MB / 12.11GB
+     * $ docker stats --no-stream --format "table {{.MemUsage}}" my-quarkus-mandrel-app-container
+     * MEM USAGE / LIMIT
+     * 13.43MiB / 11.28GiB
      */
     public static long getContainerMemoryKb(String containerName) throws IOException, InterruptedException {
         final List<String> cmd = getRunCommand(
@@ -469,15 +478,16 @@ public class Commands {
         envA.put("PATH", System.getenv("PATH"));
         pa.redirectErrorStream(true);
         final Process p = pa.start();
-        try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader processOutputReader = new BufferedReader(
+                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             while ((l = processOutputReader.readLine()) != null) {
                 if (l.contains("Error")) {
                     LOGGER.error("Container: " + l);
                     if (l.contains("No such container: {{.MemUsage}}")) {
                         LOGGER.error("You don't have the right to call `stats' on " + containerName + " container. " +
-                                "You might have to set " + ("podman".equals(CONTAINER_RUNTIME) ? "PODMAN_WITH_SUDO" : "DOCKER_WITH_SUDO") + " to true.");
+                                "You might have to set "
+                                + ("podman".equals(CONTAINER_RUNTIME) ? "PODMAN_WITH_SUDO" : "DOCKER_WITH_SUDO") + " to true.");
                     }
                     break;
                 }
@@ -515,8 +525,8 @@ public class Commands {
         envA.put("PATH", System.getenv("PATH"));
         pa.redirectErrorStream(true);
         final Process p = pa.start();
-        try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader processOutputReader = new BufferedReader(
+                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             while ((l = processOutputReader.readLine()) != null) {
                 if (NUM_PATTERN.matcher(l).matches()) {
@@ -545,8 +555,8 @@ public class Commands {
         envA.put("PATH", System.getenv("PATH"));
         pa.redirectErrorStream(true);
         final Process p = pa.start();
-        try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader processOutputReader = new BufferedReader(
+                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             if (IS_THIS_WINDOWS) {
                 String l;
                 // TODO: We just get a magical number with all FDs... Is it O.K.?
@@ -659,7 +669,8 @@ public class Commands {
             this.envProps = null;
         }
 
-        public ProcessRunner(File directory, File log, List<String> command, long timeoutMinutes, Map<String, String> envProps) {
+        public ProcessRunner(File directory, File log, List<String> command, long timeoutMinutes,
+                Map<String, String> envProps) {
             this.directory = directory;
             this.log = log;
             this.command = command;
@@ -725,7 +736,7 @@ public class Commands {
      * large binary file of a known structure and to find and to parse a string within it.
      *
      * @param binaryFile, native-image made executable
-     * @return list of statically linked libs in native image
+     * @return set of statically linked libs in native image
      * @throws IOException
      */
     public static Set<String> listStaticLibs(File binaryFile) throws IOException {
@@ -736,8 +747,7 @@ public class Commands {
         final int bufferTail = 1024;
         final byte[] header = "StaticLibraries=".getBytes(US_ASCII);
         try (InputStream is = new BufferedInputStream(
-                new FileInputStream(binaryFile))
-        ) {
+                new FileInputStream(binaryFile))) {
             is.skip(skipBytes);
             final byte[] buffer = new byte[bufferSize + bufferTail];
             int start = -1;
@@ -829,19 +839,19 @@ public class Commands {
 
     public static PerfRecord parsePerfRecord(Path path, String statsFor) throws IOException {
         /*
-        An alternative would be to read it all in a one scary chunk:
-        final Pattern p = Pattern.compile(".*Performance counter stats for '(?<file>" + filename + ")':\\s*$+" +
-                        "\\s*(?<taskclock>[0-9\\.,]*)\\s*msec\\s*task-clock.*$" +
-                        "\\s*(?<contextswitches>[0-9\\.,]*)\\s*context-switches.*$" +
-                        "\\s*(?<cpumigrations>[0-9\\.,]*)\\s*cpu-migrations.*$" +
-                        "\\s*(?<pagefaults>[0-9\\.,]*)\\s*page-faults.*$" +
-                        "\\s*(?<cycles>[0-9\\.,]*)\\s*cycles.*$" +
-                        "\\s*(?<instructions>[0-9\\.,]*)\\s*instructions.*$" +
-                        "\\s*(?<branches>[0-9\\.,]*)\\s*branches.*$" +
-                        "\\s*(?<branchmisses>[0-9\\.,]*)\\s*branch-misses.*$+" +
-                        "\\s*(?<secondstimeelapsed>[0-9\\.,]*)\\s*seconds time elapsed.*$"
-                , Pattern.DOTALL | Pattern.MULTILINE);
-       */
+         * An alternative would be to read it all in a one scary chunk:
+         * final Pattern p = Pattern.compile(".*Performance counter stats for '(?<file>" + filename + ")':\\s*$+" +
+         * "\\s*(?<taskclock>[0-9\\.,]*)\\s*msec\\s*task-clock.*$" +
+         * "\\s*(?<contextswitches>[0-9\\.,]*)\\s*context-switches.*$" +
+         * "\\s*(?<cpumigrations>[0-9\\.,]*)\\s*cpu-migrations.*$" +
+         * "\\s*(?<pagefaults>[0-9\\.,]*)\\s*page-faults.*$" +
+         * "\\s*(?<cycles>[0-9\\.,]*)\\s*cycles.*$" +
+         * "\\s*(?<instructions>[0-9\\.,]*)\\s*instructions.*$" +
+         * "\\s*(?<branches>[0-9\\.,]*)\\s*branches.*$" +
+         * "\\s*(?<branchmisses>[0-9\\.,]*)\\s*branch-misses.*$+" +
+         * "\\s*(?<secondstimeelapsed>[0-9\\.,]*)\\s*seconds time elapsed.*$"
+         * , Pattern.DOTALL | Pattern.MULTILINE);
+         */
         final Pattern begin = Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*");
         final Pattern taskClock = Pattern.compile("\\s*([0-9\\.,]+)\\s*msec\\s*task-clock.*$");
         final Pattern contextSwitches = Pattern.compile("\\s*([0-9\\.,]+)\\s*context-switches.*$");
@@ -919,10 +929,14 @@ public class Commands {
 
     public static SerialGCLog parseSerialGCLog(Path path, String statsFor, boolean isJVM) throws IOException {
         final Pattern begin = Pattern.compile(".*\\s+\\Q" + statsFor + "\\E$");
-        final Pattern incremental = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Young \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
-                Pattern.compile("^\\[Incremental\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$");
-        final Pattern full = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Full \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
-                Pattern.compile("^\\[Full\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$");
+        final Pattern incremental = isJVM
+                ? Pattern.compile(
+                        "\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Young \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$")
+                : Pattern.compile("^\\[Incremental\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$");
+        final Pattern full = isJVM
+                ? Pattern.compile(
+                        "\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Full \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$")
+                : Pattern.compile("^\\[Full\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$");
         final Pattern end = Pattern.compile(".*quarkus.*stopped.*");
         try (Scanner sc = new Scanner(path, UTF_8)) {
             while (sc.hasNextLine()) {
@@ -937,13 +951,15 @@ public class Commands {
                 Matcher m = incremental.matcher(line);
                 if (m.matches()) {
                     l.incrementalGCevents = l.incrementalGCevents + 1;
-                    l.timeSpentInGCs = l.timeSpentInGCs + (isJVM ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
+                    l.timeSpentInGCs = l.timeSpentInGCs
+                            + (isJVM ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
                     continue;
                 }
                 m = full.matcher(line);
                 if (m.matches()) {
                     l.fullGCevents = l.fullGCevents + 1;
-                    l.timeSpentInGCs = l.timeSpentInGCs + (isJVM ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
+                    l.timeSpentInGCs = l.timeSpentInGCs
+                            + (isJVM ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
                 }
             }
             return l;
@@ -978,7 +994,8 @@ public class Commands {
         return sb.toString();
     }
 
-    public static int waitForFileToMatch(Pattern lineMatchRegexp, Path path, int skipLines, long timeout, long sleep, TimeUnit unit) throws IOException {
+    public static int waitForFileToMatch(Pattern lineMatchRegexp, Path path, int skipLines, long timeout, long sleep,
+            TimeUnit unit) throws IOException {
         long timeoutMillis = unit.toMillis(timeout);
         long sleepMillis = unit.toMillis(sleep);
         long startMillis = System.currentTimeMillis();
@@ -1010,7 +1027,8 @@ public class Commands {
         return -1;
     }
 
-    public static boolean waitForBufferToMatch(StringBuilder report, StringBuffer stringBuffer, Pattern pattern, long timeout, long sleep, TimeUnit unit) {
+    public static boolean waitForBufferToMatch(StringBuilder report, StringBuffer stringBuffer, Pattern pattern, long timeout,
+            long sleep, TimeUnit unit) {
         final long timeoutMillis = unit.toMillis(timeout);
         final long sleepMillis = unit.toMillis(sleep);
         final long startMillis = System.currentTimeMillis();
@@ -1024,7 +1042,8 @@ public class Commands {
                 promptSeen = true;
             }
             if (promptSeen && pattern.matcher(stringBuffer.toString()).matches()) {
-                Logs.appendln(report, "Expected gdb output took " + (System.currentTimeMillis() - startMillis) + " ms to appear");
+                Logs.appendln(report,
+                        "Expected gdb output took " + (System.currentTimeMillis() - startMillis) + " ms to appear");
                 return true;
             }
             try {
@@ -1034,7 +1053,8 @@ public class Commands {
                 Thread.currentThread().interrupt();
             }
         }
-        Logs.appendln(report, "Command timed out after " + (System.currentTimeMillis() - startMillis) + " ms without seeing the expected output.");
+        Logs.appendln(report, "Command timed out after " + (System.currentTimeMillis() - startMillis)
+                + " ms without seeing the expected output.");
         return false;
     }
 
@@ -1049,14 +1069,14 @@ public class Commands {
      *      switches = Map.of(GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH_TOKEN, "");
      *  }
      *  builderRoutine(1, app, null, null, null, appDir, processLog, null, switches);
-     *
+     * <p>
      *  Where the constants could be e.g.:
-     *
+     * <p>
      *  public static final String GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH_TOKEN = "<GRAALVM_ALLOW_DEPRECATED_BUILDER>";
      *  public static final String GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH = "-H:+AllowDeprecatedBuilderClassesOnImageClasspath";
-     *
+     * <p>
      *  And in the BuildAndRunCmds e.g.:
-     *
+     * <p>
      *  new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
      *               "-Dquarkus.native.additional-build-args=" +
      *                GRAALVM_ALLOW_DEPRECATED_BUILDER_SWITCH_TOKEN +
@@ -1067,7 +1087,7 @@ public class Commands {
      * //@formatter:on
      */
     public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,
-                                      File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
+            File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
         // The last command is reserved for running it
         assertTrue(app.buildAndRunCmds.cmds.length > 1);
         if (report != null) {
@@ -1083,7 +1103,8 @@ public class Commands {
             } else {
                 cmd = getRunCommand(app.buildAndRunCmds.cmds[i]);
             }
-            Files.writeString(processLog.toPath(), String.join(" ", cmd) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+            Files.writeString(processLog.toPath(), String.join(" ", cmd) + "\n", StandardOpenOption.APPEND,
+                    StandardOpenOption.CREATE);
             buildService.submit(new Commands.ProcessRunner(appDir, processLog, cmd, 20, env)); // might take a long time....
             if (report != null) {
                 Logs.appendln(report, (new Date()).toString());
@@ -1095,15 +1116,18 @@ public class Commands {
         assertTrue(processLog.exists());
     }
 
-    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog)
+            throws IOException {
         builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, null);
     }
 
-    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws IOException {
+    public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog,
+            Map<String, String> env) throws IOException {
         builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env, null);
     }
 
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
+    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,
+            File processLog) throws IOException {
         builderRoutine(steps, app, report, cn, mn, appDir, processLog, null, null);
     }
 
@@ -1120,7 +1144,8 @@ public class Commands {
                 // Some switches could be nested in e.g. -Dquarkus.native.additional-build-args=,
                 // thus not found by simple cmd lookup above. There could be more keys to replace too,
                 // so we need to iterate until all substitutions in a segment are done. Yes. I am beginning to wonder too.
-                final List<String> keys = switchReplacements.keySet().stream().filter(segment::contains).collect(Collectors.toList());
+                final List<String> keys = switchReplacements.keySet().stream().filter(segment::contains)
+                        .collect(Collectors.toList());
                 if (!keys.isEmpty()) {
                     for (String key : keys) {
                         segment = segment.replace(key, switchReplacements.get(key));
@@ -1156,7 +1181,8 @@ public class Commands {
 
     public static void replaceInSmallTextFile(Pattern search, String replace, Path file, Charset charset) throws IOException {
         final String data = Files.readString(file, charset);
-        Files.writeString(file, search.matcher(data).replaceAll(replace), charset, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        Files.writeString(file, search.matcher(data).replaceAll(replace), charset, StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     public static void replaceInSmallTextFile(Pattern search, String replace, Path file) throws IOException {

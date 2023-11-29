@@ -22,16 +22,19 @@ public class Uploader {
 
     private static HttpClient hc = null;
 
-    public static HttpResponse<String> postPayload(final String appContext, final String jsonPayload) throws URISyntaxException, IOException, InterruptedException {
-        if (PERF_APP_ENDPOINT == null || PERF_APP_ENDPOINT.isEmpty() || PERF_APP_SECRET_TOKEN == null || PERF_APP_SECRET_TOKEN.isEmpty()) {
-            LOGGER.error("Both PERF_APP_ENDPOINT and PERF_APP_SECRET_TOKEN (or -Dperf.app.endpoint -Dperf.app.secret.token) must" +
-                    "be populated to use the uploader.");
+    public static HttpResponse<String> postPayload(final String appContext, final String jsonPayload)
+            throws URISyntaxException, IOException, InterruptedException {
+        if (PERF_APP_ENDPOINT == null || PERF_APP_ENDPOINT.isEmpty() || PERF_APP_SECRET_TOKEN == null
+                || PERF_APP_SECRET_TOKEN.isEmpty()) {
+            LOGGER.error(
+                    "Both PERF_APP_ENDPOINT and PERF_APP_SECRET_TOKEN (or -Dperf.app.endpoint -Dperf.app.secret.token) must" +
+                            "be populated to use the uploader.");
             return null;
         }
         if (hc == null) {
             hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
         }
-        final String[] headers = new String[]{
+        final String[] headers = new String[] {
                 "User-Agent", USER_AGENT,
                 "token", PERF_APP_SECRET_TOKEN,
                 "Content-Type", "application/json",

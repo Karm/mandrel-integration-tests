@@ -39,11 +39,12 @@ public class WebpageTester {
     /**
      * Patiently try to wait for a web page and examine it
      *
-     * @param url             address
-     * @param timeoutS        in seconds
+     * @param url address
+     * @param timeoutS in seconds
      * @param stringToLookFor string must be present on the page
      */
-    public static long testWeb(String url, long timeoutS, String stringToLookFor, boolean measureTime) throws InterruptedException, IOException {
+    public static long testWeb(String url, long timeoutS, String stringToLookFor, boolean measureTime)
+            throws InterruptedException, IOException {
         if (StringUtils.isBlank(url)) {
             throw new IllegalArgumentException("url must not be empty");
         }
@@ -55,7 +56,9 @@ public class WebpageTester {
         }
         String webPage = "";
         final String failureMessage = "Timeout " + timeoutS + "s was reached. " +
-                (StringUtils.isNotBlank(webPage) ? webPage + " must contain string: " : "Empty webpage does not contain string: ") +
+                (StringUtils.isNotBlank(webPage) ? webPage + " must contain string: "
+                        : "Empty webpage does not contain string: ")
+                +
                 "`" + stringToLookFor + "'";
         long now = System.currentTimeMillis();
         final long startTime = now;

@@ -64,8 +64,7 @@ public class UtilsTests {
                         "instructions %d\n" +
                         "branches %d\n" +
                         "branchmisses %d\n" +
-                        "secondstimeelapsed %f\n"
-                ,
+                        "secondstimeelapsed %f\n",
                 pr.file,
                 pr.taskClock,
                 pr.contextSwitches,
@@ -90,8 +89,7 @@ public class UtilsTests {
         final String actual = String.format(
                 "timeSpentInGCs %f\n" +
                         "incrementalGCevents %d\n" +
-                        "fullGCevents %d\n"
-                ,
+                        "fullGCevents %d\n",
                 pr.timeSpentInGCs,
                 pr.incrementalGCevents,
                 pr.fullGCevents);

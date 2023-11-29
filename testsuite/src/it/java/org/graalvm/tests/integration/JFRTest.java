@@ -88,13 +88,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for build and start of applications with some real source code.
- * Focused on JFR.
+ * Tests for build and start of applications with some real source code. Focused on JFR.
  *
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 @Tag("reproducers")
-@DisabledOnOs({OS.WINDOWS})
+@DisabledOnOs({ OS.WINDOWS })
 public class JFRTest {
 
     private static final Logger LOGGER = Logger.getLogger(JFRTest.class.getName());
@@ -145,17 +144,17 @@ public class JFRTest {
     }
 
     /**
-     * This test compares a simple Quarkus plaintext app built with and without JFR.
-     * The comparison is done using two different Hyperfoil benchmarks. This results in 4 runs total.
-     * Thresholds defined in the app directory are not absolute values (unlike in other perf tests in the project),
-     * instead they are the percent difference between the runs with/without JFR. This allows for a relative comparison
-     * to see how much JFR is impacting performance.
-     * The "worst" case benchmark intentionally emits an unrealistically large number of JFR events. jdk.ThreadPark has
-     * been chosen as the event to be emitted in a loop because it can be called directly with
-     * {@link LockSupport#parkNanos(long)}. This allows us to exercise the JFR infrastructure maximally without adding
-     * too much non-JFR overhead. This should help expose slowness in JFR substrateVM code. The "normal" case
-     * hyperfoil benchmark is meant to be a more realistic representation of the impact of JFR. We only compare against
-     * the defined thresholds with respect to the "normal" case benchmark.
+     * This test compares a simple Quarkus plaintext app built with and without JFR. The comparison is done using two different
+     * Hyperfoil benchmarks. This results in 4 runs total. Thresholds defined
+     * in the app directory are not absolute values (unlike in other perf tests in the project), instead they are the percent
+     * difference between the runs with/without JFR. This allows for a relative
+     * comparison to see how much JFR is impacting performance. The "worst" case benchmark intentionally emits an
+     * unrealistically large number of JFR events. jdk.ThreadPark has been chosen as the
+     * event to be emitted in a loop because it can be called directly with {@link LockSupport#parkNanos(long)}. This allows us
+     * to exercise the JFR infrastructure maximally without adding too much
+     * non-JFR overhead. This should help expose slowness in JFR substrateVM code. The "normal" case hyperfoil benchmark is
+     * meant to be a more realistic representation of the impact of JFR. We only
+     * compare against the defined thresholds with respect to the "normal" case benchmark.
      *
      * e.g. in "work Measurements Diff %:" report, timeToFirstOKRequestMs 47 means that JFR was 47% slower than no JFR.
      */
@@ -202,7 +201,6 @@ public class JFRTest {
 
             generateJFRConfigurationFile(inContainer, jfrPerfJfc, processLog);
 
-
             Map<String, String> switches = null;
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0) {
                 switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
@@ -219,8 +217,7 @@ public class JFRTest {
             Logs.checkLog(cn, mn, appJfr, processLog);
         } finally {
             Files.deleteIfExists(jfrPerfJfc);
-            cleanup(null, cn, mn, report, appJfr,
-                    processLog,
+            cleanup(null, cn, mn, report, appJfr, processLog,
                     new File(appDir.getAbsolutePath() + File.separator + "logs", Endpoint.REGULAR + "-" + appNoJfr.name().toLowerCase() + "-hyperfoil-result.json"),
                     new File(appDir.getAbsolutePath() + File.separator + "logs", Endpoint.WORK + "-" + appNoJfr.name().toLowerCase() + "-hyperfoil-result.json"),
                     new File(appDir.getAbsolutePath() + File.separator + "logs", Endpoint.REGULAR + "-" + appJfr.name().toLowerCase() + "-hyperfoil-result.json"),
@@ -231,7 +228,7 @@ public class JFRTest {
             removeContainers(ContainerNames.HYPERFOIL.name);
             if (!inContainer) {
                 removeContainers(appJfr.runtimeContainer.name, appNoJfr.runtimeContainer.name);
-            } else{
+            } else {
                 removeContainers(ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name);
             }
             enableTurbo();
@@ -247,14 +244,11 @@ public class JFRTest {
         }
     }
 
-    private void startComparisonForBenchmark(Endpoint endpoint, boolean checkThresholds, File processLog, String cn, String mn,
-                                             StringBuilder report, Path measurementsLog, File appDir, Apps appJfr, Apps appNoJfr,
-                                             boolean inContainer) throws IOException, InterruptedException {
+    private void startComparisonForBenchmark(Endpoint endpoint, boolean checkThresholds, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog, File appDir, Apps appJfr,
+            Apps appNoJfr, boolean inContainer) throws IOException, InterruptedException {
 
-        final Map<String, Integer> measurementsJfr = runBenchmarkForApp(endpoint, 5, appJfr, appDir, processLog,
-                cn, mn, report, measurementsLog, inContainer);
-        final Map<String, Integer> measurementsNoJfr = runBenchmarkForApp(endpoint, 5, appNoJfr, appDir, processLog,
-                cn, mn, report, measurementsLog, inContainer);
+        final Map<String, Integer> measurementsJfr = runBenchmarkForApp(endpoint, 5, appJfr, appDir, processLog, cn, mn, report, measurementsLog, inContainer);
+        final Map<String, Integer> measurementsNoJfr = runBenchmarkForApp(endpoint, 5, appNoJfr, appDir, processLog, cn, mn, report, measurementsLog, inContainer);
 
         LOGGER.info("JFR measurementsJfr records: " + measurementsJfr.size() + ", measurementsNoJfr records: " + measurementsNoJfr.size());
         long imageSizeDiff = getMeasurementDiff("imageSize", measurementsJfr, measurementsNoJfr);
@@ -267,16 +261,9 @@ public class JFRTest {
         long responseTime99PercentileDiff = getMeasurementDiff("p99", measurementsJfr, measurementsNoJfr);
 
         final LogBuilder logBuilder = new LogBuilder();
-        final LogBuilder.Log log = logBuilder.app(appJfr)
-                .executableSizeKb(imageSizeDiff)
-                .timeToFirstOKRequestMs(timeToFirstOKRequestMsDiff)
-                .rssKb(rssKbDiff)
-                .meanResponseTime(meanResponseTimeDiff)
-                .maxResponseTime(maxResponseTimeDiff)
-                .responseTime50Percentile(responseTime50PercentileDiff)
-                .responseTime90Percentile(responseTime90PercentileDiff)
-                .responseTime99Percentile(responseTime99PercentileDiff)
-                .build();
+        final LogBuilder.Log log = logBuilder.app(appJfr).executableSizeKb(imageSizeDiff).timeToFirstOKRequestMs(timeToFirstOKRequestMsDiff).rssKb(rssKbDiff).meanResponseTime(meanResponseTimeDiff)
+                .maxResponseTime(maxResponseTimeDiff).responseTime50Percentile(responseTime50PercentileDiff).responseTime90Percentile(responseTime90PercentileDiff)
+                .responseTime99Percentile(responseTime99PercentileDiff).build();
         Logs.logMeasurements(log, measurementsLog);
         Logs.appendln(report, "These values represent the % difference as calculated (measurement_JFR - measurement_no_JFR)/measurement_no_JFR");
         Logs.appendln(report, endpoint + " Measurements Diff %:");
@@ -292,32 +279,23 @@ public class JFRTest {
             final long jdkThreadParkEvents = countJFREvents(inContainer, "jdk.ThreadPark", recording, processLog, report);
             final long parkedClassGreetingService = countJFREventMatches(inContainer, "jdk.ThreadPark",
                     Pattern.compile("^[\\s\\t]*parkedClass = org\\.acme\\.getting\\.started\\.GreetingService[\\s\\t]+.*[\\n\\r]*"), recording, processLog, report);
-            LOGGER.info("JFR file results for endpoint " + endpoint + ": \n" +
-                    "jfrRequestCount: " + jfrRequestCount + "\n" +
-                    "jfrResponseCount: " + jfrResponseCount + "\n" +
-                    "jfrRequestTimeouts: " + jfrRequestTimeouts + "\n" +
-                    "jfrInternalErrors: " + jfrInternalErrors + "\n" +
-                    "jdkThreadParkEvents: " + jdkThreadParkEvents + "\n" +
-                    "parkedClassGreetingService: " + parkedClassGreetingService);
+            LOGGER.info(
+                    "JFR file results for endpoint " + endpoint + ": \n" + "jfrRequestCount: " + jfrRequestCount + "\n" + "jfrResponseCount: " + jfrResponseCount + "\n" + "jfrRequestTimeouts: "
+                            + jfrRequestTimeouts + "\n" + "jfrInternalErrors: " + jfrInternalErrors + "\n" + "jdkThreadParkEvents: " + jdkThreadParkEvents + "\n" + "parkedClassGreetingService: "
+                            + parkedClassGreetingService);
 
-            assertEquals(0, jfrInternalErrors, "The test app is not expected to return any errors " +
-                    "during the Hyperfoil run.");
-            assertEquals(jfrRequestCount, jfrResponseCount, "The number of requests: " + jfrRequestCount +
-                    " is expected to be the same as the number of responses: " + jfrResponseCount);
-            assertEquals(0, jfrRequestTimeouts, "The test app is not expected to return any timeouts " +
-                    "during the Hyperfoil run.");
-            assertTrue(jdkThreadParkEvents > parkedClassGreetingService, "There must have been more " +
-                    "jdk.ThreadPark events in general than those specific to GreetingService class.");
+            assertEquals(0, jfrInternalErrors, "The test app is not expected to return any errors " + "during the Hyperfoil run.");
+            assertEquals(jfrRequestCount, jfrResponseCount, "The number of requests: " + jfrRequestCount + " is expected to be the same as the number of responses: " + jfrResponseCount);
+            assertEquals(0, jfrRequestTimeouts, "The test app is not expected to return any timeouts " + "during the Hyperfoil run.");
+            assertTrue(jdkThreadParkEvents > parkedClassGreetingService, "There must have been more " + "jdk.ThreadPark events in general than those specific to GreetingService class.");
             if (endpoint == Endpoint.REGULAR) {
                 assertEquals(jfrRequestCount, parkedClassGreetingService,
-                        "In the " + Endpoint.REGULAR + " case, the number of requests " + jfrRequestCount +
-                                " is expected to match the total " +
-                                "amount of jdk.ThreadPark events in GreetingService class: " + parkedClassGreetingService);
+                        "In the " + Endpoint.REGULAR + " case, the number of requests " + jfrRequestCount + " is expected to match the total "
+                                + "amount of jdk.ThreadPark events in GreetingService class: " + parkedClassGreetingService);
             } else {
                 assertEquals(jfrRequestCount * 1000, parkedClassGreetingService,
-                        "In the " + Endpoint.WORK + " case, the number of requests " + jfrRequestCount +
-                                " is expected to generate " +
-                                "a thousand more amount of jdk.ThreadPark events in GreetingService class: " + parkedClassGreetingService);
+                        "In the " + Endpoint.WORK + " case, the number of requests " + jfrRequestCount + " is expected to generate "
+                                + "a thousand more amount of jdk.ThreadPark events in GreetingService class: " + parkedClassGreetingService);
             }
         }
         if (checkThresholds) {
@@ -325,9 +303,8 @@ public class JFRTest {
         }
     }
 
-    private Map<String, Integer> runBenchmarkForApp(Endpoint endpoint, int trials, Apps app, File appDir, File processLog,
-                                                    String cn, String mn, StringBuilder report, Path measurementsLog,
-                                                    boolean inContainer) throws IOException, InterruptedException {
+    private Map<String, Integer> runBenchmarkForApp(Endpoint endpoint, int trials, Apps app, File appDir, File processLog, String cn, String mn, StringBuilder report, Path measurementsLog,
+            boolean inContainer) throws IOException, InterruptedException {
 
         Process process = null;
         Process hyperfoilProcess = null;
@@ -341,10 +318,8 @@ public class JFRTest {
                     if (inContainer) {
                         stopAllRunningContainers();
                     }
-                    assertTrue(waitForTcpClosed("localhost", 8080, 10),
-                            "Quarkus app likely hanging on port 8080.");
-                    assertTrue(waitForTcpClosed("localhost", 8090, 10),
-                            "Hyperfoil likely hanging on port 8090.");
+                    assertTrue(waitForTcpClosed("localhost", 8080, 10), "Quarkus app likely hanging on port 8080.");
+                    assertTrue(waitForTcpClosed("localhost", 8090, 10), "Hyperfoil likely hanging on port 8090.");
                 }
                 final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[inContainer ? 2 : 1]);
                 clearCaches(); //TODO consider using warm up instead of clearing caches
@@ -369,41 +344,31 @@ public class JFRTest {
             assertNotNull(hyperfoilProcess, "Hyperfoil failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
 
             // Wait for Hyperfoil to download & start
-            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name,
-                    Pattern.compile(".*Hyperfoil controller listening.*", Pattern.DOTALL), 600, 5, TimeUnit.SECONDS);
+            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name, Pattern.compile(".*Hyperfoil controller listening.*", Pattern.DOTALL), 600, 5, TimeUnit.SECONDS);
             // Wait for Hyperfoil to open endpoint
             WebpageTester.testWeb(app.urlContent.urlContent[2][0], 15, app.urlContent.urlContent[2][1], false);
 
             // Upload the benchmark
             final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-            final HttpRequest uploadRequest = HttpRequest.newBuilder()
-                    .uri(new URI(app.urlContent.urlContent[1][0]))
-                    .header("Content-Type", "text/vnd.yaml")
-                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/benchmark.hf.yaml")))
-                    .build();
+            final HttpRequest uploadRequest = HttpRequest.newBuilder().uri(new URI(app.urlContent.urlContent[1][0])).header("Content-Type", "text/vnd.yaml")
+                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/benchmark.hf.yaml"))).build();
             final HttpResponse<String> releaseResponse = hc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
             assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
             LOGGER.info("Hyperfoil upload response code " + releaseResponse.statusCode());
 
             // Run the benchmark
             disableTurbo();
-            final HttpRequest benchmarkRequest = HttpRequest.newBuilder()
-                    .uri(new URI(app.urlContent.urlContent[3][0] + "?templateParam=ENDPOINT=" + endpoint))
-                    .GET()
-                    .build();
+            final HttpRequest benchmarkRequest = HttpRequest.newBuilder().uri(new URI(app.urlContent.urlContent[3][0] + "?templateParam=ENDPOINT=" + endpoint)).GET().build();
             final HttpResponse<String> benchmarkResponse = hc.send(benchmarkRequest, HttpResponse.BodyHandlers.ofString());
             final JSONObject benchmarkResponseJson = new JSONObject(benchmarkResponse.body());
             final String id = benchmarkResponseJson.getString("id");
 
             // Wait for benchmark to complete
-            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name,
-                    Pattern.compile(".*Successfully persisted run.*", Pattern.DOTALL), 30, 2, TimeUnit.SECONDS);
+            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name, Pattern.compile(".*Successfully persisted run.*", Pattern.DOTALL), 30, 2, TimeUnit.SECONDS);
             enableTurbo();
 
             // Get the results
-            final HttpRequest resultsRequest = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:8090/run/" + id + "/stats/all/json"))
-                    .GET()
+            final HttpRequest resultsRequest = HttpRequest.newBuilder().uri(new URI("http://localhost:8090/run/" + id + "/stats/all/json")).GET()
                     .timeout(Duration.ofSeconds(3)) // set timeout to allow for cleanup, otherwise will stall at first request above
                     .build();
             final HttpResponse<String> resultsResponse = hc.send(resultsRequest, HttpResponse.BodyHandlers.ofString());
@@ -411,12 +376,11 @@ public class JFRTest {
             final JSONObject resultsResponseJson = new JSONObject(resultsResponse.body());
 
             // Persist the benchmark result in case a human needs to see it.
-            Files.writeString(Paths.get(appDir.getAbsolutePath(), "logs", endpoint + "-" + app.name().toLowerCase() + "-hyperfoil-result.json"),
-                    resultsResponseJson.toString(2), StandardOpenOption.CREATE_NEW);
+            Files.writeString(Paths.get(appDir.getAbsolutePath(), "logs", endpoint + "-" + app.name().toLowerCase() + "-hyperfoil-result.json"), resultsResponseJson.toString(2),
+                    StandardOpenOption.CREATE_NEW);
 
             // Get image size in KB, safe to be within int.
-            final int imageSizeKB = (int) (findExecutable(Path.of(appDir.getAbsolutePath(), "target"),
-                    Pattern.compile(".*-runner")).length() / 1024L);
+            final int imageSizeKB = (int) (findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*-runner")).length() / 1024L);
             LOGGER.info(app.name() + " image size " + imageSizeKB + " KB");
 
             // Parse JSON response from Hyperfoil controller server
@@ -434,31 +398,17 @@ public class JFRTest {
             measurements.put("requestTimeouts", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getInt("requestTimeouts"));
             measurements.put("internalErrors", resultsResponseJson.getJSONArray("stats").getJSONObject(0).getJSONObject("total").getJSONObject("summary").getInt("internalErrors"));
 
-            LOGGER.info("mean:" + measurements.get("mean")
-                    + ", max:" + measurements.get("max")
-                    + ", p50:" + measurements.get("p50")
-                    + ", p90:" + measurements.get("p90")
-                    + ", p99:" + measurements.get("p99")
-                    + ", startup:" + measurements.get("startup")
-                    + ", rss:" + measurements.get("rss")
-                    + ", imageSize:" + measurements.get("imageSize")
-                    + ", requestCount:" + measurements.get("requestCount")
-                    + ", responseCount:" + measurements.get("responseCount")
-                    + ", requestTimeouts:" + measurements.get("requestTimeouts")
-                    + ", internalErrors:" + measurements.get("internalErrors")
-            );
+            LOGGER.info("mean:" + measurements.get("mean") + ", max:" + measurements.get("max") + ", p50:" + measurements.get("p50") + ", p90:" + measurements.get("p90") + ", p99:" + measurements.get(
+                    "p99") + ", startup:" + measurements.get("startup") + ", rss:" + measurements.get("rss") + ", imageSize:" + measurements.get("imageSize") + ", requestCount:"
+                    + measurements.get(
+                            "requestCount")
+                    + ", responseCount:" + measurements.get("responseCount") + ", requestTimeouts:" + measurements.get("requestTimeouts") + ", internalErrors:" + measurements.get(
+                            "internalErrors"));
 
             final LogBuilder logBuilder = new LogBuilder();
-            final LogBuilder.Log log = logBuilder.app(app)
-                    .executableSizeKb(imageSizeKB)
-                    .timeToFirstOKRequestMs(measurements.get("startup"))
-                    .rssKb(measurements.get("rss"))
-                    .meanResponseTime(measurements.get("mean"))
-                    .maxResponseTime(measurements.get("max"))
-                    .responseTime50Percentile(measurements.get("p50"))
-                    .responseTime90Percentile(measurements.get("p90"))
-                    .responseTime99Percentile(measurements.get("p99"))
-                    .build();
+            final LogBuilder.Log log = logBuilder.app(app).executableSizeKb(imageSizeKB).timeToFirstOKRequestMs(measurements.get("startup")).rssKb(measurements.get("rss"))
+                    .meanResponseTime(measurements.get("mean")).maxResponseTime(measurements.get("max")).responseTime50Percentile(measurements.get("p50"))
+                    .responseTime90Percentile(measurements.get("p90")).responseTime99Percentile(measurements.get("p99")).build();
             Logs.logMeasurements(log, measurementsLog);
             Logs.appendln(report, endpoint + " Measurements " + app.name() + ":");
             Logs.appendln(report, log.headerMarkdown + "\n" + log.lineMarkdown);
@@ -478,8 +428,7 @@ public class JFRTest {
             // Store the JFR recording
             final Path recording = Paths.get(appDir.getAbsolutePath(), "logs", "flight-native.jfr");
             if (Files.exists(recording)) {
-                Files.move(recording,
-                        Paths.get(appDir.getAbsolutePath(), "logs", endpoint + "-" + app.name().toLowerCase() + "-flight-native.jfr"));
+                Files.move(recording, Paths.get(appDir.getAbsolutePath(), "logs", endpoint + "-" + app.name().toLowerCase() + "-flight-native.jfr"));
             }
         }
     }
@@ -487,10 +436,9 @@ public class JFRTest {
     private void generateJFRConfigurationFile(boolean inContainer, Path jfrPerfJfc, File logFile) throws IOException {
         final List<String> command;
         if (inContainer) {
-            command = getRunCommand(CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
-                    "-t", "--entrypoint", "jfr", "-v", jfrPerfJfc.getParent().toString() + ":/project:z",
-                    BUILDER_IMAGE,
-                    "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output", "./" + jfrPerfJfc.getFileName().toString());
+            command = getRunCommand(CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(), "-t", "--entrypoint", "jfr", "-v",
+                    jfrPerfJfc.getParent().toString() + ":/project:z", BUILDER_IMAGE, "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output",
+                    "./" + jfrPerfJfc.getFileName().toString());
         } else {
             command = getRunCommand("jfr", "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output", jfrPerfJfc.toString());
         }
@@ -502,10 +450,10 @@ public class JFRTest {
     }
 
     /**
-     * @param inContainer     Whether to use jfr tool from a container
-     * @param eventType       e.g. jdk.ThreadPark
+     * @param inContainer Whether to use jfr tool from a container
+     * @param eventType e.g. jdk.ThreadPark
      * @param flightRecording e.g. path to your flight-native.jfr
-     * @param logFile         e.g. path to the build and run log
+     * @param logFile e.g. path to the build and run log
      * @return parsed Count from JFR file summary for the particular event
      * @throws IOException
      * @throws InterruptedException
@@ -515,10 +463,8 @@ public class JFRTest {
         final Pattern pattern = Pattern.compile("^[\\s\\t]*" + eventType + "[\\s\\t]+([0-9]+)[\\s\\t]+.*[\\n\\r]*");
         final List<String> cmd;
         if (inContainer) {
-            cmd = getRunCommand(CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
-                    "-t", "--entrypoint", "jfr", "-v", flightRecording.getParent().toString() + ":/project:z",
-                    BUILDER_IMAGE,
-                    "summary", "./" + flightRecording.getFileName().toString());
+            cmd = getRunCommand(CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(), "-t", "--entrypoint", "jfr", "-v",
+                    flightRecording.getParent().toString() + ":/project:z", BUILDER_IMAGE, "summary", "./" + flightRecording.getFileName().toString());
         } else {
             cmd = getRunCommand("jfr", "summary", flightRecording.toString());
         }
@@ -528,8 +474,7 @@ public class JFRTest {
         Files.writeString(logFile.toPath(), command, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
         final Process p = Commands.runCommand(cmd, new File("."), null, null);
         // UTF-8 on Windows might work poorly with colours in terminal.
-        try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             while ((l = processOutputReader.readLine()) != null) {
                 final Matcher m = pattern.matcher(l);
@@ -547,10 +492,8 @@ public class JFRTest {
         assertTrue(Files.exists(flightRecording), "The flight record file " + flightRecording + " MUST exist at this point in time.");
         final List<String> cmd;
         if (inContainer) {
-            cmd = getRunCommand(CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
-                    "-t", "--entrypoint", "jfr", "-v", flightRecording.getParent().toString() + ":/project:z",
-                    BUILDER_IMAGE,
-                    "print", "--events", eventType, "./" + flightRecording.getFileName().toString());
+            cmd = getRunCommand(CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(), "-t", "--entrypoint", "jfr", "-v",
+                    flightRecording.getParent().toString() + ":/project:z", BUILDER_IMAGE, "print", "--events", eventType, "./" + flightRecording.getFileName().toString());
         } else {
             cmd = getRunCommand("jfr", "print", "--events", eventType, flightRecording.toString());
         }
@@ -565,8 +508,7 @@ public class JFRTest {
         long start = System.currentTimeMillis();
         final StringBuilder s = new StringBuilder();
         // UTF-8 on Windows might work poorly with colours in terminal.
-        try (BufferedReader processOutputReader =
-                     new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader processOutputReader = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
             String l;
             // TODO: This is kind of naive. There could be hundreds of thousands of matches and it would be better to do big chunks.
             while ((l = processOutputReader.readLine()) != null) {
@@ -660,10 +602,9 @@ public class JFRTest {
 
             // Check the recording files were created
             final String archivedLogLocation = "See " + Path.of(BASE_DIR, "testsuite", "target", "archived-logs", cn, mn, processLog.getName());
-            for (String file : new String[]{"flight-native.jfr", "flight-java.jfr"}) {
+            for (String file : new String[] { "flight-native.jfr", "flight-java.jfr" }) {
                 final Path path = Path.of(appDir.getAbsolutePath(), "logs", file);
-                assertTrue(Files.exists(path),
-                        file + " recording file should have been created. " + archivedLogLocation);
+                assertTrue(Files.exists(path), file + " recording file should have been created. " + archivedLogLocation);
                 assertTrue(Files.size(path) > 1024, file + " seems too small. " + archivedLogLocation);
             }
 
@@ -679,30 +620,19 @@ public class JFRTest {
                 }
             }
 
-            assertEquals(4, count, "There were four same hashes " + magicHash + " expected in the log. " +
-                    "One from JVM run, one from JVM run with JFR, one for Native image run and one for Native image run with JFR. " +
-                    "" + count + " such hashes were found. Check build-and-run.log and report.md.");
+            assertEquals(4, count,
+                    "There were four same hashes " + magicHash + " expected in the log. "
+                            + "One from JVM run, one from JVM run with JFR, one for Native image run and one for Native image run with JFR. " + "" + count
+                            + " such hashes were found. Check build-and-run.log and report.md.");
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
             final Path measurementsLog = Paths.get(getLogsDir(cn, mn).toString(), "measurements.csv");
 
-            LogBuilder.Log logJVM = new LogBuilder()
-                    .app(app + "_JVM")
-                    .timeToFinishMs(jvmRunTookMs)
-                    .build();
-            LogBuilder.Log logNative = new LogBuilder()
-                    .app(app + "_NATIVE")
-                    .timeToFinishMs(nativeRunTookMs)
-                    .build();
-            LogBuilder.Log logJVMJFR = new LogBuilder()
-                    .app(app + "_JVM_JFR")
-                    .timeToFinishMs(jvmJfrRunTookMs)
-                    .build();
-            LogBuilder.Log logNativeJFR = new LogBuilder()
-                    .app(app + "_NATIVE_JFR")
-                    .timeToFinishMs(nativeJfrRunTookMs)
-                    .build();
+            LogBuilder.Log logJVM = new LogBuilder().app(app + "_JVM").timeToFinishMs(jvmRunTookMs).build();
+            LogBuilder.Log logNative = new LogBuilder().app(app + "_NATIVE").timeToFinishMs(nativeRunTookMs).build();
+            LogBuilder.Log logJVMJFR = new LogBuilder().app(app + "_JVM_JFR").timeToFinishMs(jvmJfrRunTookMs).build();
+            LogBuilder.Log logNativeJFR = new LogBuilder().app(app + "_NATIVE_JFR").timeToFinishMs(nativeJfrRunTookMs).build();
             Logs.logMeasurements(logJVM, measurementsLog);
             Logs.logMeasurements(logNative, measurementsLog);
             Logs.logMeasurements(logJVMJFR, measurementsLog);
@@ -725,11 +655,7 @@ public class JFRTest {
             cleanup(process, cn, mn, report, app, processLog);
             if (app.runtimeContainer != ContainerNames.NONE) {
                 stopAllRunningContainers();
-                removeContainers(
-                        app.runtimeContainer.name,
-                        app.runtimeContainer.name + "-build",
-                        app.runtimeContainer.name + "-run-java",
-                        app.runtimeContainer.name + "-run-java-jfr");
+                removeContainers(app.runtimeContainer.name, app.runtimeContainer.name + "-build", app.runtimeContainer.name + "-run-java", app.runtimeContainer.name + "-run-java-jfr");
             }
         }
     }
@@ -750,12 +676,10 @@ public class JFRTest {
     }
 
     /**
-     * e.g.
-     * https://github.com/oracle/graal/issues/3638
-     * native-image, UX, JFR, -XX:StartFlightRecording flags/arguments units are not aligned with HotSpot convention
+     * e.g. https://github.com/oracle/graal/issues/3638 native-image, UX, JFR, -XX:StartFlightRecording flags/arguments units
+     * are not aligned with HotSpot convention
      *
-     * This is a basic smoke test using various options. It is not delving
-     * into whether they actually affect the recording.
+     * This is a basic smoke test using various options. It is not delving into whether they actually affect the recording.
      *
      * @param testInfo
      * @throws IOException
@@ -785,80 +709,42 @@ public class JFRTest {
             builderRoutine(2, app, report, cn, mn, appDir, processLog, null, switches);
 
             final Map<String[], Pattern> cmdOutput = new HashMap<>();
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxsize=9.8kB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000c,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000c,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxsize=9.8kB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10M,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10M,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxsize=10.0MB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10m,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10m,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxsize=10.0MB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10k,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10k,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxsize=10.0kB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10g,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10g,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxsize=10.0GB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,maxage=10000ns,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
-                    Pattern.compile(".* Started recording .* \\{maxage=10us, maxsize=9.8kB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,maxage=30s,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,maxage=10000ns,filename=logs/flight-native.jfr",
+                    "-XX:FlightRecorderLogging=jfr" }, Pattern.compile(".* Started recording .* \\{maxage=10us, maxsize=9.8kB.*", Pattern.DOTALL));
+            cmdOutput.put(
+                    new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,maxage=30s,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxage=30s, maxsize=9.8kB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,maxage=10m,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(
+                    new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,maxage=10m,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxage=10m, maxsize=9.8kB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,maxage=11h,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(
+                    new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,maxage=11h,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Started recording .* \\{maxage=11h, maxsize=9.8kB.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,delay=1000000000ns,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,delay=1000000000ns,filename=logs/flight-native.jfr",
+                    "-XX:FlightRecorderLogging=jfr" }, Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
+            cmdOutput.put(
+                    new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,delay=5s,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,delay=5s,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(
+                    new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,delay=5m,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,delay=5m,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(
+                    new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,delay=5h,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,delay=5h,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
-                    Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
-            cmdOutput.put(new String[]{"./target/timezones",
-                            "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000,delay=5d,filename=logs/flight-native.jfr",
-                            "-XX:FlightRecorderLogging=jfr"},
+            cmdOutput.put(
+                    new String[] { "./target/timezones", "-XX:+FlightRecorder", "-XX:StartFlightRecording=maxsize=10000,delay=5d,filename=logs/flight-native.jfr", "-XX:FlightRecorderLogging=jfr" },
                     Pattern.compile(".* Scheduled recording .* to start at.*", Pattern.DOTALL));
 
             for (Map.Entry<String[], Pattern> co : cmdOutput.entrySet()) {
@@ -875,8 +761,7 @@ public class JFRTest {
                     Files.writeString(processLog.toPath(), Files.readString(interimLog) + "\n", StandardOpenOption.APPEND, StandardOpenOption.CREATE);
                     final String interimLogString = Files.readString(interimLog, StandardCharsets.US_ASCII);
                     final Matcher m = co.getValue().matcher(interimLogString);
-                    assertTrue(m.matches(), "Command `" + String.join(" ", cmd) + "' " +
-                            "output did not match expected pattern `" + co.getValue().toString() + "', it was: " + interimLogString);
+                    assertTrue(m.matches(), "Command `" + String.join(" ", cmd) + "' " + "output did not match expected pattern `" + co.getValue().toString() + "', it was: " + interimLogString);
                 } finally {
                     if (interimLog != null) {
                         Files.delete(interimLog);
