@@ -52,12 +52,6 @@ public class StaticDistroChecks {
         spaceInPath(testInfo);
     }
 
-    @Test
-    @IfMandrelVersion(min = "21.3.3", max = "21.3.999")
-    public void spaceInPath_21(TestInfo testInfo) throws IOException {
-        spaceInPath(testInfo);
-    }
-
     public void spaceInPath(TestInfo testInfo) throws IOException {
         final Path graalHomeSpace = Path.of(System.getProperty("java.io.tmpdir"), "there are spaces");
         try {
