@@ -31,8 +31,10 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     private final boolean snapshot;
     private final String gitSHA;
 
+    public static final String DEFAULT_VERSION = "2.13.9.Final";
+
     public QuarkusVersion() {
-        this(getProperty("QUARKUS_VERSION", "2.13.9.Final"));
+        this(getProperty("QUARKUS_VERSION", DEFAULT_VERSION));
     }
 
     public QuarkusVersion(String version) {
@@ -46,8 +48,8 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
         } else {
             final String[] split = version.split("\\.");
             this.major = Integer.parseInt(split[0]);
-            this.minor = Integer.parseInt(split[1]);
-            this.patch = Integer.parseInt(split[2]);
+            this.minor = split.length > 1 ? Integer.parseInt(split[1]) : 0;
+            this.patch = split.length > 2 ? Integer.parseInt(split[2]) : 0;
             this.gitSHA = null;
         }
     }
@@ -97,12 +99,6 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
 
     @Override
     public String toString() {
-        return "QuarkusVersion{" +
-                "version='" + version + '\'' +
-                ", major=" + major +
-                ", minor=" + minor +
-                ", patch=" + patch +
-                ", snapshot=" + snapshot +
-                '}';
+        return "QuarkusVersion{" + "version='" + version + '\'' + ", major=" + major + ", minor=" + minor + ", patch=" + patch + ", snapshot=" + snapshot + '}';
     }
 }

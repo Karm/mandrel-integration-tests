@@ -19,7 +19,7 @@
  */
 package org.graalvm.tests.integration.utils.versions;
 
-import org.graalvm.tests.integration.utils.Commands;
+import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -39,7 +39,7 @@ public class QuarkusVersionCondition implements ExecutionCondition {
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(
             ExtensionContext context) {
-        AnnotatedElement element = context
+        final AnnotatedElement element = context
                 .getElement()
                 .orElseThrow(IllegalStateException::new);
         return findAnnotation(element, IfQuarkusVersion.class)
@@ -48,11 +48,11 @@ public class QuarkusVersionCondition implements ExecutionCondition {
     }
 
     private ConditionEvaluationResult disableIfVersionMismatch(IfQuarkusVersion annotation, AnnotatedElement element) {
-        QuarkusVersion usedVersion = Commands.QUARKUS_VERSION;
-        final boolean quarkusConstraintSatisfied =
-                (annotation.min().isBlank() || usedVersion.compareTo(new QuarkusVersion(annotation.min())) >= 0) &&
-                        (annotation.max().isBlank() || usedVersion.compareTo(new QuarkusVersion(annotation.max())) <= 0);
-        if (quarkusConstraintSatisfied) {
+        // `new QuarkusVersion()` is used instead of `Commands.QUARKUS_VERSION` for the
+        // sake of testability via `System.setProperty("QUARKUS_VERSION", "3.6.0")` at the cost
+        // of re-evaluation the property with each IfQuarkusVersion evaluation.
+        final QuarkusVersion usedVersion = new QuarkusVersion();
+        if (quarkusConstraintSatisfied(usedVersion, annotation.min(), annotation.max())) {
             return enabled(format(
                     "%s is enabled as Quarkus version %s does satisfy constraints: min: %s, max: %s",
                     element, usedVersion, annotation.min(), annotation.max()));
@@ -60,5 +60,10 @@ public class QuarkusVersionCondition implements ExecutionCondition {
         return disabled(format(
                 "%s is disabled as Quarkus version %s does not satisfy constraints: min: %s, max: %s",
                 element, usedVersion, annotation.min(), annotation.max()));
+    }
+
+    public static boolean quarkusConstraintSatisfied(final QuarkusVersion usedVersion, final String min, final String max) {
+        return (Strings.isBlank(min) || usedVersion.compareTo(new QuarkusVersion(min)) >= 0) &&
+                (Strings.isBlank(max) || usedVersion.compareTo(new QuarkusVersion(max)) <= 0);
     }
 }
