@@ -20,6 +20,7 @@
 package org.graalvm.tests.integration.utils.thresholds;
 
 import org.apache.logging.log4j.util.Strings;
+import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
@@ -151,7 +152,13 @@ public class Thresholds {
             final String minJDK = mVerMatch.group("minJDK");
             final String maxJDK = mVerMatch.group("maxJDK");
             final boolean inContainer = Boolean.parseBoolean(mVerMatch.group("inContainer"));
-            return (jdkConstraintSatisfied(minJDK, maxJDK, inContainer) && mandrelConstraintSatisfied(UsedVersion.getVersion(inContainer), min, max));
+            Version version = UsedVersion.getVersion(inContainer);
+            if (inContainer && version == null) {
+                LOGGER.error("There is probably no container runtime configured and thus no way to " +
+                        "determine the version of Mandrel for `inContainer = true`. Trying to fall back to the host runtime.");
+                version = UsedVersion.getVersion(false);
+            }
+            return (jdkConstraintSatisfied(minJDK, maxJDK, inContainer) && mandrelConstraintSatisfied(version, min, max));
         }
         LOGGER.error("Line '" + line + "' does not match the pattern '" + MVERSION_PATTERN.pattern() + "' although it starts with '@IfMandrel.*'. Ignoring.");
         return null;

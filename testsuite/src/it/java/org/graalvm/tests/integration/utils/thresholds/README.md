@@ -45,10 +45,13 @@ linux.executable.size.threshold.kB=90000
 ```
 
 Properties are being added to a map top to bottom, overwriting their previous values
-unless an `@If` constraint fails.
+unless an `@If` constraint fails. If a condition fails, the following properties are
+not added to the map until the next `@If` constraint is met.
 
 If two `@If` constraints follow immediately one after the other, they both MUST be true
 to process the following properties.
 
 Take a look at [ThresholdsTest.java](./ThresholdsTest.java) and its `threshold-*.conf` test [files](../../../../../../../../test/resources/) for a comprehensive overview.
 
+The parsing logic is compatible with plain `.properties` files as we have been using before,
+i.e. any key-value pair where the value is interpreted as the long type.

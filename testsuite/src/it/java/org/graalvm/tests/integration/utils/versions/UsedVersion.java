@@ -104,11 +104,12 @@ public class UsedVersion {
     // Implements version parsing after https://github.com/oracle/graal/pull/6302
     static final class VersionParseHelper {
 
+        //@formatter:off
         private static final Map<Integer, String> GRAAL_MAPPING = Map.of(22, "24.0",
                                                                          23, "24.1",
                                                                          24, "25.0",
                                                                          25, "25.1");
-
+        //@formatter:on
         private static final String JVMCI_BUILD_PREFIX = "jvmci-";
         private static final String MANDREL_VERS_PREFIX = "Mandrel-";
 
@@ -206,7 +207,7 @@ public class UsedVersion {
         private static String graalVersion(String buildInfo, int jdkFeatureVers) {
             if (jdkFeatureVers >= 22) {
                 // short-circuit new version scheme with a mapping
-                return GRAAL_MAPPING.get(Integer.valueOf(jdkFeatureVers));
+                return GRAAL_MAPPING.get(jdkFeatureVers);
             }
             if (buildInfo == null) {
                 return null;
@@ -263,6 +264,9 @@ public class UsedVersion {
                 mandrelVersion = VersionParseHelper.parse(lines);
             } else {
                 mandrelVersion = UNKNOWN_VERSION;
+                LOGGER.warn("Failed to correctly parse native-image version command output. " +
+                        "Is it on PATH? Unknown version format? " +
+                        "Output reads in " + lines.size() + " lines, see them in an array: " + lines);
             }
             LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d%s.",
                     mandrelVersion.version == null ? "UNKNOWN" : mandrelVersion.version.toString(),
@@ -410,12 +414,12 @@ public class UsedVersion {
     public static int[] featureInterimUpdate(Pattern pattern, String version, int defaultValue) {
         final Matcher m;
         if (version == null || !(m = pattern.matcher(version)).matches()) {
-            return new int[]{defaultValue, defaultValue, defaultValue};
+            return new int[] { defaultValue, defaultValue, defaultValue };
         }
         final String jFeature = m.group("jfeature");
         final String jInterim = m.group("jinterim");
         final String jUpdate = m.group("jupdate");
-        return new int[]{
+        return new int[] {
                 jFeature == null ? defaultValue : Integer.parseInt(jFeature),
                 jInterim == null ? defaultValue : Integer.parseInt(jInterim),
                 jUpdate == null ? defaultValue : Integer.parseInt(jUpdate)

@@ -35,6 +35,9 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import static java.lang.System.clearProperty;
+import static java.lang.System.lineSeparator;
+import static java.lang.System.setProperty;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.getProperty;
@@ -135,63 +138,55 @@ public class ThresholdsTest {
     // Native-image version string                                                        | Config file      | Q version   | a   | b   | c
     "native-image 21.0.1 2023-10-17\\n" +
     "OpenJDK Runtime Environment Mandrel-23.1.1.0-Final (build 21.0.1+12-LTS)\\n" +
-    "OpenJDK 64-Bit Server VM Mandrel-23.1.1.0-Final (build 21.0.1+12-LTS, mixed mode)\\n | threshold-1.conf | 3.3.3.Final | 150 | 250 | 350 ",
+    "OpenJDK 64-Bit Server VM Mandrel-23.1.1.0-Final (build 21.0.1+12-LTS, mixed mode)    | threshold-1.conf | 3.3.3.Final | 150 | 250 | 350 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 21.0.1 2023-10-17\\n" +
     "GraalVM Runtime Environment GraalVM CE 21.0.1-dev+12.1 (build 21.0.1+12-jvmci-23.1-b22)\\n" +
-    "Substrate VM GraalVM CE 21.0.1-dev+12.1 (build 21.0.1+12, serial gc)\\n              | threshold-1.conf | 3.1.9.Final | 160 | 260 | 360 ",
+    "Substrate VM GraalVM CE 21.0.1-dev+12.1 (build 21.0.1+12, serial gc)                 | threshold-1.conf | 3.1.9.Final | 160 | 260 | 360 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 23 2026-09-01\\n" +
     "GraalVM Runtime Environment GraalVM CE 23+35.1 (build 23+35-jvmci-24.1-b99)\\n" +
-    "Substrate VM GraalVM CE 23+35.1 (build 23+35, serial gc)\\n                          | threshold-1.conf | 3.7.0       | 170 | 270 | 100 ",
+    "Substrate VM GraalVM CE 23+35.1 (build 23+35, serial gc)                             | threshold-1.conf | 3.7.0       | 170 | 270 | 100 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
-    "native-image 21.3.6.0-Final Mandrel Distribution (Java Version 17.0.7+7)\\n          | threshold-1.conf | 3.6.0       | N/A | 90 | 100 ",
+    "native-image 21.3.6.0-Final Mandrel Distribution (Java Version 17.0.7+7)             | threshold-1.conf | 3.6.0       | N/A | 90 | 100 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
-    "native-image 22.3.4.0-Final Mandrel Distribution (Java Version 17.0.9+9)\\n          | threshold-2.conf | 2.7.9.Final | 200 | 300 | 400 ",
+    "native-image 22.3.4.0-Final Mandrel Distribution (Java Version 17.0.9+9)             | threshold-2.conf | 2.7.9.Final | 200 | 300 | 400 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 17.0.9 2023-10-17\\n" +
     "OpenJDK Runtime Environment Mandrel-23.0.2.1-Final (build 17.0.9+9)\\n" +
-    "OpenJDK 64-Bit Server VM Mandrel-23.0.2.1-Final (build 17.0.9+9, mixed mode)\\n      | threshold-3.conf | 3.6.0       | 100 | 200 | 300 ",
+    "OpenJDK 64-Bit Server VM Mandrel-23.0.2.1-Final (build 17.0.9+9, mixed mode)         | threshold-3.conf | 3.6.0       | 100 | 200 | 300 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 20.0.2 2023-07-18\\n" +
     "OpenJDK Runtime Environment Mandrel-23.0.1.2-Final (build 20.0.2+9)\\n" +
-    "OpenJDK 64-Bit Server VM Mandrel-23.0.1.2-Final (build 20.0.2+9, mixed mode)\\n      | threshold-4.conf | 3.6.0       | 100 | 200 | 300 ",
+    "OpenJDK 64-Bit Server VM Mandrel-23.0.1.2-Final (build 20.0.2+9, mixed mode)         | threshold-4.conf | 3.6.0       | 100 | 200 | 300 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 20.0.2 2023-07-18\\n" +
     "OpenJDK Runtime Environment Mandrel-23.0.1.2-Final (build 20.0.2+9)\\n" +
-    "OpenJDK 64-Bit Server VM Mandrel-23.0.1.2-Final (build 20.0.2+9, mixed mode)\\n      | threshold-4.conf | 3.8.0       | 300 | 400 | 100 ",
+    "OpenJDK 64-Bit Server VM Mandrel-23.0.1.2-Final (build 20.0.2+9, mixed mode)         | threshold-4.conf | 3.8.0       | 300 | 400 | 100 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 20.0.8 2023-07-18\\n" +
     "OpenJDK Runtime Environment Mandrel-23.0.1.2-Final (build 20.0.8+9)\\n" +
-    "OpenJDK 64-Bit Server VM Mandrel-23.0.1.2-Final (build 20.0.8+9, mixed mode)\\n      | threshold-4.conf | 3.0.0       | 191 | 192 | 193 ",
+    "OpenJDK 64-Bit Server VM Mandrel-23.0.1.2-Final (build 20.0.8+9, mixed mode)         | threshold-4.conf | 3.0.0       | 191 | 192 | 193 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 23 2026-09-01\\n" +
     "GraalVM Runtime Environment GraalVM CE 23+35.1 (build 23+35-jvmci-24.1-b99)\\n" +
-    "Substrate VM GraalVM CE 23+35.1 (build 23+35, serial gc)\\n                          | threshold-5.conf | 3.5.5       | 110 | 210 | 310 ",
+    "Substrate VM GraalVM CE 23+35.1 (build 23+35, serial gc)                             | threshold-5.conf | 3.5.5       | 110 | 210 | 310 ",
     // -----------------------------------------------------------------------------------------------------------------------------------------
     "native-image 23 2026-09-01\\n" +
     "GraalVM Runtime Environment GraalVM CE 23+35.1 (build 23+35-jvmci-24.1-b99)\\n" +
-    "Substrate VM GraalVM CE 23+35.1 (build 23+35, serial gc)\\n                          | threshold-5.conf | 3.6.0       | 100 | 200 | 300 ",
+    "Substrate VM GraalVM CE 23+35.1 (build 23+35, serial gc)                             | threshold-5.conf | 3.6.0       | 100 | 200 | 300 ",
     }, delimiter = '|')
     //@formatter:on
-    public void testThreshold1(String nativeImageVersion, String conf, String quarkusVersion, String a, String b, String c) throws IOException {
+    public void testThreshold(String nativeImageVersion, String conf, String quarkusVersion, String a, String b, String c) throws IOException {
         final Path config = Path.of(BASE_DIR, "testsuite", "src", "test", "resources", conf);
         assertTrue(Files.exists(config), "Config file '" + config + "' MUST exist.");
         final Path tmpDir = Files.createTempDirectory(ThresholdsTest.class.getSimpleName());
         final Path nativeImage = tmpDir.resolve(Path.of(IS_THIS_WINDOWS ? "native-image.cmd" : "native-image"));
         final String quarkusVersionTmp = getProperty("QUARKUS_VERSION", QuarkusVersion.DEFAULT_VERSION);
-        System.setProperty("FAKE_NATIVE_IMAGE_DIR", tmpDir.toAbsolutePath() + File.separator);
-        System.setProperty("QUARKUS_VERSION", quarkusVersion);
-        // Why this \\\\n? @CsvSource does not like \n in its values.
-        final String nativeImageText = nativeImageVersion.replaceAll("\\\\n", System.lineSeparator());
+        setProperty("FAKE_NATIVE_IMAGE_DIR", tmpDir.toAbsolutePath() + File.separator);
+        setProperty("QUARKUS_VERSION", quarkusVersion);
+        final String nativeImageText = createFakeNativeImageFile(nativeImage, nativeImageVersion);
         try {
-            Files.writeString(nativeImage, IS_THIS_WINDOWS
-                            ? "@echo off" + System.lineSeparator() + "echo " + nativeImageText
-                            : "#!/bin/sh" + System.lineSeparator() + "echo '" + nativeImageText + "'",
-                    StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
-            if (!IS_THIS_WINDOWS) {
-                Files.setPosixFilePermissions(nativeImage, PosixFilePermissions.fromString("rwxr-xr-x"));
-            }
             // Reset parsed instances to avoid side effects on other tests
             // Note that container instance isn't being used, so isn't reset.
             UsedVersion.Locally.resetInstance();
@@ -208,11 +203,34 @@ public class ThresholdsTest {
                                 "Conf: %s\n", propNames[i], expected[i], thresholds.get(k), nativeImageText, quarkusVersion, config));
             }
         } finally {
-            System.clearProperty("FAKE_NATIVE_IMAGE_DIR");
-            System.setProperty("QUARKUS_VERSION", quarkusVersionTmp);
+            clearProperty("FAKE_NATIVE_IMAGE_DIR");
+            setProperty("QUARKUS_VERSION", quarkusVersionTmp);
             Files.deleteIfExists(nativeImage);
             Files.deleteIfExists(tmpDir);
         }
     }
 
+    /**
+     * @param file path to the fake native-image file
+     * @param contents <p>if multiline, all newlines must be escaped as \\n (double backslash), the reason is that JUnit's @CsvSource doesn't like \n in its parameters.</p>
+     * @return the contents of the fake native-image file
+     */
+    public static String createFakeNativeImageFile(final Path file, final String contents) throws IOException {
+        // Why this \\\\n? @CsvSource does not like \n in its values.
+        final String nativeImageText;
+        if (IS_THIS_WINDOWS) {
+            nativeImageText = "@echo off" + lineSeparator() +
+                    "setlocal EnableDelayedExpansion" + lineSeparator() +
+                    "set LINE=^&echo." + lineSeparator() +
+                    "echo " + contents.replaceAll("\\\\n", "%LINE%");
+        } else {
+            nativeImageText = "#!/bin/sh" + lineSeparator() +
+                    "echo '" + contents.replaceAll("\\\\n", lineSeparator()) + "'";
+        }
+        Files.writeString(file, nativeImageText, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+        if (!IS_THIS_WINDOWS) {
+            Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rwxr-xr-x"));
+        }
+        return nativeImageText;
+    }
 }

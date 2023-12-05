@@ -33,10 +33,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.PosixFilePermissions;
 
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.getProperty;
+import static org.graalvm.tests.integration.utils.thresholds.ThresholdsTest.createFakeNativeImageFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -77,13 +77,7 @@ public class VersionsTest {
     public static void setup() throws IOException {
         System.setProperty("FAKE_NATIVE_IMAGE_DIR", TEMP_DIR.toAbsolutePath() + File.separator);
         System.setProperty("QUARKUS_VERSION", QUARKUS_VERSION);
-        Files.writeString(NATIVE_IMAGE, IS_THIS_WINDOWS
-                        ? "@echo off" + System.lineSeparator() + "echo " + VERSION + System.lineSeparator()
-                        : "#!/bin/sh" + System.lineSeparator() + "echo '" + VERSION + "'" + System.lineSeparator(), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
-                StandardOpenOption.WRITE);
-        if (!IS_THIS_WINDOWS) {
-            Files.setPosixFilePermissions(NATIVE_IMAGE, PosixFilePermissions.fromString("rwxr-xr-x"));
-        }
+        createFakeNativeImageFile(NATIVE_IMAGE, VERSION);
         Files.deleteIfExists(LOG);
         // Reset parsed instances to avoid side effects on other tests
         // Note that container instance isn't being used, so isn't reset.
