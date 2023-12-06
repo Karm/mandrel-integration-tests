@@ -175,6 +175,19 @@ public class ThresholdsTest {
     "native-image 23 2026-09-01\\n" +
     "GraalVM Runtime Environment GraalVM CE 23+35.1 (build 23+35-jvmci-24.1-b99)\\n" +
     "Substrate VM GraalVM CE 23+35.1 (build 23+35, serial gc)                             | threshold-5.conf | 3.6.0       | 100 | 200 | 300 ",
+    // -----------------------------------------------------------------------------------------------------------------------------------------
+    "native-image 20.0.1 2023-07-18\\n" +
+    "OpenJDK Runtime Environment Mandrel-23.0.0.0-Final (build 20.0.1+9)\\n" +
+    "OpenJDK 64-Bit Server VM Mandrel-23.0.0.0-Final (build 20.0.1+9, mixed mode)         | threshold-6.conf | 3.6.0       | 130 | 230 | 330 ",
+    // -----------------------------------------------------------------------------------------------------------------------------------------
+    "native-image 20.0.1 2023-07-18\\n" +
+    "OpenJDK Runtime Environment Mandrel-23.0.0.0-Final (build 20.0.1+9)\\n" +
+    "OpenJDK 64-Bit Server VM Mandrel-23.0.0.0-Final (build 20.0.1+9, mixed mode)         | threshold-7.conf | 3.6.0       | 100 | 200 | 300 ",
+    // -----------------------------------------------------------------------------------------------------------------------------------------
+    "native-image 20.0.1 2023-07-18\\n" +
+    "OpenJDK Runtime Environment Mandrel-23.0.0.0-Final (build 20.0.1+9)\\n" +
+    "OpenJDK 64-Bit Server VM Mandrel-23.0.0.0-Final (build 20.0.1+9, mixed mode)         | threshold-8.conf | 3.6.0       | 100 | 200 | 300 ",
+    // -----------------------------------------------------------------------------------------------------------------------------------------
     }, delimiter = '|')
     //@formatter:on
     public void testThreshold(String nativeImageVersion, String conf, String quarkusVersion, String a, String b, String c) throws IOException {

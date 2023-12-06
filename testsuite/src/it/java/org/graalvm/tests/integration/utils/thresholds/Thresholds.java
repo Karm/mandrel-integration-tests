@@ -69,10 +69,12 @@ public class Thresholds {
     public static Map<String, Long> parseProperties(final Path conf) throws IOException {
         final Map<String, Long> props = new HashMap<>();
         // Ignore empty lines, leading, trailing spaces, comments
+        //@formatter:off
         final List<String> lines = Files.readAllLines(conf).stream()
                 .map(String::trim)
                 .filter(line -> !Strings.isBlank(line) && !line.startsWith("#"))
                 .collect(Collectors.toList());
+        //@formatter:on
         boolean useProp = true;
         for (int i = 0; i < lines.size(); i++) {
             final String line = lines.get(i);
@@ -82,24 +84,18 @@ public class Thresholds {
                 if (ifMandrel == null) {
                     continue;
                 }
+                useProp = ifMandrel;
                 if (i + 1 < lines.size()) {
                     final String lookAhead = lines.get(i + 1);
                     if (lookAhead.startsWith(QMARK)) {
                         final Boolean ifQuarkus = ifQuarkus(lookAhead);
-                        if (ifQuarkus == null) {
-                            // IfQuarkus was garbage for some reason, we still use the IfMandrel.
-                            useProp = ifMandrel;
-                        } else {
+                        if (ifQuarkus != null) {
                             // Both must be satisfied.
                             useProp = ifMandrel && ifQuarkus;
                         }
                         // We do not re-evaluate the IfQuarkus line.
                         i++;
-                    } else {
-                        useProp = ifMandrel;
                     }
-                } else {
-                    useProp = ifMandrel;
                 }
                 continue;
             }
@@ -109,24 +105,18 @@ public class Thresholds {
                 if (ifQuarkus == null) {
                     continue;
                 }
+                useProp = ifQuarkus;
                 if (i + 1 < lines.size()) {
                     final String lookAhead = lines.get(i + 1);
                     if (lookAhead.startsWith(MMARK)) {
                         final Boolean ifMandrel = ifMandrel(lookAhead);
-                        if (ifMandrel == null) {
-                            // IfMandrel was garbage for some reason, we still use the IfQuarkus
-                            useProp = ifQuarkus;
-                        } else {
+                        if (ifMandrel != null) {
                             // Both must be satisfied.
                             useProp = ifMandrel && ifQuarkus;
                         }
-                        // We do not re-evaluate the IfMandrel line.
+                        // We do not re-evaluate the IfQuarkus line.
                         i++;
-                    } else {
-                        useProp = ifQuarkus;
                     }
-                } else {
-                    useProp = ifQuarkus;
                 }
                 continue;
             }

@@ -43,7 +43,7 @@ public class MandrelVersionCondition implements ExecutionCondition {
     private static final ConditionEvaluationResult ENABLED_BY_DEFAULT =
             enabled("@IfMandrelVersion is not present");
 
-    private static final Pattern jdkPattern = Pattern.compile("(?<jfeature>[0-9]+)(\\.(?<jinterim>[0-9]*)\\.(?<jupdate>[0-9]*))?");
+    private static final Pattern JDK_PATTERN = Pattern.compile("(?<jfeature>[0-9]+)(\\.(?<jinterim>[0-9]*)\\.(?<jupdate>[0-9]*))?");
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(
@@ -77,8 +77,8 @@ public class MandrelVersionCondition implements ExecutionCondition {
                     UsedVersion.jdkInterim(inContainer),
                     UsedVersion.jdkUpdate(inContainer)
             };
-            final int[] min = featureInterimUpdate(jdkPattern, minJDK, Integer.MIN_VALUE);
-            final int[] max = featureInterimUpdate(jdkPattern, maxJDK, Integer.MAX_VALUE);
+            final int[] min = featureInterimUpdate(JDK_PATTERN, minJDK, Integer.MIN_VALUE);
+            final int[] max = featureInterimUpdate(JDK_PATTERN, maxJDK, Integer.MAX_VALUE);
             return compareJDKVersion(jdkVersion, min) >= 0 && compareJDKVersion(jdkVersion, max) <= 0;
         } else {
             return true;
