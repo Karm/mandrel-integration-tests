@@ -27,6 +27,10 @@ jobs:
       matrix:
         os: [ ubuntu-20.04 ]
         include:
+          - quarkus-version: '2.13.3.Final'
+            mandrel-builder-image: '21.3-java11'
+          - quarkus-version: '2.13.3.Final'
+            mandrel-builder-image: '21.3-java17'
           - quarkus-version: '2.13.9.Final'
             mandrel-builder-image: '22.3-java17'
           - quarkus-version: '2.16.12.Final'
