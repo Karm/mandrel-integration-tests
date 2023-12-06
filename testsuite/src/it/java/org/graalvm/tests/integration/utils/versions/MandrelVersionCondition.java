@@ -19,6 +19,7 @@
  */
 package org.graalvm.tests.integration.utils.versions;
 
+import org.apache.logging.log4j.util.Strings;
 import org.graalvm.home.Version;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
@@ -42,6 +43,8 @@ public class MandrelVersionCondition implements ExecutionCondition {
     private static final ConditionEvaluationResult ENABLED_BY_DEFAULT =
             enabled("@IfMandrelVersion is not present");
 
+    private static final Pattern JDK_PATTERN = Pattern.compile("(?<jfeature>[0-9]+)(\\.(?<jinterim>[0-9]*)\\.(?<jupdate>[0-9]*))?");
+
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(
             ExtensionContext context) {
@@ -54,22 +57,9 @@ public class MandrelVersionCondition implements ExecutionCondition {
     }
 
     private ConditionEvaluationResult disableIfVersionMismatch(IfMandrelVersion annotation, AnnotatedElement element) {
+        final boolean jdkConstraintSatisfied = jdkConstraintSatisfied(annotation.minJDK(), annotation.maxJDK(), annotation.inContainer());
         final Version usedVersion = UsedVersion.getVersion(annotation.inContainer());
-        boolean jdkConstraintSatisfied = true;
-        if (!annotation.minJDK().isBlank() || !annotation.maxJDK().isBlank()) {
-            final int[] jdkVersion = new int[]{
-                    UsedVersion.jdkFeature(annotation.inContainer()),
-                    UsedVersion.jdkInterim(annotation.inContainer()),
-                    UsedVersion.jdkUpdate(annotation.inContainer())
-            };
-            final Pattern p = Pattern.compile("(?<jfeature>[0-9]+)(\\.(?<jinterim>[0-9]*)\\.(?<jupdate>[0-9]*))?");
-            final int[] min = featureInterimUpdate(p, annotation.minJDK(), Integer.MIN_VALUE);
-            final int[] max = featureInterimUpdate(p, annotation.maxJDK(), Integer.MAX_VALUE);
-            jdkConstraintSatisfied = compareJDKVersion(jdkVersion, min) >= 0 && compareJDKVersion(jdkVersion, max) <= 0;
-        }
-        final boolean mandrelConstraintSatisfied =
-                (annotation.min().isBlank() || usedVersion.compareTo(Version.parse(annotation.min())) >= 0) &&
-                        (annotation.max().isBlank() || usedVersion.compareTo(Version.parse(annotation.max())) <= 0);
+        final boolean mandrelConstraintSatisfied = mandrelConstraintSatisfied(usedVersion, annotation.min(), annotation.max());
         if (mandrelConstraintSatisfied && jdkConstraintSatisfied) {
             return enabled(format(
                     "%s is enabled as Mandrel version %s does satisfy constraints: min: %s, max: %s, minJDK: %s, maxJDK: %s",
@@ -78,5 +68,25 @@ public class MandrelVersionCondition implements ExecutionCondition {
         return disabled(format(
                 "%s is disabled as Mandrel version %s does not satisfy constraints: min: %s, max: %s, minJDK: %s, maxJDK: %s",
                 element, usedVersion, annotation.min(), annotation.max(), annotation.minJDK(), annotation.maxJDK()));
+    }
+
+    public static boolean jdkConstraintSatisfied(final String minJDK, final String maxJDK, final boolean inContainer) {
+        if (!Strings.isBlank(minJDK) || !Strings.isBlank(maxJDK)) {
+            final int[] jdkVersion = new int[] {
+                    UsedVersion.jdkFeature(inContainer),
+                    UsedVersion.jdkInterim(inContainer),
+                    UsedVersion.jdkUpdate(inContainer)
+            };
+            final int[] min = featureInterimUpdate(JDK_PATTERN, minJDK, Integer.MIN_VALUE);
+            final int[] max = featureInterimUpdate(JDK_PATTERN, maxJDK, Integer.MAX_VALUE);
+            return compareJDKVersion(jdkVersion, min) >= 0 && compareJDKVersion(jdkVersion, max) <= 0;
+        } else {
+            return true;
+        }
+    }
+
+    public static boolean mandrelConstraintSatisfied(final Version usedVersion, final String min, final String max) {
+        return (Strings.isBlank(min) || usedVersion.compareTo(Version.parse(min)) >= 0) &&
+                (Strings.isBlank(max) || usedVersion.compareTo(Version.parse(max)) <= 0);
     }
 }

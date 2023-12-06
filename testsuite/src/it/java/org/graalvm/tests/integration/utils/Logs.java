@@ -56,7 +56,7 @@ public class Logs {
         System.arraycopy(app.whitelistLogLines.get(inContainer), 0, whitelistPatterns, 0, app.whitelistLogLines.get(inContainer).length);
         System.arraycopy(WhitelistLogLines.ALL.get(inContainer), 0, whitelistPatterns, app.whitelistLogLines.get(inContainer).length, WhitelistLogLines.ALL.get(inContainer).length);
         try (Scanner sc = new Scanner(log, UTF_8)) {
-            Set<String> offendingLines = new HashSet<>();
+            final Set<String> offendingLines = new HashSet<>();
             while (sc.hasNextLine()) {
                 final String line = sc.nextLine();
                 final boolean error = WARN_ERROR_DETECTION_PATTERN.matcher(line).matches();
@@ -95,18 +95,18 @@ public class Logs {
     }
 
     public static void checkThreshold(Apps app, Mode mode, long executableSizeKb, long rssKb, long timeToFirstOKRequest,
-                                      long timeToFinishMs, long mean, long p50, long p90) {
+            long timeToFinishMs, long mean, long p50, long p90) {
 
+        final Path properties = Path.of(BASE_DIR, app.dir, "threshold.conf");
         if (app.thresholdProperties.isEmpty() &&
                 (executableSizeKb != SKIP || rssKb != SKIP || timeToFirstOKRequest != SKIP || timeToFinishMs != SKIP)) {
-            LOGGER.warn("It seem there is no " + Path.of(BASE_DIR, app.dir, "threshold.properties. ") +
-                    "Skipping checking thresholds.");
+            LOGGER.warn("It seem there is no " +properties +
+                    ". Skipping checking thresholds.");
             return;
         }
         final String propPrefix = (IS_THIS_WINDOWS ? "windows" : "linux") +
                 ((app.runtimeContainer != ContainerNames.NONE) ? ".container" : "") +
                 ((mode != Mode.NONE) ? "." + mode : "");
-        final Path properties = Path.of(BASE_DIR, app.dir, "threshold.properties");
         final List<String> failures = new ArrayList<>();
 
         if (executableSizeKb != SKIP) {

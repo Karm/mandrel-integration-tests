@@ -1,11 +1,21 @@
 # Native image integration tests
-Builds Native image executables for small applications based on some Native image capable runtimes such
-as Quarkus and Helidon. It also provides a convenient way of building small test apps for Native image backbox testing.
+Builds Native image executables for small applications based on some Native image capable
+runtimes such as Quarkus and Helidon. It also provides a convenient way of building small test
+apps for Native image blackbox testing.
 
 ## Prerequisites
 
-The test suite (TS) expects you run Java 11+ and have ```ps``` program available on your Linux/Mac
-and ```wmic``` (by default present) on your Windows system.
+The test suite (TS) expects you run Java 11+ and have ```ps``` program available on your
+Linux/Mac and ```wmic``` (by default present) on your Windows system.
+
+Some tests also require ```lsof``` and ```perf``` commands to be available on Linux.
+
+Depending on the test suite configuration, you might need to have Podman or Docker installed.
+For gdb tests, you need to have ```gdb``` installed. Attaching gdb in a container scenario might require sudo privileges.
+
+Some JFR or performance sensitive tests might ask for sudo to e.g. clear OS cache or
+to switch on/off Intel Turbo boost.
+
 Native image builds also require you have the following packages installed:
 * glibc-devel
 * zlib-devel
@@ -45,7 +55,8 @@ exercises some rudimentary business logic of selected libraries.
 
 ### Collect results:
 
-There are several log files archived in `testsuite/target/archived-logs/` after runtimes test execution. e.g.:
+There are several log files archived in `testsuite/target/archived-logs/` after runtimes test
+execution. e.g.:
 
 ```
 org.graalvm.tests.integration.RuntimesSmokeTest/quarkusFullMicroProfile/report.md
@@ -53,16 +64,19 @@ org.graalvm.tests.integration.RuntimesSmokeTest/quarkusFullMicroProfile/build-an
 org.graalvm.tests.integration.RuntimesSmokeTest/quarkusFullMicroProfile/measurements.csv
 ```
 
-`report.md` is human readable description of what commands were executed and how much time and memory was spent to
-get the expected output form the runtime's web server. `measurements.csv` contains the same data in a machine friendly form.
-Last but not least, `build-and-run.log` journals the whole history of all commands and their output.
+`report.md` is human-readable description of what commands were executed and how much time and
+memory was spent to get the expected output form the runtime's web server.
+`measurements.csv` contains the same data in a machine friendly form.
+Last but not least, `build-and-run.log` journals the whole history of all commands
+and their output.
 
-There is also an aggregated `testsuite/target/archived-logs/aggregated-report.md` describing all the testsuite did.
+There is also an aggregated `testsuite/target/archived-logs/aggregated-report.md` describing all
+the testsuite did.
 
 ## AppReproducersTest
 
-This part of the test suite runs smaller apps that are not expected to offer a web server, so just their stdout/stderr
-is checked. No measurements are made as to the used memory at the time of writing, but it could be easily changed.
+This part of the test suite runs smaller apps that are not expected to offer a web server,
+so just their stdout/stderr is checked.
 e.g. a current example:
 
 ```
@@ -105,24 +119,75 @@ INFO  [o.g.t.i.AppReproducersTest] (randomNumbersReinit) [UUID: 323a8f36-e196-4f
 
 ## Logs and Whitelist
 
-Logs are checked for error and warning messages. Expected error messages can be whitelisted in [WhitelistLogLines.java](./testsuite/src/it/java/org/graalvm/tests/integration/utils/WhitelistLogLines.java).
+Logs are checked for error and warning messages. Expected error messages can be whitelisted
+in [WhitelistLogLines.java](./testsuite/src/it/java/org/graalvm/tests/integration/utils/WhitelistLogLines.java).
 
-## Thresholds
+## Thresholds properties
 
-The test suite works with ```threshold.properties```, e.g. `./apps/quarkus-full-microprofile/threshold.properties`: 
+We need to switch on and off certain tests depending on native-image versions used,
+on host vs. container and most importantly, based on Quarkus version.
+
+We use method annotations for that, e.g. `@IfQuarkusVersion(min = "3.6.0")`,
+or `@IfMandrelVersion(min = "23.0.0", inContainer = true)`.
+
+We also use properties in text files to validate whether particular thresholds were crossed, e.g. whether the app used more RAM than expected or whether the measured time delta between JVM HotSpot mode and native-image mode was bigger than expected.
+
+e.g.
 
 ```
-linux.time.to.first.ok.request.threshold.ms=50
-linux.RSS.threshold.kB=120000
-windows.time.to.first.ok.request.threshold.ms=80
-windows.RSS.threshold.kB=120000
+linux.jvm.time.to.finish.threshold.ms=6924
+linux.native.time.to.finish.threshold.ms=14525
 ```
 
-**THIS IS NOT A PERFORMANCE TEST** The thresholds are in place only as a sanity check to make sure
-an update to Native image did not make the application runtime to run way over the expected benevolent values.
+The current `.conf` format enhances `.properties` format with the power of using the
+annotation strings, see:
 
-The measured values are simply compared to be less or equal to the set threshold. One can overwrite the `threshold.properties`
-by using env variables or system properties (in this order). All letter are capitalized and dot is replaced with underscore, e.g.
+```
+# Comments and empty lines are ignored
+linux.jvm.time.to.finish.threshold.ms=6000
+linux.native.time.to.finish.threshold.ms=14000
+linux.executable.size.threshold.kB=79000
+
+@IfQuarkusVersion(min ="2.7.0", max="3.0.0")
+linux.jvm.time.to.finish.threshold.ms=5000
+linux.native.time.to.finish.threshold.ms=13000
+linux.executable.size.threshold.kB=75000
+
+@IfQuarkusVersion(min ="3.5.0", max="3.5.999")
+@IfMandrelVersion(min = "23.1.2", minJDK = "21.0.1" )
+linux.jvm.time.to.finish.threshold.ms=6924
+linux.native.time.to.finish.threshold.ms=14525
+linux.executable.size.threshold.kB=79000
+
+@IfQuarkusVersion(min ="3.6.0")
+linux.jvm.time.to.finish.threshold.ms=6924
+linux.native.time.to.finish.threshold.ms=14525
+linux.executable.size.threshold.kB=79000
+
+@IfMandrelVersion(min = "24", minJDK = "21.0.1" )
+linux.executable.size.threshold.kB=90000
+```
+
+Properties are being added to a map top to bottom, overwriting their previous values
+unless an `@If` constraint fails. If a condition fails, the following properties are
+not added to the map until the next `@If` constraint is met.
+
+If two `@If` constraints follow immediately one after the other, they both MUST be true
+to process the following properties.
+
+Take a look at [ThresholdsTest.java](./ThresholdsTest.java) and its `threshold-*.conf` test [files](../../../../../../../../test/resources/) for a comprehensive overview.
+
+The parsing logic is compatible with plain `.properties` files as we have been using before,
+i.e. any key-value pair where the value is interpreted as the long type.
+
+
+**THIS IS NOT A PERFORMANCE TEST** The thresholds are in place only as a sanity check to make
+sure an update to Native image did not make the application runtime to run way over the
+expected benevolent values.
+
+The measured values are simply compared to be less or equal to the set threshold.
+One can overwrite the `threshold.conf` by using env variables or system properties
+(in this order). All letter are capitalized and dot is replaced with underscore, e.g.
 
 ```
 APPS_QUARKUS_FULL_MICROPROFILE_LINUX_TIME_TO_FIRST_OK_REQUEST_THRESHOLD_MS=35 mvn clean verify -Ptestsuite 

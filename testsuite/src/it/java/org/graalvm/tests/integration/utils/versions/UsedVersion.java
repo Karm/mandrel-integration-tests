@@ -104,11 +104,12 @@ public class UsedVersion {
     // Implements version parsing after https://github.com/oracle/graal/pull/6302
     static final class VersionParseHelper {
 
+        //@formatter:off
         private static final Map<Integer, String> GRAAL_MAPPING = Map.of(22, "24.0",
                                                                          23, "24.1",
                                                                          24, "25.0",
                                                                          25, "25.1");
-
+        //@formatter:on
         private static final String JVMCI_BUILD_PREFIX = "jvmci-";
         private static final String MANDREL_VERS_PREFIX = "Mandrel-";
 
@@ -142,11 +143,11 @@ public class UsedVersion {
         private static final Pattern VERSION_PATTERN = Pattern.compile(VERS_FORMAT);
 
         static MVersion parse(List<String> lines) {
-            Matcher firstMatcher = FIRST_PATTERN.matcher(lines.get(0));
-            Matcher secondMatcher = SECOND_PATTERN.matcher(lines.get(1));
-            Matcher thirdMatcher = THIRD_PATTERN.matcher(lines.get(2));
+            final Matcher firstMatcher = FIRST_PATTERN.matcher(lines.get(0));
+            final Matcher secondMatcher = SECOND_PATTERN.matcher(lines.get(1));
+            final Matcher thirdMatcher = THIRD_PATTERN.matcher(lines.get(2));
             if (firstMatcher.find() && secondMatcher.find() && thirdMatcher.find()) {
-                String javaVersion = firstMatcher.group(VNUM_GROUP);
+                final String javaVersion = firstMatcher.group(VNUM_GROUP);
                 java.lang.Runtime.Version v = null;
                 try {
                     v = java.lang.Runtime.Version.parse(javaVersion);
@@ -154,15 +155,15 @@ public class UsedVersion {
                     return MVersion.UNKNOWN_VERSION;
                 }
 
-                String vendorVersion = secondMatcher.group(VENDOR_VERSION_GROUP);
+                final String vendorVersion = secondMatcher.group(VENDOR_VERSION_GROUP);
 
-                String buildInfo = secondMatcher.group(BUILD_INFO_GROUP);
-                String graalVersion = graalVersion(buildInfo, v.feature());
-                String mandrelVersion = mandrelVersion(vendorVersion);
-                String versNum = (isMandrel(vendorVersion) ? mandrelVersion : graalVersion);
-                Version vers = versionParse(versNum);
+                final String buildInfo = secondMatcher.group(BUILD_INFO_GROUP);
+                final String graalVersion = graalVersion(buildInfo, v.feature());
+                final String mandrelVersion = mandrelVersion(vendorVersion);
+                final String versNum = (isMandrel(vendorVersion) ? mandrelVersion : graalVersion);
+                final Version vers = versionParse(versNum);
                 final String lastLine = lines.get(lines.size() - 1).trim();
-                VersionBuilder builder = new VersionBuilder();
+                final VersionBuilder builder = new VersionBuilder();
                 return builder
                         .jdkUsesSysLibs(lastLine.contains("-LTS"))
                         .beta("" /* not implemented */)
@@ -196,7 +197,7 @@ public class UsedVersion {
         }
 
         private static String matchVersion(String version) {
-            Matcher versMatcher = VERSION_PATTERN.matcher(version);
+            final Matcher versMatcher = VERSION_PATTERN.matcher(version);
             if (versMatcher.find()) {
                 return versMatcher.group(VERSION_GROUP);
             }
@@ -206,16 +207,16 @@ public class UsedVersion {
         private static String graalVersion(String buildInfo, int jdkFeatureVers) {
             if (jdkFeatureVers >= 22) {
                 // short-circuit new version scheme with a mapping
-                return GRAAL_MAPPING.get(Integer.valueOf(jdkFeatureVers));
+                return GRAAL_MAPPING.get(jdkFeatureVers);
             }
             if (buildInfo == null) {
                 return null;
             }
-            int idx = buildInfo.indexOf(JVMCI_BUILD_PREFIX);
+            final int idx = buildInfo.indexOf(JVMCI_BUILD_PREFIX);
             if (idx < 0) {
                 return null;
             }
-            String version = buildInfo.substring(idx + JVMCI_BUILD_PREFIX.length());
+            final String version = buildInfo.substring(idx + JVMCI_BUILD_PREFIX.length());
             return matchVersion(version);
         }
 
@@ -255,23 +256,28 @@ public class UsedVersion {
         }
 
         public static MVersion of(boolean inContainer) {
-            List<String> lines = runNativeImageVersion(inContainer);
-            MVersion mandrelVersion;
+            final List<String> lines = runNativeImageVersion(inContainer);
+            final MVersion mandrelVersion;
             if (lines.size() == 1) {
                 mandrelVersion = parseOldVersion(lines, inContainer);
             } else if (lines.size() == 3) {
                 mandrelVersion = VersionParseHelper.parse(lines);
             } else {
                 mandrelVersion = UNKNOWN_VERSION;
+                LOGGER.warn("Failed to correctly parse native-image version command output. " +
+                        "Is it on PATH? Unknown version format? " +
+                        "Output reads in " + lines.size() + " lines, see them in an array: " + lines);
             }
             LOGGER.infof("The test suite runs with Mandrel version %s %s, JDK %d.%d.%d%s.",
-                    mandrelVersion.version.toString(), inContainer ? "in container" : "installed locally on PATH", mandrelVersion.jdkFeature, mandrelVersion.jdkInterim, mandrelVersion.jdkUpdate, mandrelVersion.betaBits);
+                    mandrelVersion.version == null ? "UNKNOWN" : mandrelVersion.version.toString(),
+                    inContainer ? "in container" : "installed locally on PATH",
+                    mandrelVersion.jdkFeature, mandrelVersion.jdkInterim, mandrelVersion.jdkUpdate, mandrelVersion.betaBits);
             return mandrelVersion;
         }
 
         private static MVersion parseOldVersion(List<String> lines, boolean inContainer) {
             final String lastLine = lines.get(lines.size() - 1).trim();
-            VersionBuilder builder = new VersionBuilder();
+            final VersionBuilder builder = new VersionBuilder();
             builder.jdkUsesSysLibs(lastLine.contains("-LTS"));
             if (inContainer && !lastLine.contains("Mandrel")) {
                 LOGGER.warn("You are probably running GraalVM and not Mandrel container. " +
@@ -303,7 +309,7 @@ public class UsedVersion {
                 builder.jdkInterim(jInterim == null ? UNDEFINED : Integer.parseInt(jInterim));
                 builder.jdkUpdate(jUpdate == null ? UNDEFINED : Integer.parseInt(jUpdate));
             }
-            MVersion mandrelVersion = builder.build();
+            final MVersion mandrelVersion = builder.build();
             if (mandrelVersion.jdkFeature == UNDEFINED) {
                 LOGGER.warn("Failed to correctly parse Java feature (major) version from native-image version command output. " +
                         "JDK version constraints in tests won't work reliably.");
@@ -397,23 +403,23 @@ public class UsedVersion {
         }
     }
 
-    static class Locally {
+    public static class Locally {
         private static volatile MVersion mVersion = MVersion.of(false);
 
-        static void resetInstance() { // used in tests
+        public static void resetInstance() { // used in tests
             mVersion = MVersion.of(false);
         }
     }
 
     public static int[] featureInterimUpdate(Pattern pattern, String version, int defaultValue) {
-        final Matcher m = pattern.matcher(version);
-        if (!m.matches()) {
-            return new int[]{defaultValue, defaultValue, defaultValue};
+        final Matcher m;
+        if (version == null || !(m = pattern.matcher(version)).matches()) {
+            return new int[] { defaultValue, defaultValue, defaultValue };
         }
         final String jFeature = m.group("jfeature");
         final String jInterim = m.group("jinterim");
         final String jUpdate = m.group("jupdate");
-        return new int[]{
+        return new int[] {
                 jFeature == null ? defaultValue : Integer.parseInt(jFeature),
                 jInterim == null ? defaultValue : Integer.parseInt(jInterim),
                 jUpdate == null ? defaultValue : Integer.parseInt(jUpdate)

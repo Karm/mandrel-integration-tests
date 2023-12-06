@@ -25,11 +25,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
+import static org.graalvm.tests.integration.utils.thresholds.Thresholds.parseProperties;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -178,34 +181,31 @@ public enum Apps {
         this.whitelistLogLines = whitelistLogLines;
         this.buildAndRunCmds = buildAndRunCmds;
         this.runtimeContainer = runtimeContainer;
-        File tpFile = new File(BASE_DIR + File.separator + dir + File.separator + "threshold.properties");
-        // Some apps don't have threshold.properties
-        if (tpFile.exists()) {
-            String appDirNormalized = dir.toUpperCase()
-                    .replace(File.separator, "_")
-                    .replace('-', '_')
-                    + "_";
-            try (InputStream input = new FileInputStream(tpFile)) {
-                Properties props = new Properties();
-                props.load(input);
-                for (String pn : props.stringPropertyNames()) {
-                    String normPn = pn.toUpperCase().replace('.', '_');
-                    String env = System.getenv().get(appDirNormalized + normPn);
+
+        // Some apps don't have threshold.conf
+        final Path tcFile = Path.of(BASE_DIR, dir, "threshold.conf");
+        if (Files.exists(tcFile)) {
+            final String appDirNormalized = dir.toUpperCase().replace(File.separator, "_").replace('-', '_') + "_";
+            try {
+                final Map<String, Long> props = parseProperties(tcFile);
+                for (String pn : props.keySet()) {
+                    final String normPn = pn.toUpperCase().replace('.', '_');
+                    final String env = System.getenv().get(appDirNormalized + normPn);
                     if (StringUtils.isNotBlank(env)) {
-                        props.replace(pn, env);
+                        props.replace(pn, Long.parseLong(env));
                     }
-                    String sys = System.getProperty(appDirNormalized + normPn);
+                    final String sys = System.getProperty(appDirNormalized + normPn);
                     if (StringUtils.isNotBlank(sys)) {
-                        props.replace(pn, sys);
+                        props.replace(pn, Long.parseLong(sys));
                     }
-                    thresholdProperties.put(pn, Long.parseLong(props.getProperty(pn)));
+                    thresholdProperties.put(pn, props.get(pn));
                 }
             } catch (NumberFormatException e) {
-                fail("Check threshold.properties and Sys and Env variables " +
+                fail("Check threshold.conf and Sys and Env variables " +
                         "(upper case, underscores instead of dots). " +
-                        "All values are expected to be of type long.");
+                        "All values are expected to be of type long.", e);
             } catch (IOException e) {
-                fail("Couldn't find " + tpFile.getAbsolutePath());
+                fail("Couldn't find " + tcFile, e);
             }
         }
     }
