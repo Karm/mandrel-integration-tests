@@ -202,9 +202,18 @@ public enum WhitelistLogLines {
                         Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*")};
             } else {
                 return new Pattern[]{
-                        // We don't support the new JFR Deprecated events annotation yet. (https://github.com/oracle/graal/pull/8037)
+                        /* We don't support the new JFR Deprecated events annotation yet.
+                         * https://github.com/oracle/graal/commit/dd8eb7436ca2ce323a74667805dd7736c6ccc972 intercepts
+                         * related calls and throws VMErrors which are handled in JDK code,
+                         * and then get logged at runtime. Allow list those log lines until they are supported.
+                         */
                         Pattern.compile(".*Exception occurred when setting value \"forRemoval\" for class jdk.jfr.internal.Control*"),
-                        // We don't support the OldObjectSample event yet. (https://github.com/oracle/graal/pull/8037)
+                        /* We don't support the OldObjectSample event yet.
+                         * https://github.com/oracle/graal/commit/dd8eb7436ca2ce323a74667805dd7736c6ccc972 intercepts
+                         * calls to adjust OldObjectSample cutoff settings and throws VMErrors which are handled in
+                         * JDK code, and then get logged at runtime. Allow list those log lines until they are
+                         * supported.
+                         */
                         Pattern.compile(".*Exception occurred when setting value \"0 ns\" for class jdk.jfr.internal.Control*"),
                         // https://github.com/oracle/graal/issues/3636
                         Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
