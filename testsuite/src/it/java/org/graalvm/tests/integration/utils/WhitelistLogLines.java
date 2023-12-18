@@ -202,6 +202,12 @@ public enum WhitelistLogLines {
                         Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*")};
             } else {
                 return new Pattern[]{
+                        // We don't support the new JFR Deprecated events annotation yet. (https://github.com/oracle/graal/pull/8037)
+                        Pattern.compile(".*Exception occurred when setting value \"forRemoval\" for class jdk.jfr.internal.Control*"),
+                        // We don't support the OldObjectSample event yet. (https://github.com/oracle/graal/pull/8037)
+                        Pattern.compile(".*Exception occurred when setting value \"0 ns\" for class jdk.jfr.internal.Control*"),
+                        // Preemptively add this in case https://github.com/oracle/graal/pull/8037 is merged
+                        Pattern.compile(".*@Deprecated JFR events, and leak profiling are not yet supported.*"),
                         // https://github.com/oracle/graal/issues/3636
                         Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
                         // Hyperfoil spits this on GHA CI, cannot reproduce locally
