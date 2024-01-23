@@ -390,7 +390,9 @@ public class PerfCheckTest {
         final String mn = testInfo.getTestMethod().get().getName();
         final List<Map<String, String>> reports = new ArrayList<>(2);
         final String patch;
-        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.6.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.7.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+            patch = "quarkus_3.7.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.6.0")) >= 0) {
             patch = "quarkus_3.6.x.patch";
         } else if (QUARKUS_VERSION.majorIs(3)) {
             patch = "quarkus_3.x.patch";
