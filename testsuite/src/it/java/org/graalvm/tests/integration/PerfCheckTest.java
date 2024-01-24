@@ -139,7 +139,7 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.0.0")) >= 0) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
@@ -245,7 +245,7 @@ public class PerfCheckTest {
                     "quarkus-json_+ParseOnce-native-image-source-jar", "quarkus-json_plus-ParseOnce.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.0.0")) >= 0) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }
@@ -270,7 +270,7 @@ public class PerfCheckTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.0.0")) >= 0) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
@@ -372,7 +372,7 @@ public class PerfCheckTest {
                     "quarkus-json-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.0.0")) >= 0) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }
@@ -390,7 +390,7 @@ public class PerfCheckTest {
         final String mn = testInfo.getTestMethod().get().getName();
         final List<Map<String, String>> reports = new ArrayList<>(2);
         final String patch;
-        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.7.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.7.0")) >= 0) {
             patch = "quarkus_3.7.x.patch";
         } else if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.6.0")) >= 0) {
             patch = "quarkus_3.6.x.patch";
