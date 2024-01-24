@@ -40,32 +40,16 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     public QuarkusVersion(String version) {
         this.version = version;
         this.snapshot = version.contains("SNAPSHOT");
-        if (this.snapshot) {
-            this.major = Integer.parseInt(version.split("-")[0]);
-            this.minor = 0;
-            this.patch = 0;
-            this.gitSHA = getProperty("QUARKUS_VERSION_GITSHA", "");
-        } else {
-            final String[] split = version.split("\\.");
-            this.major = Integer.parseInt(split[0]);
-            this.minor = split.length > 1 ? Integer.parseInt(split[1]) : 0;
-            this.patch = split.length > 2 ? Integer.parseInt(split[2]) : 0;
-            this.gitSHA = null;
-        }
+        final String versionWithoutSnapshot = version.split("-")[0];
+        final String[] split = versionWithoutSnapshot.split("\\.");
+        this.major = Integer.parseInt(split[0]);
+        this.minor = split.length > 1 ? Integer.parseInt(split[1]) : 0;
+        this.patch = split.length > 2 ? Integer.parseInt(split[2]) : 0;
+        this.gitSHA = getProperty("QUARKUS_VERSION_GITSHA", "");
     }
 
     @Override
     public int compareTo(QuarkusVersion other) {
-        if (this.snapshot) {
-            if (other.snapshot) {
-                return 0;
-            } else {
-                return 1;
-            }
-        }
-        if (other.snapshot) {
-            return -1;
-        }
         int result = this.major - other.major;
         if (result != 0) {
             return result;
@@ -77,6 +61,16 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
         result = this.patch - other.patch;
         if (result != 0) {
             return result;
+        }
+        if (this.snapshot) {
+            if (other.snapshot) {
+                return 0;
+            } else {
+                return 1;
+            }
+        }
+        if (other.snapshot) {
+            return -1;
         }
         return 0;
     }
