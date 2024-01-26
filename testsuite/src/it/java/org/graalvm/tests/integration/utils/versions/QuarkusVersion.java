@@ -23,6 +23,13 @@ import static org.graalvm.tests.integration.utils.Commands.getProperty;
 
 public class QuarkusVersion implements Comparable<QuarkusVersion> {
 
+
+    public static final QuarkusVersion V_2_2_4 = new QuarkusVersion("2.2.4");
+    public static final QuarkusVersion V_2_3_0 = new QuarkusVersion("2.3.0");
+    public static final QuarkusVersion V_2_4_0 = new QuarkusVersion("2.4.0");
+    public static final QuarkusVersion V_3_0_0 = new QuarkusVersion("3.0.0");
+    public static final QuarkusVersion V_3_6_0 = new QuarkusVersion("3.6.0");
+    public static final QuarkusVersion V_3_7_0 = new QuarkusVersion("3.7.0");
     private final String version;
     private final int major;
     private final int minor;
