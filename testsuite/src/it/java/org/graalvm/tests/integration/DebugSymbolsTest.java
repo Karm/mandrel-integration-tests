@@ -222,9 +222,9 @@ public class DebugSymbolsTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final String patch;
-        if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.7.0")) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_7_0) >= 0) {
             patch = "quarkus_3.7.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.6.0")) >= 0) {
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_6_0) >= 0) {
             patch = "quarkus_3.6.x.patch";
         } else if (QUARKUS_VERSION.majorIs(3)) {
             patch = "quarkus_3.x.patch";
@@ -316,11 +316,8 @@ public class DebugSymbolsTest {
 
     // See https://github.com/quarkusio/quarkus/pull/20355
     private boolean applySourcesPatch() {
-        QuarkusVersion v224 = new QuarkusVersion("2.2.4");
-        QuarkusVersion v230 = new QuarkusVersion("2.3.0");
-        QuarkusVersion v240 = new QuarkusVersion("2.4.0");
-        return (QUARKUS_VERSION.compareTo(v224) >= 0 && QUARKUS_VERSION.compareTo(v230) < 0) ||
-                QUARKUS_VERSION.compareTo(v240) >= 0;
+        return (QUARKUS_VERSION.compareTo(QuarkusVersion.V_2_2_4) >= 0 && QUARKUS_VERSION.compareTo(QuarkusVersion.V_2_3_0) < 0) ||
+            QUARKUS_VERSION.compareTo(QuarkusVersion.V_2_4_0) >= 0;
     }
 
     @Test
@@ -347,7 +344,7 @@ public class DebugSymbolsTest {
             if (applySourcesPatch()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), appDir);
             }
-            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.0.0")) >= 0) {
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
                 runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
             }
 
@@ -441,7 +438,7 @@ public class DebugSymbolsTest {
             if (applySourcesPatch()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"), appDir);
             }
-            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.0.0")) >= 0) {
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
             }
         }
