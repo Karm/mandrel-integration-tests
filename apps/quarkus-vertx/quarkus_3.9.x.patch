@@ -1,0 +1,287 @@
+diff --git a/apps/quarkus-vertx/pom.xml b/apps/quarkus-vertx/pom.xml
+index 7d47c9b..bc7da76 100644
+--- a/apps/quarkus-vertx/pom.xml
++++ b/apps/quarkus-vertx/pom.xml
+@@ -36,11 +36,7 @@
+     <dependencies>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-resteasy</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-resteasy-mutiny</artifactId>
++            <artifactId>quarkus-rest</artifactId>
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+@@ -56,11 +52,7 @@
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-resteasy-jsonb</artifactId>
+-        </dependency>
+-        <dependency>
+-            <groupId>io.smallrye.reactive</groupId>
+-            <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
++            <artifactId>quarkus-rest-jsonb</artifactId>
+         </dependency>
+     </dependencies>
+     <build>
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
+index cf0796c..8cb6b0c 100644
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitResource.java
+@@ -18,22 +18,22 @@ package org.acme.vertx;
+ 
+ import java.net.URI;
+ 
+-import javax.annotation.PostConstruct;
+-import javax.inject.Inject;
+-import javax.ws.rs.Consumes;
+-import javax.ws.rs.DELETE;
+-import javax.ws.rs.GET;
+-import javax.ws.rs.POST;
+-import javax.ws.rs.PUT;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
+-import javax.ws.rs.core.Response;
+-import javax.ws.rs.core.Response.ResponseBuilder;
+-import javax.ws.rs.core.Response.Status;
++import jakarta.annotation.PostConstruct;
++import jakarta.inject.Inject;
++import jakarta.ws.rs.Consumes;
++import jakarta.ws.rs.DELETE;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.POST;
++import jakarta.ws.rs.PUT;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.PathParam;
++import jakarta.ws.rs.Produces;
++import jakarta.ws.rs.core.MediaType;
++import jakarta.ws.rs.core.Response;
++import jakarta.ws.rs.core.Response.ResponseBuilder;
++import jakarta.ws.rs.core.Response.Status;
+ 
+ import org.eclipse.microprofile.config.inject.ConfigProperty;
+-import org.jboss.resteasy.annotations.jaxrs.PathParam;
+ 
+ import io.smallrye.mutiny.Uni;
+ import io.vertx.mutiny.pgclient.PgPool;
+@@ -43,29 +43,9 @@ import io.vertx.mutiny.pgclient.PgPool;
+ @Consumes(MediaType.APPLICATION_JSON)
+ public class FruitResource {
+ 
+-    @Inject
+-    @ConfigProperty(name = "myapp.schema.create", defaultValue = "true")
+-    boolean schemaCreate;
+-
+     @Inject
+     PgPool client;
+ 
+-    @PostConstruct
+-    void config() {
+-        if (schemaCreate) {
+-            initdb();
+-        }
+-    }
+-
+-    private void initdb() {
+-        client.query("DROP TABLE IF EXISTS fruits").execute()
+-                .flatMap(r -> client.query("CREATE TABLE fruits (id SERIAL PRIMARY KEY, name TEXT NOT NULL)").execute())
+-                .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Orange')").execute())
+-                .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Pear')").execute())
+-                .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Apple')").execute())
+-                .await().indefinitely();
+-    }
+-
+     @GET
+     public Uni<Response> get() {
+         return Fruit.findAll(client)
+@@ -75,7 +55,7 @@ public class FruitResource {
+ 
+     @GET
+     @Path("{id}")
+-    public Uni<Response> getSingle(@PathParam Long id) {
++    public Uni<Response> getSingle(@PathParam(value = "id") Long id) {
+         return Fruit.findById(client, id)
+                 .onItem().transform(fruit -> fruit != null ? Response.ok(fruit) : Response.status(Status.NOT_FOUND))
+                 .onItem().transform(ResponseBuilder::build);
+@@ -90,7 +70,7 @@ public class FruitResource {
+ 
+     @PUT
+     @Path("{id}")
+-    public Uni<Response> update(@PathParam Long id, Fruit fruit) {
++    public Uni<Response> update(@PathParam(value = "id") Long id, Fruit fruit) {
+         return fruit.update(client)
+                 .onItem().transform(updated -> updated ? Status.OK : Status.NOT_FOUND)
+                 .onItem().transform(status -> Response.status(status).build());
+@@ -98,7 +78,7 @@ public class FruitResource {
+ 
+     @DELETE
+     @Path("{id}")
+-    public Uni<Response> delete(@PathParam Long id) {
++    public Uni<Response> delete(@PathParam(value = "id") Long id) {
+         return Fruit.delete(client, id)
+                 .onItem().transform(deleted -> deleted ? Status.NO_CONTENT : Status.NOT_FOUND)
+                 .onItem().transform(status -> Response.status(status).build());
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
+index ac167a0..1b56c15 100644
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingResource.java
+@@ -15,19 +15,17 @@
+  */
+ package org.acme.vertx;
+ 
+-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+-import static java.util.concurrent.TimeUnit.NANOSECONDS;
+-
+-import javax.inject.Inject;
+-import javax.ws.rs.GET;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
+-
+-import org.jboss.resteasy.annotations.jaxrs.PathParam;
+-
+ import io.smallrye.mutiny.Uni;
+ import io.vertx.core.Vertx;
++import jakarta.inject.Inject;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.PathParam;
++import jakarta.ws.rs.Produces;
++import jakarta.ws.rs.core.MediaType;
++
++import static java.util.concurrent.TimeUnit.MILLISECONDS;
++import static java.util.concurrent.TimeUnit.NANOSECONDS;
+ 
+ @Path("/hello")
+ public class GreetingResource {
+@@ -38,7 +36,7 @@ public class GreetingResource {
+     @GET
+     @Produces(MediaType.TEXT_PLAIN)
+     @Path("{name}")
+-    public Uni<String> greeting(@PathParam String name) {
++    public Uni<String> greeting(@PathParam(value = "name") String name) {
+         return Uni.createFrom().emitter(emitter -> {
+             long start = System.nanoTime();
+             vertx.setTimer(10, l -> {
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
+index 0cb587a..ba16e14 100644
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/GreetingService.java
+@@ -15,7 +15,7 @@
+  */
+ package org.acme.vertx;
+ 
+-import javax.enterprise.context.ApplicationScoped;
++import jakarta.enterprise.context.ApplicationScoped;
+ 
+ import io.quarkus.vertx.ConsumeEvent;
+ 
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
+index cc9c525..4fc2fd4 100644
+--- a/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/VertxJsonResource.java
+@@ -15,13 +15,12 @@
+  */
+ package org.acme.vertx;
+ 
+-import javax.ws.rs.GET;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.Produces;
+-import javax.ws.rs.core.MediaType;
+-
+-import org.jboss.resteasy.annotations.jaxrs.PathParam;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.Produces;
++import jakarta.ws.rs.core.MediaType;
+ 
++import jakarta.ws.rs.PathParam;
+ import io.vertx.core.json.JsonArray;
+ import io.vertx.core.json.JsonObject;
+ 
+@@ -31,13 +30,13 @@ public class VertxJsonResource {
+ 
+     @GET
+     @Path("{name}/object")
+-    public JsonObject jsonObject(@PathParam String name) {
++    public JsonObject jsonObject(@PathParam(value = "name") String name) {
+         return new JsonObject().put("Hello", name);
+     }
+ 
+     @GET
+     @Path("{name}/array")
+-    public JsonArray jsonArray(@PathParam String name) {
++    public JsonArray jsonArray(@PathParam(value = "name") String name) {
+         return new JsonArray().add("Hello").add(name);
+     }
+ }
+diff --git a/apps/quarkus-vertx/src/main/resources/application.properties b/apps/quarkus-vertx/src/main/resources/application.properties
+index 33ee4a9..138bc8d 100644
+--- a/apps/quarkus-vertx/src/main/resources/application.properties
++++ b/apps/quarkus-vertx/src/main/resources/application.properties
+@@ -5,4 +5,6 @@ quarkus.datasource.username=quarkus_test
+ quarkus.datasource.password=quarkus_test
+ quarkus.datasource.reactive.url=postgresql://localhost:5432/quarkus_test
+ 
+-myapp.schema.create=true
+\ No newline at end of file
++myapp.schema.create=true
++# A very long time, we hang in there during debugging.
++quarkus.vertx.max-event-loop-execute-time=2M
+diff --git a/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitApp.java b/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitApp.java
+new file mode 100644
+index 0000000..b772382
+--- /dev/null
++++ b/apps/quarkus-vertx/src/main/java/org/acme/vertx/FruitApp.java
+@@ -0,0 +1,45 @@
++/*
++ * Copyright 2023 Red Hat, Inc.
++ *
++ * Red Hat licenses this file to you under the Apache License, version 2.0
++ * (the "License"); you may not use this file except in compliance with the
++ * License.  You may obtain a copy of the License at:
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++
++package org.acme.vertx;
++
++import io.quarkus.runtime.Startup;
++import io.vertx.mutiny.pgclient.PgPool;
++import jakarta.enterprise.context.ApplicationScoped;
++import jakarta.inject.Inject;
++import org.eclipse.microprofile.config.inject.ConfigProperty;
++
++@ApplicationScoped
++public class FruitApp {
++
++    @Inject
++    @ConfigProperty(name = "myapp.schema.create", defaultValue = "true")
++    boolean schemaCreate;
++
++    @Inject
++    PgPool client;
++
++    @Startup
++    void initdb() {
++        if (schemaCreate) {
++            client.query("DROP TABLE IF EXISTS fruits").execute()
++                    .flatMap(r -> client.query("CREATE TABLE fruits (id SERIAL PRIMARY KEY, name TEXT NOT NULL)").execute())
++                    .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Orange')").execute())
++                    .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Pear')").execute())
++                    .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Apple')").execute()).await().indefinitely();
++        }
++    }
++}
+

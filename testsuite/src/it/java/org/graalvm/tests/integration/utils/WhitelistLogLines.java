@@ -51,6 +51,8 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*system modules path not set in conjunction with -source .*"),
                     // It's accompanied by a list of all warnings, so this particular one can be white-listed globally
                     Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"),
+                    // Quarkus main 2024-03-21 deprecates this maven plugin directive
+                    Pattern.compile(".*Configuration property 'quarkus.package.type' has been deprecated.*"),
             };
         }
     },
@@ -122,7 +124,9 @@ public enum WhitelistLogLines {
                     // netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
                     Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
                     // We don't run any OpenTracing collector point for simplicity, hence the exception. Q 3.6.0+ specific.
-                    Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*")
+                    Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*"),
+                    // Quarkus 3.8.3+ HotSpot (JVM) specific and specific to OpenTelemetry trying to connect to non-existing host
+                    Pattern.compile(".*io.quarkus.security.runtime.SecurityIdentity.*"),
             };
         }
     },

@@ -1165,15 +1165,18 @@ public class Commands {
 
     /**
      * Finds the first matching executable in a given dir,
-     * *does not dive into the tree*, is not recursive...
+     * <b>does not dive into the tree</b>, is not recursive...
      *
      * @param dir
      * @param regexp
      * @return null or the found file
      */
     public static File findExecutable(Path dir, Pattern regexp) {
-        if (dir == null || Files.notExists(dir) || regexp == null) {
-            throw new IllegalArgumentException("Path to " + dir + "must exist and regexp must nut be null.");
+        if (regexp == null) {
+            throw new IllegalArgumentException("Regexp must not be null.");
+        }
+        if (dir == null || Files.notExists(dir)) {
+            throw new IllegalArgumentException("Path to " + dir + " must exist.");
         }
         final File[] f = dir.toFile().listFiles(pathname -> {
             if (pathname.isFile() && Files.isExecutable(pathname.toPath())) {

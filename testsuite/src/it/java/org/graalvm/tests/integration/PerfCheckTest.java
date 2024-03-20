@@ -31,7 +31,6 @@ import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.spi.HttpResponseCodes;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -133,14 +132,22 @@ public class PerfCheckTest {
         final List<Map<String, String>> reports = new ArrayList<>(3);
         // Test data tmp storage
         final File json = Path.of(appDir.getAbsolutePath(), "logs", "record.json").toFile();
+        String patch = null;
+
         try {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+                patch = "quarkus_3.9.x.patch";
+            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
+                patch = "quarkus_3.x.patch";
+            }
+
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", patch), appDir);
             }
 
             // Build executables
@@ -158,10 +165,10 @@ public class PerfCheckTest {
                 report.put("timeToFirstOKRequestMs", String.valueOf(timeToFirstOKRequestMs));
                 // Test web pages
                 try (final ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(app.urlContent.urlContent[1][0]).openStream());
-                     final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
+                        final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
                     fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                 }
-                final String[] headers = new String[]{
+                final String[] headers = new String[] {
                         "Content-Type", "application/json",
                         "Accept", "text/plain"
                 };
@@ -196,7 +203,7 @@ public class PerfCheckTest {
                 report.put("branches", String.valueOf(pr.branches));
                 report.put("branchMisses", String.valueOf(pr.branchMisses));
                 report.put("secondsTimeElapsed", String.valueOf(pr.secondsTimeElapsed));
-                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+                assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                         "Main port is still open");
                 final Commands.SerialGCLog l;
                 if (!statsFor.contains("-jar")) {
@@ -231,7 +238,7 @@ public class PerfCheckTest {
                 }
             }
             LOGGER.info("Gonna wait for ports closed...");
-            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+            assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                     "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
@@ -245,8 +252,8 @@ public class PerfCheckTest {
                     "quarkus-json_+ParseOnce-native-image-source-jar", "quarkus-json_plus-ParseOnce.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
     }
@@ -264,14 +271,22 @@ public class PerfCheckTest {
         final List<Map<String, String>> reports = new ArrayList<>(2);
         // Test data tmp storage
         final File json = Path.of(appDir.getAbsolutePath(), "logs", "record.json").toFile();
+        String patch = null;
+
         try {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
             assertTrue(app.buildAndRunCmds.cmds.length > 1);
 
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+                patch = "quarkus_3.9.x.patch";
+            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
+                patch = "quarkus_3.x.patch";
+            }
+
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", patch), appDir);
             }
 
             // Build executables
@@ -326,7 +341,7 @@ public class PerfCheckTest {
                 report.put("branches", String.valueOf(pr.branches));
                 report.put("branchMisses", String.valueOf(pr.branchMisses));
                 report.put("secondsTimeElapsed", String.valueOf(pr.secondsTimeElapsed));
-                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+                assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                         "Main port is still open");
                 final Commands.SerialGCLog l;
                 if (!statsFor.contains("-jar")) {
@@ -360,7 +375,7 @@ public class PerfCheckTest {
                 }
             }
             LOGGER.info("Gonna wait for ports closed...");
-            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+            assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                     "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
@@ -372,8 +387,8 @@ public class PerfCheckTest {
                     "quarkus-json-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
     }
@@ -453,7 +468,7 @@ public class PerfCheckTest {
                 report.put("branches", String.valueOf(pr.branches));
                 report.put("branchMisses", String.valueOf(pr.branchMisses));
                 report.put("secondsTimeElapsed", String.valueOf(pr.secondsTimeElapsed));
-                Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+                assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                         "Main port is still open");
                 final Commands.SerialGCLog l;
                 if (!statsFor.contains("-jar")) {
@@ -486,7 +501,7 @@ public class PerfCheckTest {
                 }
             }
             LOGGER.info("Gonna wait for ports closed...");
-            Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+            assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
                     "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
