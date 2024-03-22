@@ -27,6 +27,8 @@ import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
+import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.json.JSONObject;
@@ -64,6 +66,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
+import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
@@ -164,6 +167,7 @@ public class JFRTest {
     @Tag("jfr")
     @Tag("builder-image")
     @IfMandrelVersion(min = "23.0.0", inContainer = true) // Thread park event is introduced in 23.0
+    @IfQuarkusVersion(min = "3.0")
     public void jfrPerfContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrPerfTestRun(testInfo, true);
     }
@@ -172,6 +176,7 @@ public class JFRTest {
     @Tag("jfr-perf")
     @Tag("jfr")
     @IfMandrelVersion(min = "23.0.0") // Thread park event is introduced in 23.0
+    @IfQuarkusVersion(min = "3.0")
     public void jfrPerfTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrPerfTestRun(testInfo, false);
     }
@@ -187,6 +192,7 @@ public class JFRTest {
         final String mn = testInfo.getTestMethod().get().getName();
         final Path measurementsLog = Paths.get(Logs.getLogsDir(cn, mn).toString(), "measurements.csv");
         final Path jfrPerfJfc = Paths.get(appDir.getAbsolutePath(), "jfr-perf.jfc");
+        String patch = null;
 
         try {
             // Cleanup
@@ -202,11 +208,16 @@ public class JFRTest {
 
             generateJFRConfigurationFile(inContainer, jfrPerfJfc, processLog);
 
-
             Map<String, String> switches = null;
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0) {
                 switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
             }
+
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+                patch = "quarkus_3.9.x.patch";
+                runCommand(getRunCommand("git", "apply", patch), appDir);
+            }
+
             // Container build requires an additional step: docker build...
             builderRoutine(inContainer ? 2 : 1, appJfr, report, cn, mn, appDir, processLog, null, switches);
             builderRoutine(inContainer ? 2 : 1, appNoJfr, report, cn, mn, appDir, processLog, null, switches);
@@ -235,6 +246,9 @@ public class JFRTest {
                 removeContainers(ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name);
             }
             enableTurbo();
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
+            }
         }
     }
 

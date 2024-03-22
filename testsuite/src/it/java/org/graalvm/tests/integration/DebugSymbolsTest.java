@@ -323,7 +323,7 @@ public class DebugSymbolsTest {
     @Test
     @Tag("debugSymbolsQuarkus")
     @Tag("builder-image")
-    @DisabledOnOs({OS.WINDOWS})
+    @DisabledOnOs({ OS.WINDOWS })
     public void debugSymbolsQuarkusContainer(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX;
         LOGGER.info("Testing app: " + app);
@@ -334,6 +334,8 @@ public class DebugSymbolsTest {
         final String mn = testInfo.getTestMethod().get().getName();
         final Pattern dbReady = Pattern.compile(".*ready to accept connections.*");
         final Pattern appStarted = Pattern.compile(".*started.*");
+        String patch = null;
+
         try {
             // Cleanup
             cleanTarget(app);
@@ -344,8 +346,15 @@ public class DebugSymbolsTest {
             if (applySourcesPatch()) {
                 runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), appDir);
             }
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"), appDir);
+
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+                patch = "quarkus_3.9.x.patch";
+            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
+                patch = "quarkus_3.x.patch";
+            }
+
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", patch), appDir);
             }
 
             // Build app and start db
@@ -438,8 +447,8 @@ public class DebugSymbolsTest {
             if (applySourcesPatch()) {
                 runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"), appDir);
             }
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"), appDir);
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
     }
