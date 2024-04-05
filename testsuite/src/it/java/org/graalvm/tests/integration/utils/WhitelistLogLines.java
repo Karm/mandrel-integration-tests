@@ -130,6 +130,29 @@ public enum WhitelistLogLines {
             };
         }
     },
+    QUARKUS_MP_ORM_DBS_AWT {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            return new Pattern[] {
+                    // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
+                    Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"),
+                    // JUnit output
+                    Pattern.compile(".* Failures: 0, Errors: 0,.*"),
+                    // Jaeger talks to nobody
+                    Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException.*"),
+                    // Benign JPA
+                    Pattern.compile(".*Warning Code: 0, SQLState: 00000.*"),
+                    Pattern.compile(".*table \"db[0-9]entity\" does not exist.*"),
+                    Pattern.compile(".*does not support the reuse of containers.*"),
+                    Pattern.compile(".*Unknown SEQUENCE: 'db[0-9].hibernate_sequence'.*"),
+                    Pattern.compile(".*Unable to determine a database type for default datasource.*"),
+                    Pattern.compile(".* sequence \"hibernate_sequence\" does not exist.*"),
+                    Pattern.compile(".*DDL \"drop sequence hibernate_sequence\" .*"),
+                    // Our config
+                    Pattern.compile(".*Unrecognized configuration key \"quarkus.version\".*"),
+            };
+        }
+    },
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {
         @Override
         public Pattern[] get(boolean inContainer) {

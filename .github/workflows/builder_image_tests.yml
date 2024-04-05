@@ -43,8 +43,10 @@ jobs:
             mandrel-builder-image: 'jdk-21'
           - quarkus-version: '3.8.3'
             mandrel-builder-image: 'jdk-21'
-          - quarkus-version: '3.9.0.CR2'
+          - quarkus-version: '3.9.2'
             mandrel-builder-image: 'jdk-21'
+          - quarkus-version: '3.9.2'
+            mandrel-builder-image: 'jdk-22'
     steps:
       - uses: actions/checkout@v3
         with:

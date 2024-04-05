@@ -39,9 +39,12 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1188,6 +1191,23 @@ public class Commands {
             fail("Failed to find any executable in dir " + dir + ", matching regexp " + regexp);
         }
         return f[0];
+    }
+
+    public static List<Path> findFiles(Path dir, Pattern regexp) throws IOException {
+        if (dir == null || Files.notExists(dir) || !Files.isDirectory(dir) || regexp == null) {
+            throw new IllegalArgumentException("Path to " + dir + " must exist, it must be a directory  and regexp must nut be null.");
+        }
+        final List<Path> files = new ArrayList<>();
+        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (regexp.matcher(file.getFileName().toString()).matches()) {
+                    files.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return files;
     }
 
     public static void cleanup(Process process, String cn, String mn, StringBuilder report, Apps app, File... log)

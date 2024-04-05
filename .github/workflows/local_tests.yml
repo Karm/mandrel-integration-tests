@@ -114,14 +114,25 @@ jobs:
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.9.0.CR2'
+          - quarkus-version: '3.9.2'
             mandrel-version: '23.1.2.0-Final'
             java-version: '21'
             os: 'windows-2022'
             timeout-minutes: 80
-          - quarkus-version: '3.9.0.CR2'
+          - quarkus-version: '3.9.2'
             mandrel-version: '23.1.2.0-Final'
             java-version: '21'
+            os: 'ubuntu-20.04'
+            timeout-minutes: 130
+
+          - quarkus-version: '3.9.2'
+            mandrel-version: '24.0.0.0-Final'
+            java-version: '22'
+            os: 'windows-2022'
+            timeout-minutes: 80
+          - quarkus-version: '3.9.2'
+            mandrel-version: '24.0.0.0-Final'
+            java-version: '22'
             os: 'ubuntu-20.04'
             timeout-minutes: 130
     steps:
