@@ -77,7 +77,7 @@ public class Uploader {
                 .build();
         LOGGER.info("POSTing payload to " + mainPayload.uri());
         final HttpResponse<String> r = hc.send(mainPayload, HttpResponse.BodyHandlers.ofString());
-        if (jsonPayload[1] != null && !jsonPayload[1].isEmpty()) {
+        if (jsonPayload.length == 2 && jsonPayload[1] != null && !jsonPayload[1].isEmpty()) {
             if (!(r.statusCode() == SC_CREATED || r.statusCode() == SC_ACCEPTED || r.statusCode() == SC_OK) || r.body().isEmpty()) {
                 LOGGER.error("Failed to POST main payload, skipping secondary payload.");
                 return r;

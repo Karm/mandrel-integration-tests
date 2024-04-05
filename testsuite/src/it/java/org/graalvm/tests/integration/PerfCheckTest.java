@@ -68,6 +68,7 @@ import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
+import static org.graalvm.tests.integration.utils.Commands.findExecutable;
 import static org.graalvm.tests.integration.utils.Commands.findFiles;
 import static org.graalvm.tests.integration.utils.Commands.getProperty;
 import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
@@ -540,18 +541,18 @@ public class PerfCheckTest {
         final File processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
-        final String patch = null;
+        String patch = null;
         final List<Path> jsonPayloads = new ArrayList<>(2);
-        /*
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_7_0) >= 0) {
-            patch = "quarkus_3.7.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_6_0) >= 0) {
-            patch = "quarkus_3.6.x.patch";
-        } else if (QUARKUS_VERSION.majorIs(3)) {
-            patch = "quarkus_3.x.patch";
-        } else {
-            patch = null;
-        }*/
+
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
+            patch = "quarkus_3.2.x.patch";
+        //} //else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_6_0) >= 0) {
+         //   patch = "quarkus_3.6.x.patch";
+        //} else if (QUARKUS_VERSION.majorIs(3)) {
+          //  patch = "quarkus_3.x.patch";
+        }// else {
+           // patch = null;
+        //}
         try {
             // Cleanup
             cleanTarget(app);
@@ -571,6 +572,7 @@ public class PerfCheckTest {
             );
 
             builderRoutine(1, app, null, null, null, appDir, processLog, null, switches);
+            findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*mp-orm-dbs-awt.*"));
 
             if (PERF_APP_REPORT) {
                 // The checking whether there are no more files than we expect is to avoid uploading unexpected artifacts.
@@ -580,10 +582,12 @@ public class PerfCheckTest {
                 }
                 jsonPayloads.add(mainPayloads.get(0));
                 final List<Path> secondaryPayloads = findFiles(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*timing-stats.json"));
-                if (mainPayloads.size() > 1) {
+                if (!secondaryPayloads.isEmpty()) {
+                    jsonPayloads.add(secondaryPayloads.get(0));
+                }
+                if (secondaryPayloads.size() > 1) {
                     throw new IllegalStateException("At most one timing-tats.json file expected, found: " + secondaryPayloads.size());
                 }
-                jsonPayloads.add(secondaryPayloads.get(0));
 
                 //TODO container
                 final String qversion = QUARKUS_VERSION.isSnapshot() ?
