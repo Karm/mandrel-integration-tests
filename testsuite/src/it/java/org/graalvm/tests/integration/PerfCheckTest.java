@@ -132,7 +132,7 @@ public class PerfCheckTest {
     }
 
     @Test
-    @IfMandrelVersion(min = "21.3")
+    @IfMandrelVersion(min = "21.3", max = "23.999")
     public void testQuarkusJSONParseOnce(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_JSON_PERF_PARSEONCE;
         LOGGER.info("Testing app: " + app);
