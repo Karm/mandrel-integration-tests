@@ -158,6 +158,8 @@ public enum WhitelistLogLines {
                         // OpenTelemetry
                         Pattern.compile(".*No BatchSpanProcessor delegate specified, no action taken.*"),
                         Pattern.compile(".*Connection refused: .*:4317.*"),
+                        Pattern.compile(".*The request could not be executed.*:4317.*"),
+                        Pattern.compile(".*quarkus.otel.traces.eusp.enabled=true. Please AVOID.*"),
                         // Warnings about experimental options, we could probably wrap all those up in -H:+UnlockExperimentalVMOptions
                         Pattern.compile(".*The option '-H:BuildOutputJSONFile=' is experimental.*"),
                         Pattern.compile(".*The option '-H:ReflectionConfigurationFiles=reflection-config.json' is experimental.*"),
