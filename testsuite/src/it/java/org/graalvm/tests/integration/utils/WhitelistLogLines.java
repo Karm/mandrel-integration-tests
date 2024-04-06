@@ -157,6 +157,13 @@ public enum WhitelistLogLines {
                         Pattern.compile(".*Warning Code: 0, SQLState: 00000.*"),
                         // OpenTelemetry
                         Pattern.compile(".*No BatchSpanProcessor delegate specified, no action taken.*"),
+                        Pattern.compile(".*Connection refused: .*:4317.*"),
+                        // Warnings about experimental options, we could probably wrap all those up in -H:+UnlockExperimentalVMOptions
+                        Pattern.compile(".*The option '-H:BuildOutputJSONFile=' is experimental.*"),
+                        Pattern.compile(".*The option '-H:ReflectionConfigurationFiles=reflection-config.json' is experimental.*"),
+                        Pattern.compile(".*The option '-H:ReflectionConfigurationResources=.*netty-transport/reflection-config.json' is experimental.*"),
+                        Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"),
+                        Pattern.compile(".*The option '-H:ResourceConfigurationFiles=resource-config.json' is experimental.*"),
                 };
             } else {
                 // Oldest Quarkus 2.x default
