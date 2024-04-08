@@ -2,6 +2,17 @@
 
 Having trouble with TestContainers and Podman? Take a look: https://quarkus.io/blog/quarkus-devservices-testcontainers-podman/
 
+You might have to enable:
+```
+$ systemctl --user enable podman.socket
+$ systemctl --user start podman.socket
+```
+
+This must return OK:
+```
+$ curl -H "Content-Type: application/json" --unix-socket /var/run/user/$UID/podman/podman.sock  http://localhost/_ping
+```
+
 ## What is this?
 
 A demo app comprising various dependencies to intentionally
@@ -34,4 +45,3 @@ Various demo endpoints and ideas inspired by:
  * https://github.com/quarkusio/quarkus/tree/main/integration-tests/awt
  * https://github.com/quarkusio/quarkus-quickstarts/pull/1154
  * https://github.com/eclipse/microprofile-starter/tree/main/src/it
-

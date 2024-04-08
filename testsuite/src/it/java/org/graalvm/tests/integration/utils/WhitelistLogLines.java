@@ -45,8 +45,9 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*maven-error-diagnostics.*"),
                     // Download https://repo.maven.apache.org/maven2/com/google/errorprone
                     Pattern.compile(".*com/google/errorprone/error_prone.*"),
-                    Pattern.compile(".*com.google.errorprone:error_prone_annotations:jar:sources.*"),
+                    Pattern.compile(".*com.google.errorprone.*"),
                     // JDK:
+                    Pattern.compile(".*location of system modules is not set in conjunction with -source 11.*"),
                     Pattern.compile("WARNING.* reflective access.*"),
                     Pattern.compile("WARNING: All illegal access operations.*"),
                     Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"),
