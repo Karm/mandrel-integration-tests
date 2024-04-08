@@ -32,6 +32,8 @@ import static org.graalvm.tests.integration.PerfCheckTest.NATIVE_IMAGE_XMX_GB;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_END;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
@@ -60,6 +62,8 @@ public enum BuildAndRunCmds {
             new String[] { "mvn", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-Dquarkus.profile=test",
                     "-DBuildOutputJSONFile=" + GRAALVM_BUILD_OUTPUT_JSON_FILE,
+                    "-DUnlockExperimentalBEGIN=" + GRAALVM_EXPERIMENTAL_BEGIN,
+                    "-DUnlockExperimentalEND=" + GRAALVM_EXPERIMENTAL_END,
                     "-Dquarkus.native.native-image-xmx=" + NATIVE_IMAGE_XMX_GB + "g",
                     "-DfinalName=" + FINAL_NAME_TOKEN
             },

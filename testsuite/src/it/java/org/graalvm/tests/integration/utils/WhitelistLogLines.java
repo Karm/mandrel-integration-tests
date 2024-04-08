@@ -152,7 +152,7 @@ public enum WhitelistLogLines {
             // RestEasy intermittently
             p.add(Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"));
             p.add(Pattern.compile(".*Please close clients yourself.*"));
-            if (QUARKUS_VERSION.majorIs(3)) {
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 // Testcontainers
                 p.add(Pattern.compile(".*org.tes.uti.ResourceReaper.*"));
                 // Benign JPA
@@ -167,13 +167,12 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*No BatchSpanProcessor delegate specified, no action taken.*"));
                 p.add(Pattern.compile(".*Connection refused: .*:4317.*"));
                 p.add(Pattern.compile(".*The request could not be executed.*:4317.*"));
-                p.add(Pattern.compile(".*quarkus.otel.traces.eusp.enabled=true. Please AVOID.*"));
-                // Warnings about experimental options, we could probably wrap all those up in -H:+UnlockExperimentalVMOptions
-                p.add(Pattern.compile(".*The option '-H:BuildOutputJSONFile=' is experimental.*"));
-                p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationFiles=reflection-config.json' is experimental.*"));
+                // Warnings about experimental options, caused by Quarkus
+                //p.add(Pattern.compile(".*The option '-H:BuildOutputJSONFile=' is experimental.*"));
+                //p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationFiles=reflection-config.json' is experimental.*"));
                 p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationResources=.*netty-transport/reflection-config.json' is experimental.*"));
                 p.add(Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"));
-                p.add(Pattern.compile(".*The option '-H:ResourceConfigurationFiles=resource-config.json' is experimental.*"));
+                //p.add(Pattern.compile(".*The option '-H:ResourceConfigurationFiles=resource-config.json' is experimental.*"));
             } else if (QUARKUS_VERSION.majorIs(2)) {
                 // Jaeger talks to nobody
                 p.add(Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException.*"));

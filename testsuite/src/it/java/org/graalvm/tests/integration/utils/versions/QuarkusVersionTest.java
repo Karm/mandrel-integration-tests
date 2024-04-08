@@ -34,6 +34,8 @@ class QuarkusVersionTest
         Assertions.assertTrue(QuarkusVersion.V_2_2_4.compareTo(new QuarkusVersion("2.2.4-SNAPSHOT")) < 0);
         Assertions.assertTrue(new QuarkusVersion("2.3.4-SNAPSHOT").compareTo(new QuarkusVersion("2.2.4-SNAPSHOT")) > 0);
         Assertions.assertTrue(new QuarkusVersion("2.3.4-SNAPSHOT").compareTo(new QuarkusVersion("3.2.4-SNAPSHOT")) < 0);
+        Assertions.assertTrue(new QuarkusVersion("3.8.3").compareTo(new QuarkusVersion("3.8.999-SNAPSHOT")) < 0);
+        Assertions.assertTrue(new QuarkusVersion("999-SNAPSHOT").compareTo(new QuarkusVersion("3.9.2")) > 0);
     }
 
     @Test

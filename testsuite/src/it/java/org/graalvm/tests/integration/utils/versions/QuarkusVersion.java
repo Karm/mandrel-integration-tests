@@ -41,7 +41,7 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     private final boolean snapshot;
     private final String gitSHA;
 
-    public static final String DEFAULT_VERSION = "2.13.9.Final";
+    public static final String DEFAULT_VERSION = "2.13.3.Final";
 
     public QuarkusVersion() {
         this(getProperty("QUARKUS_VERSION", DEFAULT_VERSION));

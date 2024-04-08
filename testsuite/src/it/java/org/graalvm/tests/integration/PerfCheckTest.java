@@ -65,6 +65,8 @@ import java.util.stream.Collectors;
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_END;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
@@ -530,13 +532,23 @@ public class PerfCheckTest {
         }
     }
 
+    /**
+     * This test builds and runs integration tests of a more complex Quarkus app,
+     * including two databases, testcontainers etc.
+     * The test then examines the logs for any unexpected failures.
+     * The point is to upload *build time* stats to the Collector.
+     * The test does not use the built app at runtime.
+     * @param testInfo
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws URISyntaxException
+     */
     @Test
     @IfMandrelVersion(min = "22.3")
     @IfQuarkusVersion(min = "2.13.3")
     public void testQuarkusMPOrmAwt(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_MP_ORM_DBS_AWT;
         LOGGER.info("Testing app: " + app);
-        Process process = null;
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final File processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
@@ -560,12 +572,21 @@ public class PerfCheckTest {
             }
 
             // Build executables
-            final Map<String, String> switches = getSwitches3();
-            switches.put(FINAL_NAME_TOKEN,
-                    String.format("build-perf-%s-%s-mp-orm-dbs-awt",
+            final Map<String, String> switches = new HashMap<>() {
+                {
+                    put(FINAL_NAME_TOKEN, String.format("build-perf-%s-%s-mp-orm-dbs-awt",
                             getProperty("perf.app.arch", System.getProperty("os.arch")),
-                            getProperty("perf.app.os", System.getProperty("os.name")))
-            );
+                            getProperty("perf.app.os", System.getProperty("os.name"))));
+                    put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "quarkus-json.json");
+                    if ((UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0)) {
+                        put(GRAALVM_EXPERIMENTAL_BEGIN, "-H:+UnlockExperimentalVMOptions,");
+                        put(GRAALVM_EXPERIMENTAL_END, "-H:-UnlockExperimentalVMOptions,");
+                    } else {
+                        put(GRAALVM_EXPERIMENTAL_BEGIN, "");
+                        put(GRAALVM_EXPERIMENTAL_END, "");
+                    }
+                }
+            };
 
             builderRoutine(1, app, null, null, null, appDir, processLog, null, switches);
             findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*mp-orm-dbs-awt.*"));
@@ -604,14 +625,8 @@ public class PerfCheckTest {
                     }
                 }
             }
-            //      LOGGER.info("Gonna wait for ports closed...");
-            //   Assertions.assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
-            //         "Main port is still open");
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
-            //   if (process != null) {
-            //     processStopper(process, true);
-            // }
             for (Path jsonPayload : jsonPayloads) {
                 Logs.archiveLog(cn, mn, jsonPayload.toFile());
             }
