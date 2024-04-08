@@ -168,8 +168,6 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*Connection refused: .*:4317.*"));
                 p.add(Pattern.compile(".*The request could not be executed.*:4317.*"));
                 // Warnings about experimental options, caused by Quarkus
-                //p.add(Pattern.compile(".*The option '-H:BuildOutputJSONFile=' is experimental.*"));
-                //p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationFiles=reflection-config.json' is experimental.*"));
                 p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationResources=.*netty-transport/reflection-config.json' is experimental.*"));
                 p.add(Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"));
                 //p.add(Pattern.compile(".*The option '-H:ResourceConfigurationFiles=resource-config.json' is experimental.*"));
