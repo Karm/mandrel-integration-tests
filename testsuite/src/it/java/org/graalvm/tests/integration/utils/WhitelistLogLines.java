@@ -97,9 +97,6 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             return new Pattern[]{
-                    // Well, the RestClient demo probably should do some cleanup before shutdown...?
-                    Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"),
-                    Pattern.compile(".*Please close clients yourself.*"),
                     // Unused argument on new Graal; Quarkus uses it for backward compatibility.
                     Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
                     // Windows specific warning
@@ -122,7 +119,6 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Unable to make the Vert.x cache directory.*"),
                     // Not sure, definitely not Mandrel related though
                     Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-                    Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
                     // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
                     Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"),
                     // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
@@ -131,8 +127,10 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
                     // We don't run any OpenTracing collector point for simplicity, hence the exception. Q 3.6.0+ specific.
                     Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*"),
-                    // Quarkus 3.8.3+ HotSpot (JVM) specific and specific to OpenTelemetry trying to connect to non-existing host
+                    // https://github.com/quarkusio/quarkus/issues/39667
                     Pattern.compile(".*io.quarkus.security.runtime.SecurityIdentity.*"),
+                    // Opentelemetry
+                    Pattern.compile(".*No BatchSpanProcessor delegate specified.*")
             };
         }
     },
@@ -145,14 +143,13 @@ public enum WhitelistLogLines {
             // Testcontainers might not need it, depends on your system.
             p.add(Pattern.compile(".*Attempted to read Testcontainers configuration file.*"));
             p.add(Pattern.compile(".*does not support the reuse of containers.*"));
+            // Ryuk can spit warning that is on its own line.
+            p.add(Pattern.compile("^\\[WARNING\\]$"));
             // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI)
             // see https://github.com/Karm/mandrel-integration-tests/issues/68
             p.add(Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"));
             // JUnit output
             p.add(Pattern.compile(".* Failures: 0, Errors: 0,.*"));
-            // RestEasy intermittently
-            p.add(Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"));
-            p.add(Pattern.compile(".*Please close clients yourself.*"));
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 // Testcontainers
                 p.add(Pattern.compile(".*org.tes.uti.ResourceReaper.*"));
@@ -204,8 +201,6 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*"),
                     // Not sure, definitely not Mandrel related though
                     Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-                    Pattern.compile(".*io.quarkus:quarkus-vertx-web:jar:.* has been relocated to io.quarkus:quarkus-reactive-routes:jar:.*"),
-                    Pattern.compile(".*The quarkus-resteasy-mutiny extension is deprecated. Switch to RESTEasy Reactive instead."),
                     // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
                     Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
                     // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27

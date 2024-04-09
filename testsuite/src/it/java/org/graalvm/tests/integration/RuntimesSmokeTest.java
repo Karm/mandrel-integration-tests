@@ -59,7 +59,6 @@ import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
 import static org.graalvm.tests.integration.utils.Commands.stopRunningContainer;
 import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for build and start of applications with some real source code.
@@ -186,15 +185,13 @@ public class RuntimesSmokeTest {
             switches = null;
         }
 
-        final String patch;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_7_0) >= 0) {
-            patch = "quarkus_3.7.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_6_0) >= 0) {
-            patch = "quarkus_3.6.x.patch";
-        } else if (QUARKUS_VERSION.majorIs(3)) {
-            patch = "quarkus_3.x.patch";
-        } else {
-            patch = null;
+        String patch = null;
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+            patch = "quarkus_3.9.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
+            patch = "quarkus_3.8.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
+            patch = "quarkus_3.2.x.patch";
         }
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         if (patch != null) {
