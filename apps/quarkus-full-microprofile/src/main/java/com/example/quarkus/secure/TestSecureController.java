@@ -4,6 +4,7 @@ import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -11,7 +12,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,16 +34,21 @@ public class TestSecureController {
         key = readPemFile();
     }
 
+    @ConfigProperty(name = "quarkus.http.port")
+    int port;
+
     @GET
     @Path("/test")
     public String testSecureCall() {
         if (key == null) {
             throw new WebApplicationException("Unable to read privateKey.pem", 500);
         }
-        String jwt = generateJWT(key);
-        WebTarget target = ClientBuilder.newClient().target("http://localhost:8080/data/protected");
-        Response response = target.request().header("authorization", "Bearer " + jwt).buildGet().invoke();
-        return String.format("Claim value within JWT of 'custom-value' : %s", response.readEntity(String.class));
+        try (final Response response = ClientBuilder.newClient()
+                .target("http://localhost:" + port + "/protected")
+                .request().header("authorization", "Bearer " + generateJWT(key))
+                .buildGet().invoke()) {
+            return String.format("Claim value within JWT of 'custom-value' : %s", response.readEntity(String.class));
+        }
     }
 
     private static String generateJWT(String key) {
