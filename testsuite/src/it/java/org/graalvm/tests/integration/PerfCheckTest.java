@@ -24,13 +24,12 @@ import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.Commands;
 import org.graalvm.tests.integration.utils.Logs;
-import org.graalvm.tests.integration.utils.Uploader;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.spi.HttpResponseCodes;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -66,9 +65,13 @@ import java.util.stream.Collectors;
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_END;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
+import static org.graalvm.tests.integration.utils.Commands.findExecutable;
+import static org.graalvm.tests.integration.utils.Commands.findFiles;
 import static org.graalvm.tests.integration.utils.Commands.getProperty;
 import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
@@ -81,6 +84,11 @@ import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.waitForFileToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
 import static org.graalvm.tests.integration.utils.Uploader.PERF_APP_REPORT;
+import static org.graalvm.tests.integration.utils.Uploader.postBuildtimePayload;
+import static org.graalvm.tests.integration.utils.Uploader.postRuntimePayload;
+import static org.jboss.resteasy.spi.HttpResponseCodes.SC_ACCEPTED;
+import static org.jboss.resteasy.spi.HttpResponseCodes.SC_CREATED;
+import static org.jboss.resteasy.spi.HttpResponseCodes.SC_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,7 +96,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 @Tag("perfcheck")
-@DisabledOnOs({OS.WINDOWS}) // We need to replace perf with wmic & Dr.Memory or something
+@DisabledOnOs({ OS.WINDOWS }) // We need to replace perf with wmic & Dr.Memory or something
 public class PerfCheckTest {
 
     private static final Logger LOGGER = Logger.getLogger(PerfCheckTest.class.getName());
@@ -96,8 +104,14 @@ public class PerfCheckTest {
     public static final int LIGHT_REQUESTS = Integer.parseInt(getProperty("PERFCHECK_TEST_LIGHT_REQUESTS", "100"));
     public static final int HEAVY_REQUESTS = Integer.parseInt(getProperty("PERFCHECK_TEST_HEAVY_REQUESTS", "2"));
     public static final int MX_HEAP_MB = Integer.parseInt(getProperty("PERFCHECK_TEST_REQUESTS_MX_HEAP_MB", "2560"));
+    // Build time constraint
+    public static final int NATIVE_IMAGE_XMX_GB = Integer.parseInt(getProperty("PERFCHECK_TEST_NATIVE_IMAGE_XMX_GB", "8"));
+
+    public static final String FINAL_NAME_TOKEN = "<FINAL_NAME>";
+
     // Reporting
-    public static final String APP_CONTEXT = "api/v1/perfstats/perf";
+    public static final String APP_RUNTIME_CONTEXT = "api/v1/perfstats/perf";
+    public static final String APP_BUILDTIME_CONTEXT = "api/v1/image-stats";
 
     public static Map<String, String> populateHeader(Map<String, String> report) {
         report.put("arch", getProperty("perf.app.arch", System.getProperty("os.arch")));
@@ -120,7 +134,7 @@ public class PerfCheckTest {
     }
 
     @Test
-    @IfMandrelVersion(min = "21.3")
+    @IfMandrelVersion(min = "21.3", max = "23.999")
     public void testQuarkusJSONParseOnce(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_JSON_PERF_PARSEONCE;
         LOGGER.info("Testing app: " + app);
@@ -228,11 +242,11 @@ public class PerfCheckTest {
             final String reportPayload = mapToJSON(reports);
             LOGGER.info(reportPayload);
             if (PERF_APP_REPORT) {
-                final HttpResponse<String> response = Uploader.postPayload(APP_CONTEXT, reportPayload);
+                final HttpResponse<String> response = postRuntimePayload(APP_RUNTIME_CONTEXT, reportPayload);
                 if (response != null) {
                     LOGGER.info("Response code:" + response.statusCode());
                     LOGGER.info("Response body:" + response.body());
-                    if (response.statusCode() != HttpResponseCodes.SC_CREATED) {
+                    if (response.statusCode() != SC_CREATED) {
                         LOGGER.error("Payload was NOT uploaded tot the collector server!");
                     }
                 }
@@ -303,10 +317,10 @@ public class PerfCheckTest {
                 report.put("timeToFirstOKRequestMs", String.valueOf(timeToFirstOKRequestMs));
                 // Test web pages
                 try (final ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(app.urlContent.urlContent[1][0]).openStream());
-                     final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
+                        final FileOutputStream fileOutputStream = new FileOutputStream(json)) {
                     fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                 }
-                final String[] headers = new String[]{
+                final String[] headers = new String[] {
                         "Content-Type", "application/json",
                         "Accept", "text/plain"
                 };
@@ -365,11 +379,11 @@ public class PerfCheckTest {
             final String reportPayload = mapToJSON(reports);
             LOGGER.info(reportPayload);
             if (PERF_APP_REPORT) {
-                final HttpResponse<String> response = Uploader.postPayload(APP_CONTEXT, reportPayload);
+                final HttpResponse<String> response = postRuntimePayload(APP_RUNTIME_CONTEXT, reportPayload);
                 if (response != null) {
                     LOGGER.info("Response code:" + response.statusCode());
                     LOGGER.info("Response body:" + response.body());
-                    if (response.statusCode() != HttpResponseCodes.SC_CREATED) {
+                    if (response.statusCode() != SC_CREATED) {
                         LOGGER.error("Payload was NOT uploaded tot the collector server!");
                     }
                 }
@@ -491,11 +505,11 @@ public class PerfCheckTest {
             final String reportPayload = mapToJSON(reports);
             LOGGER.info(reportPayload);
             if (PERF_APP_REPORT) {
-                final HttpResponse<String> response = Uploader.postPayload(APP_CONTEXT, reportPayload);
+                final HttpResponse<String> response = postRuntimePayload(APP_RUNTIME_CONTEXT, reportPayload);
                 if (response != null) {
                     LOGGER.info("Response code:" + response.statusCode());
                     LOGGER.info("Response body:" + response.body());
-                    if (response.statusCode() != HttpResponseCodes.SC_CREATED) {
+                    if (response.statusCode() != SC_CREATED) {
                         LOGGER.error("Payload was NOT uploaded to the collector server!");
                     }
                 }
@@ -510,6 +524,112 @@ public class PerfCheckTest {
             }
             Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(),
                     "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
+            Logs.archiveLog(cn, mn, processLog);
+            cleanTarget(app);
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
+            }
+        }
+    }
+
+    /**
+     * This test builds and runs integration tests of a more complex Quarkus app,
+     * including two databases, testcontainers etc.
+     * The test then examines the logs for any unexpected failures.
+     * The point is to upload *build time* stats to the Collector.
+     * The test does not use the built app at runtime.
+     * @param testInfo
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws URISyntaxException
+     */
+    @Test
+    @IfMandrelVersion(min = "22.3")
+    @IfQuarkusVersion(min = "2.13.3")
+    public void testQuarkusMPOrmAwt(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
+        final Apps app = Apps.QUARKUS_MP_ORM_DBS_AWT;
+        LOGGER.info("Testing app: " + app);
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final File processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        String patch = null;
+        final List<Path> jsonPayloads = new ArrayList<>(2);
+
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+            patch = "quarkus_3.9.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
+            patch = "quarkus_3.2.x.patch";
+        }
+        try {
+            // Cleanup
+            cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
+            assertTrue(app.buildAndRunCmds.cmds.length > 1);
+
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", patch), appDir);
+            }
+
+            // Build executables
+            final Map<String, String> switches = new HashMap<>() {
+                {
+                    put(FINAL_NAME_TOKEN, String.format("build-perf-%s-%s-mp-orm-dbs-awt",
+                            getProperty("perf.app.arch", System.getProperty("os.arch")),
+                            getProperty("perf.app.os", System.getProperty("os.name"))));
+                    put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "quarkus-json.json");
+                    if ((UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0)) {
+                        put(GRAALVM_EXPERIMENTAL_BEGIN, "-H:+UnlockExperimentalVMOptions,");
+                        put(GRAALVM_EXPERIMENTAL_END, "-H:-UnlockExperimentalVMOptions,");
+                    } else {
+                        put(GRAALVM_EXPERIMENTAL_BEGIN, "");
+                        put(GRAALVM_EXPERIMENTAL_END, "");
+                    }
+                }
+            };
+
+            builderRoutine(1, app, null, null, null, appDir, processLog, null, switches);
+            findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*mp-orm-dbs-awt.*"));
+
+            if (PERF_APP_REPORT) {
+                // The checking whether there are no more files than we expect is to avoid uploading unexpected artifacts.
+                final List<Path> mainPayloads = findFiles(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile("quarkus-json.json"));
+                if (mainPayloads.size() != 1) {
+                    throw new IllegalStateException("Expected exactly one quarkus-json.json, found: " + mainPayloads.size());
+                }
+                jsonPayloads.add(mainPayloads.get(0));
+                final List<Path> secondaryPayloads = findFiles(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*timing-stats.json"));
+                if (!secondaryPayloads.isEmpty()) {
+                    jsonPayloads.add(secondaryPayloads.get(0));
+                }
+                if (secondaryPayloads.size() > 1) {
+                    throw new IllegalStateException("At most one timing-tats.json file expected, found: " + secondaryPayloads.size());
+                }
+
+                //TODO container
+                final String qversion = QUARKUS_VERSION.isSnapshot() ?
+                        QUARKUS_VERSION.getGitSHA() + '.' + QUARKUS_VERSION.getVersionString() : QUARKUS_VERSION.getVersionString();
+                final String mversion = UsedVersion.getVersion(false).toString();
+                final HttpResponse<String> r;
+                // The json files are like 4K tops, so we can afford Files.readString...
+                if (secondaryPayloads.size() == 1) {
+                    r = postBuildtimePayload(APP_BUILDTIME_CONTEXT, qversion, mversion, Files.readString(mainPayloads.get(0)), Files.readString(secondaryPayloads.get(0)));
+                } else {
+                    r = postBuildtimePayload(APP_BUILDTIME_CONTEXT, qversion, mversion, Files.readString(mainPayloads.get(0)));
+                }
+                if (r != null) {
+                    LOGGER.info("Response code:" + r.statusCode());
+                    LOGGER.info("Response body:" + r.body());
+                    if (!(r.statusCode() == SC_CREATED || r.statusCode() == SC_ACCEPTED || r.statusCode() == SC_OK)) {
+                        LOGGER.error("Payload was NOT uploaded to the collector server!");
+                    }
+                }
+            }
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            for (Path jsonPayload : jsonPayloads) {
+                Logs.archiveLog(cn, mn, jsonPayload.toFile());
+            }
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
             if (patch != null) {

@@ -39,9 +39,12 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,6 +91,8 @@ public class Commands {
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
     private static final Pattern CONTAINER_STATS_MEMORY = Pattern.compile("(?:table)?[ \t]*([0-9\\.]+)([a-zA-Z]+).*");
 
+    public static final String GRAALVM_EXPERIMENTAL_BEGIN = "<GRAALVM_EXPERIMENTAL_BEGIN>";
+    public static final String GRAALVM_EXPERIMENTAL_END = "<GRAALVM_EXPERIMENTAL_END>";
     public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE = "<GRAALVM_BUILD_OUTPUT_JSON_FILE>";
     public static final String GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH = "-H:BuildOutputJSONFile=";
     public static final QuarkusVersion QUARKUS_VERSION = new QuarkusVersion();
@@ -105,6 +110,8 @@ public class Commands {
     public static final long GOTO_URL_TIMEOUT_MS = Long.parseLong(getProperty("GOTO_URL_TIMEOUT_MS", "250"));
     // Mind that the waiting might be blocked by setting a breakpoint in the meantime. Depend on the test flow.
     public static final long LONG_GOTO_URL_TIMEOUT_MS = Long.parseLong(getProperty("LONG_GOTO_URL_TIMEOUT_MS", "60000"));
+
+    private static final Set<String> getPropertyMessages = new HashSet<>();
 
     public static String getProperty(String key) {
         return getProperty(key, null);
@@ -129,9 +136,12 @@ public class Commands {
             }
         }
         if (prop == null) {
-            LOGGER.info("Failed to detect any of " + String.join(",", alternatives) +
-                    " as env or sys props, defaulting to "
-                    + ((defaultValue != null && !defaultValue.isEmpty()) ? defaultValue : "nothing (empty string)"));
+            final String msg = String.format("Failed to detect any of %s as env or sys props, defaulting to %s",
+                    String.join(",", alternatives), defaultValue != null ? defaultValue : "nothing (empty string)");
+            if (getPropertyMessages != null && !getPropertyMessages.contains(msg)) {
+                getPropertyMessages.add(msg);
+                LOGGER.info(msg);
+            }
             return defaultValue;
         }
         return prop;
@@ -1188,6 +1198,23 @@ public class Commands {
             fail("Failed to find any executable in dir " + dir + ", matching regexp " + regexp);
         }
         return f[0];
+    }
+
+    public static List<Path> findFiles(Path dir, Pattern regexp) throws IOException {
+        if (dir == null || Files.notExists(dir) || !Files.isDirectory(dir) || regexp == null) {
+            throw new IllegalArgumentException("Path to " + dir + " must exist, it must be a directory  and regexp must nut be null.");
+        }
+        final List<Path> files = new ArrayList<>();
+        Files.walkFileTree(dir, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (regexp.matcher(file.getFileName().toString()).matches()) {
+                    files.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return files;
     }
 
     public static void cleanup(Process process, String cn, String mn, StringBuilder report, Apps app, File... log)

@@ -22,7 +22,11 @@ package org.graalvm.tests.integration.utils;
 import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
+
+import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 
 /**
  * Whitelists errors in log files.
@@ -41,8 +45,9 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*maven-error-diagnostics.*"),
                     // Download https://repo.maven.apache.org/maven2/com/google/errorprone
                     Pattern.compile(".*com/google/errorprone/error_prone.*"),
-                    Pattern.compile(".*com.google.errorprone:error_prone_annotations:jar:sources.*"),
+                    Pattern.compile(".*com.google.errorprone.*"),
                     // JDK:
+                    Pattern.compile(".*location of system modules is not set in conjunction with -source 11.*"),
                     Pattern.compile("WARNING.* reflective access.*"),
                     Pattern.compile("WARNING: All illegal access operations.*"),
                     Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"),
@@ -94,6 +99,7 @@ public enum WhitelistLogLines {
             return new Pattern[]{
                     // Well, the RestClient demo probably should do some cleanup before shutdown...?
                     Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"),
+                    Pattern.compile(".*Please close clients yourself.*"),
                     // Unused argument on new Graal; Quarkus uses it for backward compatibility.
                     Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
                     // Windows specific warning
@@ -128,6 +134,56 @@ public enum WhitelistLogLines {
                     // Quarkus 3.8.3+ HotSpot (JVM) specific and specific to OpenTelemetry trying to connect to non-existing host
                     Pattern.compile(".*io.quarkus.security.runtime.SecurityIdentity.*"),
             };
+        }
+    },
+    QUARKUS_MP_ORM_DBS_AWT {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            final List<Pattern> p = new ArrayList<>();
+            // Our config
+            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.version\".*"));
+            // Testcontainers might not need it, depends on your system.
+            p.add(Pattern.compile(".*Attempted to read Testcontainers configuration file.*"));
+            p.add(Pattern.compile(".*does not support the reuse of containers.*"));
+            // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI)
+            // see https://github.com/Karm/mandrel-integration-tests/issues/68
+            p.add(Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"));
+            // JUnit output
+            p.add(Pattern.compile(".* Failures: 0, Errors: 0,.*"));
+            // RestEasy intermittently
+            p.add(Pattern.compile(".*Closing a class org.jboss.resteasy.client.*"));
+            p.add(Pattern.compile(".*Please close clients yourself.*"));
+            if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
+                // Testcontainers
+                p.add(Pattern.compile(".*org.tes.uti.ResourceReaper.*"));
+                // Benign JPA
+                p.add(Pattern.compile(".*Unknown SEQUENCE: 'db[0-9].db[0-9]entity_SEQ'.*"));
+                p.add(Pattern.compile(".*does not need to be specified explicitly using 'hibernate.dialect'.*"));
+                p.add(Pattern.compile(".*DDL \"drop sequence db[0-9]entity_SEQ\".*"));
+                p.add(Pattern.compile(".*sequence \"db[0-9]entity_seq\" does not exist, skipping.*"));
+                p.add(Pattern.compile(".*table \"db[0-9]entity\" does not exist, skipping.*"));
+                p.add(Pattern.compile(".*Unable to determine a database type for default datasource.*"));
+                p.add(Pattern.compile(".*Warning Code: 0, SQLState: 00000.*"));
+                // OpenTelemetry
+                p.add(Pattern.compile(".*No BatchSpanProcessor delegate specified, no action taken.*"));
+                p.add(Pattern.compile(".*Connection refused: .*:4317.*"));
+                p.add(Pattern.compile(".*The request could not be executed.*:4317.*"));
+                // Warnings about experimental options, caused by Quarkus
+                p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationResources=.*netty-transport/reflection-config.json' is experimental.*"));
+                p.add(Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"));
+                //p.add(Pattern.compile(".*The option '-H:ResourceConfigurationFiles=resource-config.json' is experimental.*"));
+            } else if (QUARKUS_VERSION.majorIs(2)) {
+                // Jaeger talks to nobody
+                p.add(Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException.*"));
+                // Benign JPA
+                p.add(Pattern.compile(".*Warning Code: 0, SQLState: 00000.*"));
+                p.add(Pattern.compile(".*table \"db[0-9]entity\" does not exist.*"));
+                p.add(Pattern.compile(".*Unknown SEQUENCE: 'db[0-9].hibernate_sequence'.*"));
+                p.add(Pattern.compile(".*Unable to determine a database type for default datasource.*"));
+                p.add(Pattern.compile(".* sequence \"hibernate_sequence\" does not exist.*"));
+                p.add(Pattern.compile(".*DDL \"drop sequence hibernate_sequence\" .*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {

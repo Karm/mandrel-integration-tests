@@ -96,8 +96,7 @@ public class RuntimesSmokeTest {
             long buildStarts = System.currentTimeMillis();
             builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, switchReplacements);
             long buildEnds = System.currentTimeMillis();
-            assertTrue(findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*")).exists(),
-                    "No executable found. Compilation failed. Check the logs.");
+            findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*"));
 
             // Run
             LOGGER.info("Running...");

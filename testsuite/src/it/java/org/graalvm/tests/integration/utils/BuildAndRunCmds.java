@@ -26,10 +26,14 @@ import java.io.File;
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
 import static org.graalvm.tests.integration.JFRTest.JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN;
 import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
+import static org.graalvm.tests.integration.PerfCheckTest.FINAL_NAME_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.MX_HEAP_MB;
+import static org.graalvm.tests.integration.PerfCheckTest.NATIVE_IMAGE_XMX_GB;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_END;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
@@ -49,6 +53,22 @@ import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
 public enum BuildAndRunCmds {
     // Note that at least 2 commands are expected. One or more to build. The last one to run the app.
     // Make sure you use an explicit --name when running the app as a container. It is used throughout the TS.
+
+    // Requires with podman:
+    //
+    // export DOCKER_HOST=unix:///run/user/${UID}/podman/podman.sock
+    // export TESTCONTAINERS_RYUK_DISABLED=true
+    QUARKUS_MP_ORM_DBS_AWT(new String[][] {
+            new String[] { "mvn", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.profile=test",
+                    "-DBuildOutputJSONFile=" + GRAALVM_BUILD_OUTPUT_JSON_FILE,
+                    "-DUnlockExperimentalBEGIN=" + GRAALVM_EXPERIMENTAL_BEGIN,
+                    "-DUnlockExperimentalEND=" + GRAALVM_EXPERIMENTAL_END,
+                    "-Dquarkus.native.native-image-xmx=" + NATIVE_IMAGE_XMX_GB + "g",
+                    "-DfinalName=" + FINAL_NAME_TOKEN
+            },
+            new String[] { IS_THIS_WINDOWS ? "target\\" + FINAL_NAME_TOKEN + ".exe" : "./target/" + FINAL_NAME_TOKEN }
+    }),
     QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-Dquarkus.native.additional-build-args=" +
