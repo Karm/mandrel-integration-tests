@@ -58,6 +58,13 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"),
                     // Quarkus main 2024-03-21 deprecates this maven plugin directive
                     Pattern.compile(".*Configuration property 'quarkus.package.type' has been deprecated.*"),
+                    // Microdnf complaining, benign
+                    Pattern.compile(".*microdnf.*Found 0 entitlement certificates.*"),
+                    // Podman, container image build
+                    Pattern.compile(".*microdnf.*lib.*WARNING.*"),
+                    // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
+                    Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"),
+                    Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
             };
         }
     },
@@ -82,10 +89,6 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             return new Pattern[]{
-                    // Dnf warnings...
-                    Pattern.compile(".*librhsm-WARNING.*"),
-                    // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
-                    Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
                     // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
                     Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
                     // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
@@ -129,8 +132,10 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*"),
                     // https://github.com/quarkusio/quarkus/issues/39667
                     Pattern.compile(".*io.quarkus.security.runtime.SecurityIdentity.*"),
-                    // Opentelemetry
-                    Pattern.compile(".*No BatchSpanProcessor delegate specified.*")
+                    // OpenTelemetry
+                    Pattern.compile(".*No BatchSpanProcessor delegate specified.*"),
+                    Pattern.compile(".*Connection refused: .*:4317.*"),
+                    Pattern.compile(".*The request could not be executed.*:4317.*"),
             };
         }
     },
@@ -187,11 +192,6 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             return new Pattern[]{
-                    // Container image build
-                    Pattern.compile(".*lib.*-WARNING .*"),
-                    // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
-                    Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"),
-                    Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
                     // Params quirk, harmless
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
@@ -231,9 +231,6 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             return new Pattern[]{
-                    // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
-                    Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"),
-                    Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
                     // Params quirk, harmless
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
