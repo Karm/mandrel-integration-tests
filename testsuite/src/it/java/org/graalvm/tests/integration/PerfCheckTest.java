@@ -589,7 +589,7 @@ public class PerfCheckTest {
                             getProperty("perf.app.arch", System.getProperty("os.arch")),
                             getProperty("perf.app.os", System.getProperty("os.name"))));
                     put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "quarkus-json.json");
-                    if ((UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0)) {
+                    if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0)) {
                         put(GRAALVM_EXPERIMENTAL_BEGIN, "-H:+UnlockExperimentalVMOptions,");
                         put(GRAALVM_EXPERIMENTAL_END, "-H:-UnlockExperimentalVMOptions,");
                     } else {
