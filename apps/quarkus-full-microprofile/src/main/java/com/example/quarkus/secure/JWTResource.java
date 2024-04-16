@@ -47,6 +47,7 @@ public class JWTResource {
         }
         // Why not try-with-resources, right?
         // Because with certain older versions, Client is not auto-closable.
+        // TODO: Check again when retiring support for Quarkus 2.13.x
         Client c = null;
         Response r = null;
         try {
