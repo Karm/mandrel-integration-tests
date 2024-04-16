@@ -69,12 +69,28 @@ public enum BuildAndRunCmds {
             },
             new String[] { IS_THIS_WINDOWS ? "target\\" + FINAL_NAME_TOKEN + ".exe" : "./target/" + FINAL_NAME_TOKEN }
     }),
+    QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT(new String[][] {
+            new String[] { "mvn", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+
+                    "-Dquarkus.native.container-build=true",
+                    "-Dquarkus.container-image.build=true",
+                    "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
+                    "-Dquarkus.native.builder-image=" + BUILDER_IMAGE,
+
+                    "-Dquarkus.profile=test",
+                    "-DBuildOutputJSONFile=" + GRAALVM_BUILD_OUTPUT_JSON_FILE,
+                    "-DUnlockExperimentalBEGIN=" + GRAALVM_EXPERIMENTAL_BEGIN,
+                    "-DUnlockExperimentalEND=" + GRAALVM_EXPERIMENTAL_END,
+                    "-Dquarkus.native.native-image-xmx=" + NATIVE_IMAGE_XMX_GB + "g",
+                    "-DfinalName=" + FINAL_NAME_TOKEN
+            },
+            new String[] { IS_THIS_WINDOWS ? "target\\" + FINAL_NAME_TOKEN + ".exe" : "./target/" + FINAL_NAME_TOKEN }
+    }),
     QUARKUS_FULL_MICROPROFILE(new String[][]{
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-Dquarkus.native.additional-build-args=" +
                             "-H:Log=registerResource:," +
-                            "--trace-object-instantiation=java.util.Random," +
-                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT"
+                            "--trace-object-instantiation=java.util.Random"
             },
             new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
     }),
@@ -82,8 +98,7 @@ public enum BuildAndRunCmds {
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-Dquarkus.native.additional-build-args=" +
                             "-H:Log=registerResource:," +
-                            "--trace-object-instantiation=java.util.Random," +
-                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT"
+                            "--trace-object-instantiation=java.util.Random"
             },
             new String[]{"mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString()},
             new String[]{IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner"}
@@ -93,7 +108,6 @@ public enum BuildAndRunCmds {
                     "-Dquarkus.native.additional-build-args=" +
                             "-H:Log=registerResource:," +
                             "--trace-object-instantiation=java.util.Random," +
-                            "--initialize-at-run-time=io.vertx.ext.auth.impl.jose.JWT," +
                             "-R:MaxHeapSize=" + MX_HEAP_MB + "m" +
                             GRAALVM_BUILD_OUTPUT_JSON_FILE
             },

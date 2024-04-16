@@ -11,17 +11,15 @@ import javax.ws.rs.Path;
 
 @Path("/protected")
 @RequestScoped
-public class ProtectedController {
+public class ProtectedResource {
 
     @Inject
     @Claim("custom-value")
-    // https://quarkus.io/guides/cdi-reference#private-members
-    // - private ClaimValue<String> custom;
     ClaimValue<String> custom;
 
     @GET
     @RolesAllowed("protected")
     public String getJWTBasedValue() {
-        return "Protected Resource; Custom value : " + custom.getValue();
+        return "PROTECTED: " + custom.getValue();
     }
 }

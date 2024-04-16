@@ -418,15 +418,14 @@ public class PerfCheckTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final List<Map<String, String>> reports = new ArrayList<>(2);
-        final String patch;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_7_0) >= 0) {
-            patch = "quarkus_3.7.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_6_0) >= 0) {
-            patch = "quarkus_3.6.x.patch";
-        } else if (QUARKUS_VERSION.majorIs(3)) {
-            patch = "quarkus_3.x.patch";
-        } else {
-            patch = null;
+
+        String patch = null;
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+            patch = "quarkus_3.9.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
+            patch = "quarkus_3.8.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
+            patch = "quarkus_3.2.x.patch";
         }
         try {
             // Cleanup
@@ -546,8 +545,20 @@ public class PerfCheckTest {
     @Test
     @IfMandrelVersion(min = "22.3")
     @IfQuarkusVersion(min = "2.13.3")
-    public void testQuarkusMPOrmAwt(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
-        final Apps app = Apps.QUARKUS_MP_ORM_DBS_AWT;
+    public void testQuarkusMPOrmAwtLocal(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
+        testQuarkusMPOrmAwt(testInfo, false);
+    }
+
+    @Test
+    @IfMandrelVersion(min = "22.3", inContainer = true)
+    @IfQuarkusVersion(min = "2.13.3")
+    @Tag("builder-image")
+    public void testQuarkusMPOrmAwtContainer(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
+        testQuarkusMPOrmAwt(testInfo, true);
+    }
+
+    public void testQuarkusMPOrmAwt(TestInfo testInfo, boolean inContainer) throws IOException, InterruptedException, URISyntaxException {
+        final Apps app = inContainer ? Apps.QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT : Apps.QUARKUS_MP_ORM_DBS_AWT;
         LOGGER.info("Testing app: " + app);
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final File processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
@@ -578,7 +589,7 @@ public class PerfCheckTest {
                             getProperty("perf.app.arch", System.getProperty("os.arch")),
                             getProperty("perf.app.os", System.getProperty("os.name"))));
                     put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "quarkus-json.json");
-                    if ((UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0)) {
+                    if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0)) {
                         put(GRAALVM_EXPERIMENTAL_BEGIN, "-H:+UnlockExperimentalVMOptions,");
                         put(GRAALVM_EXPERIMENTAL_END, "-H:-UnlockExperimentalVMOptions,");
                     } else {
@@ -606,10 +617,9 @@ public class PerfCheckTest {
                     throw new IllegalStateException("At most one timing-tats.json file expected, found: " + secondaryPayloads.size());
                 }
 
-                //TODO container
                 final String qversion = QUARKUS_VERSION.isSnapshot() ?
                         QUARKUS_VERSION.getGitSHA() + '.' + QUARKUS_VERSION.getVersionString() : QUARKUS_VERSION.getVersionString();
-                final String mversion = UsedVersion.getVersion(false).toString();
+                final String mversion = UsedVersion.getVersion(inContainer).toString();
                 final HttpResponse<String> r;
                 // The json files are like 4K tops, so we can afford Files.readString...
                 if (secondaryPayloads.size() == 1) {

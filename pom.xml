@@ -45,12 +45,12 @@
         <maven.build.helper.version>3.0.0</maven.build.helper.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit.jupiter.version>5.7.1</junit.jupiter.version>
+        <junit.jupiter.version>5.10.2</junit.jupiter.version>
         <resteasy.version>4.3.0.Final</resteasy.version>
-        <commons.lang.version>3.9</commons.lang.version>
-        <jboss-logging.version>3.4.1.Final</jboss-logging.version>
-        <log4j.version>2.13.2</log4j.version>
-        <org.json.version>20230227</org.json.version>
+        <commons.lang.version>3.14.0</commons.lang.version>
+        <jboss-logging.version>3.5.3.Final</jboss-logging.version>
+        <log4j.version>2.23.1</log4j.version>
+        <org.json.version>20240303</org.json.version>
 
         <!-- Test to be executed by default (should be all of them) -->
         <includeTags>runtimes,reproducers</includeTags>

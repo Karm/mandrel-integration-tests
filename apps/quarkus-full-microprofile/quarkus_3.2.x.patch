@@ -1,8 +1,8 @@
 diff --git a/apps/quarkus-full-microprofile/pom.xml b/apps/quarkus-full-microprofile/pom.xml
-index ce7df81..e654aba 100644
+index ce7df81..c047cd9 100644
 --- a/apps/quarkus-full-microprofile/pom.xml
 +++ b/apps/quarkus-full-microprofile/pom.xml
-@@ -61,11 +61,11 @@
+@@ -61,7 +61,7 @@
          </dependency>
          <dependency>
              <groupId>io.quarkus</groupId>
@@ -11,11 +11,6 @@ index ce7df81..e654aba 100644
          </dependency>
          <dependency>
              <groupId>io.quarkus</groupId>
--            <artifactId>quarkus-rest-client</artifactId>
-+            <artifactId>quarkus-resteasy-client</artifactId>
-         </dependency>
-     </dependencies>
-     <build>
 diff --git a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/HelloController.java b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/HelloController.java
 index 0694ce6..88d552c 100644
 --- a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/HelloController.java
@@ -183,10 +178,37 @@ index 04cf5fb..fc34f8e 100644
  
  @Path("/resilience")
  @ApplicationScoped
-diff --git a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedController.java b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedController.java
-index 4447db7..1d54637 100644
---- a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedController.java
-+++ b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedController.java
+diff --git a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/JWTResource.java b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/JWTResource.java
+index 016288a..1929dc3 100644
+--- a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/JWTResource.java
++++ b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/JWTResource.java
+@@ -8,14 +8,14 @@ import io.vertx.ext.auth.jwt.JWTAuth;
+ import io.vertx.ext.auth.jwt.JWTAuthOptions;
+ import org.eclipse.microprofile.config.inject.ConfigProperty;
+ 
+-import javax.annotation.PostConstruct;
+-import javax.enterprise.context.ApplicationScoped;
+-import javax.ws.rs.GET;
+-import javax.ws.rs.Path;
+-import javax.ws.rs.WebApplicationException;
+-import javax.ws.rs.client.Client;
+-import javax.ws.rs.client.ClientBuilder;
+-import javax.ws.rs.core.Response;
++import jakarta.annotation.PostConstruct;
++import jakarta.enterprise.context.ApplicationScoped;
++import jakarta.ws.rs.GET;
++import jakarta.ws.rs.Path;
++import jakarta.ws.rs.WebApplicationException;
++import jakarta.ws.rs.client.Client;
++import jakarta.ws.rs.client.ClientBuilder;
++import jakarta.ws.rs.core.Response;
+ import java.io.InputStream;
+ import java.nio.charset.StandardCharsets;
+ import java.util.Objects;
+diff --git a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedResource.java b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedResource.java
+index 7ae6dd4..06e10e8 100644
+--- a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedResource.java
++++ b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/ProtectedResource.java
 @@ -3,11 +3,11 @@ package com.example.quarkus.secure;
  import org.eclipse.microprofile.jwt.Claim;
  import org.eclipse.microprofile.jwt.ClaimValue;
@@ -204,38 +226,11 @@ index 4447db7..1d54637 100644
  
  @Path("/protected")
  @RequestScoped
-diff --git a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/TestSecureController.java b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/TestSecureController.java
-index fb82305..a95c3f0 100644
---- a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/TestSecureController.java
-+++ b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/secure/TestSecureController.java
-@@ -5,14 +5,14 @@ import io.vertx.ext.auth.PubSecKeyOptions;
- import io.vertx.ext.auth.jwt.JWTAuth;
- import io.vertx.ext.auth.jwt.JWTAuthOptions;
- 
--import javax.annotation.PostConstruct;
--import javax.enterprise.context.ApplicationScoped;
--import javax.ws.rs.GET;
--import javax.ws.rs.Path;
--import javax.ws.rs.WebApplicationException;
--import javax.ws.rs.client.ClientBuilder;
--import javax.ws.rs.client.WebTarget;
--import javax.ws.rs.core.Response;
-+import jakarta.annotation.PostConstruct;
-+import jakarta.enterprise.context.ApplicationScoped;
-+import jakarta.ws.rs.GET;
-+import jakarta.ws.rs.Path;
-+import jakarta.ws.rs.WebApplicationException;
-+import jakarta.ws.rs.client.ClientBuilder;
-+import jakarta.ws.rs.client.WebTarget;
-+import jakarta.ws.rs.core.Response;
- import java.io.BufferedReader;
- import java.io.IOException;
- import java.io.InputStreamReader;
 diff --git a/apps/quarkus-full-microprofile/src/main/resources/application.properties b/apps/quarkus-full-microprofile/src/main/resources/application.properties
-index 30c3d85..ea679ae 100644
+index 911e899..caa2d91 100644
 --- a/apps/quarkus-full-microprofile/src/main/resources/application.properties
 +++ b/apps/quarkus-full-microprofile/src/main/resources/application.properties
-@@ -5,8 +5,9 @@ quarkus.ssl.native=true
+@@ -6,8 +6,9 @@ quarkus.ssl.native=true
  mp.jwt.verify.publickey.location=META-INF/resources/publicKey.pem
  mp.jwt.verify.issuer=https://server.example.com
  quarkus.smallrye-jwt.enabled=true
