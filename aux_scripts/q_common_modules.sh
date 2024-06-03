@@ -16,7 +16,7 @@ QTAGS=(
 )
 
 for QTAG in "${QTAGS[@]}"; do
-  curl https://raw.githubusercontent.com/quarkusio/quarkus/main/.github/native-tests.json \
+  curl https://raw.githubusercontent.com/quarkusio/quarkus/$QTAG/.github/native-tests.json \
     | jq -r '.include | map(."test-modules") | join(",")' > /tmp/$QTAG-modules.txt
 done
 
