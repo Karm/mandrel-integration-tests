@@ -65,6 +65,7 @@ import java.util.regex.Pattern;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_MACOS;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
@@ -76,9 +77,12 @@ import static org.graalvm.tests.integration.utils.Commands.enableTurbo;
 import static org.graalvm.tests.integration.utils.Commands.findExecutable;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getContainerMemoryKb;
+import static org.graalvm.tests.integration.utils.Commands.getPodmanMachineSSHPort;
 import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
+import static org.graalvm.tests.integration.utils.Commands.openSSHTunnel;
+import static org.graalvm.tests.integration.utils.Commands.pidKiller;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.replaceSwitchesInCmd;
@@ -340,13 +344,14 @@ public class JFRTest {
     }
 
     private Map<String, Integer> runBenchmarkForApp(Endpoint endpoint, int trials, Apps app, File appDir, File processLog,
-                                                    String cn, String mn, StringBuilder report, Path measurementsLog,
-                                                    boolean inContainer) throws IOException, InterruptedException {
+            String cn, String mn, StringBuilder report, Path measurementsLog,
+            boolean inContainer) throws IOException, InterruptedException {
 
         Process process = null;
         Process hyperfoilProcess = null;
         int rssSum = 0;
         int startupSum = 0;
+        final long[] tunnelPIDs = new long[] { -1L, -1L };
 
         try {
             for (int i = 0; i < trials; i++) {
@@ -373,6 +378,15 @@ public class JFRTest {
                     rssSum += getRSSkB(process.pid());
                 }
                 LOGGER.info("Trial " + i + " startup time sum: " + startupSum + " ms, RSS sum: " + rssSum + " KB");
+            }
+
+            if (IS_THIS_MACOS) {
+                // TODO: This is obviously way too tailored to our particular macOS podman installation.
+                // We will generalize it as a part of porting to GHA.
+                final String identity = "/Users/tester/.local/share/containers/podman/machine/machine";
+                final int port = getPodmanMachineSSHPort();
+                tunnelPIDs[0] = openSSHTunnel(identity, String.valueOf(port), "core", "localhost", "8080", false);
+                tunnelPIDs[1] = openSSHTunnel(identity, String.valueOf(port), "core", "localhost", "8090", true);
             }
 
             // Run Hyperfoil controller in container and expose port for test
@@ -494,6 +508,13 @@ public class JFRTest {
             if (Files.exists(recording)) {
                 Files.move(recording,
                         Paths.get(appDir.getAbsolutePath(), "logs", endpoint + "-" + app.name().toLowerCase() + "-flight-native.jfr"));
+            }
+            // Bury the tunnels
+            if (IS_THIS_MACOS) {
+                for (long pid : tunnelPIDs) {
+                    if (pid != -1)
+                        pidKiller(pid, true);
+                }
             }
         }
     }

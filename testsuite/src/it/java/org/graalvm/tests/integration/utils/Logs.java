@@ -40,6 +40,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
 import static org.graalvm.tests.integration.utils.Commands.FAIL_ON_PERF_REGRESSION;
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_MACOS;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -105,7 +106,7 @@ public class Logs {
                     ". Skipping checking thresholds.");
             return;
         }
-        final String propPrefix = (IS_THIS_WINDOWS ? "windows" : "linux") +
+        final String propPrefix = (IS_THIS_WINDOWS ? "windows" : (IS_THIS_MACOS ? "macos" : "linux")) +
                 ((app.runtimeContainer != ContainerNames.NONE) ? ".container" : "") +
                 ((mode != Mode.NONE) ? "." + mode : "");
         final List<String> failures = new ArrayList<>();

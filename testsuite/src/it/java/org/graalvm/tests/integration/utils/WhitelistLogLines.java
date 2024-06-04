@@ -138,6 +138,8 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*No BatchSpanProcessor delegate specified.*"),
                     Pattern.compile(".*Connection refused: .*:4317.*"),
                     Pattern.compile(".*The request could not be executed.*:4317.*"),
+                    // MacOS https://github.com/quarkusio/quarkus/issues/40938
+                    Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"),
             };
         }
     },
@@ -274,6 +276,8 @@ public enum WhitelistLogLines {
                         Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"),
                         // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
                         Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
+                        // MacOS https://github.com/quarkusio/quarkus/issues/40938
+                        Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"),
                 };
             }
         }

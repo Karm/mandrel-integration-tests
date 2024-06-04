@@ -96,7 +96,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 @Tag("perfcheck")
-@DisabledOnOs({ OS.WINDOWS }) // We need to replace perf with wmic & Dr.Memory or something
+// Windows: We need to replace perf with wmic & Dr.Memory or something.
+// Mac: We need to figure out what's Mac's "perf".
+@DisabledOnOs({ OS.WINDOWS, OS.MAC})
 public class PerfCheckTest {
 
     private static final Logger LOGGER = Logger.getLogger(PerfCheckTest.class.getName());

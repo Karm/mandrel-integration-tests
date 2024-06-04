@@ -34,6 +34,7 @@ import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_END;
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_MACOS;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
@@ -245,13 +246,13 @@ public enum BuildAndRunCmds {
                     :
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
 
-            new String[]{"native-image", DebugSymbolsTest.DebugOptions.UnlockExperimentalVMOptions_23_1.token,
-                    "-H:GenerateDebugInfo=1", "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
+            new String[] { "native-image", DebugSymbolsTest.DebugOptions.UnlockExperimentalVMOptions_23_1.token,
+                    "-H:GenerateDebugInfo=" + (IS_THIS_MACOS ? "0" : "1"), "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
                     DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0.token,
                     DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0.token,
                     DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0.token,
                     DebugSymbolsTest.DebugOptions.LockExperimentalVMOptions_23_1.token,
-                    "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke"},
+                    "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" },
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
     }),
@@ -269,13 +270,13 @@ public enum BuildAndRunCmds {
                     "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=settings=" + BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/jfr-perf.jfc,filename=logs/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
+            hyperfoil()
     }),
     PLAINTEXT_PERFORMANCE(new String[][]{
             new String[]{"mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                     "-DfinalName=jfr-plaintext"},
             new String[]{"./target/jfr-plaintext-runner"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
+            hyperfoil()
     }),
     JFR_PERFORMANCE_BUILDER_IMAGE(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
@@ -291,7 +292,7 @@ public enum BuildAndRunCmds {
                     "--name", ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, "jfr-performance-app", "-XX:+FlightRecorder",
                     "-XX:StartFlightRecording=settings=/work/jfr-perf.jfc,filename=/tmp/flight-native.jfr",
                     "-XX:FlightRecorderLogging=jfr"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
+            hyperfoil()
     }),
     PLAINTEXT_PERFORMANCE_BUILDER_IMAGE(new String[][]{
             new String[]{"mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
@@ -304,7 +305,7 @@ public enum BuildAndRunCmds {
                     "-t",
                     //"-v", BASE_DIR + File.separator + "apps" + File.separator + "jfr-native-image-performance/logs:/tmp:z",
                     "--name", ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name, "jfr-plaintext-app"},
-            new String[]{CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host", "quay.io/karmkarm/hyperfoil:0.25.2", "standalone"}
+            hyperfoil()
     }),
     JFR_SMOKE(new String[][]{
             new String[]{"mvn", "package"},
@@ -378,6 +379,21 @@ public enum BuildAndRunCmds {
     });
 
     public final String[][] cmds;
+
+    private static String[] hyperfoil() {
+        if (IS_THIS_MACOS) {
+            // --network=host does not do what you think it does on macOS. It creates a shared network
+            // between your container and the VM running it.
+            // The step that would bring the connection all the way up the stack to your host
+            // is an ssh tunnel. This last step is manual, and we run it separately during the test.
+            return new String[] { CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host",
+                    "--entrypoint=/bin/bash", "quay.io/karmkarm/hyperfoil:0.25.2", "/deployment/bin/standalone.sh",
+                    "-Dio.hyperfoil.controller.host=localhost" };
+        } else {
+            return new String[] { CONTAINER_RUNTIME, "run", "--name", ContainerNames.HYPERFOIL.name, "--rm", "--network=host",
+                    "quay.io/karmkarm/hyperfoil:0.25.2", "standalone" };
+        }
+    }
 
     BuildAndRunCmds(String[][] cmds) {
         this.cmds = cmds;

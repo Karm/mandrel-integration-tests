@@ -87,6 +87,7 @@ public class Commands {
     public static final FailOnPerfRegressionEnum FAIL_ON_PERF_REGRESSION = FailOnPerfRegressionEnum.valueOf(getProperty("FAIL_ON_PERF_REGRESSION", "true").toUpperCase());
 
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
+    public static final boolean IS_THIS_MACOS = System.getProperty("os.name").matches(".*[Mm]ac.*");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
     private static final Pattern CONTAINER_STATS_MEMORY = Pattern.compile("(?:table)?[ \t]*([0-9\\.]+)([a-zA-Z]+).*");
@@ -349,6 +350,7 @@ public class Commands {
     }
 
     public static void pidKiller(long pid, boolean force) {
+        LOGGER.infof("Killing PID: %d, forcefully: %b", pid, force);
         try {
             if (IS_THIS_WINDOWS) {
                 if (!force) {
@@ -443,7 +445,8 @@ public class Commands {
     }
 
     public static void stopRunningContainer(String containerName) throws InterruptedException, IOException {
-        final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "stop", containerName));
+        // -t 1, just give it a sec and then kill it; we don't care about long graceful shutdowns. Both podman and docker ok.
+        final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "stop", containerName, "-t", "1"));
         LOGGER.infof("Command: %s", cmd);
         final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
         process.waitFor(5, TimeUnit.SECONDS);
@@ -607,8 +610,8 @@ public class Commands {
     }
 
     public static void clearCaches() throws IOException {
-        if (IS_THIS_WINDOWS) {
-            LOGGER.infof("Not implemented for Windows");
+        if (IS_THIS_WINDOWS || IS_THIS_MACOS) {
+            LOGGER.infof("Not implemented for Windows and Mac");
             return;
         }
         final List<String> cmd = getRunCommand("sudo", "bash", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches");
@@ -616,8 +619,8 @@ public class Commands {
     }
 
     public static void disableTurbo() throws IOException {
-        if (IS_THIS_WINDOWS) {
-            LOGGER.infof("Not implemented for Windows");
+        if (IS_THIS_WINDOWS || IS_THIS_MACOS) {
+            LOGGER.infof("Not implemented for Windows and Mac");
             return;
         }
         final File intel = new File("/sys/devices/system/cpu/intel_pstate/no_turbo");
@@ -636,8 +639,8 @@ public class Commands {
     }
 
     public static void enableTurbo() throws IOException {
-        if (IS_THIS_WINDOWS) {
-            LOGGER.infof("Not implemented for Windows");
+        if (IS_THIS_WINDOWS || IS_THIS_MACOS) {
+            LOGGER.infof("Not implemented for Windows and Mac");
         }
         final File intel = new File("/sys/devices/system/cpu/intel_pstate/no_turbo");
         if (intel.exists()) {
@@ -957,6 +960,42 @@ public class Commands {
                 }
             }
             return l;
+        }
+    }
+
+    /**
+     * Open an ssh tunnel.
+     * @return pid - caller is responsible for closing the tunnel
+     */
+    public static long openSSHTunnel(String identity, String sshPort, String user, String host, String port, boolean local) {
+        final List<String> cmd = getRunCommand("ssh", "-i", identity, "-p", sshPort, local ? "-L" : "-R", port + ":" + host + ":" + port, user + "@" + host, "-N");
+        LOGGER.infof("Command: %s", cmd);
+        final ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+        final Map<String, String> envA = processBuilder.environment();
+        envA.put("PATH", System.getenv("PATH"));
+        processBuilder.redirectErrorStream(true);
+        try {
+            final Process p = processBuilder.start();
+            return p.pid();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /**
+     * @return Podman machine ssh port number
+     */
+    public static int getPodmanMachineSSHPort() throws IOException {
+        final List<String> cmd = getRunCommand(
+                CONTAINER_RUNTIME, "machine", "inspect", "--format", "{{.SSHConfig.Port}}");
+        LOGGER.infof("Command: %s", cmd);
+        final ProcessBuilder pa = new ProcessBuilder(cmd);
+        pa.environment().put("PATH", System.getenv("PATH"));
+        pa.redirectErrorStream(true);
+        final Process p = pa.start();
+        try (InputStream is = p.getInputStream()) {
+            return Integer.parseInt(new String(is.readAllBytes(), US_ASCII).trim());
         }
     }
 

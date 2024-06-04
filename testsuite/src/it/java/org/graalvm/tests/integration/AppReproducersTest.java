@@ -495,7 +495,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("imageio")
-    @DisabledOnOs({OS.WINDOWS}) // AWT support is not there yet
+    @DisabledOnOs({OS.WINDOWS, OS.MAC}) // AWT support is not there yet
     @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO);
