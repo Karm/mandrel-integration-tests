@@ -171,7 +171,7 @@ public class Logs {
                 long meanThreshold = app.thresholdProperties.get(key);
                 assertThreshold(failures, mean <= meanThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has mean response latency " +
-                                mean + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more " : "") + " , which is over " +
+                                mean + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : " ") + ", which is over " +
                                 meanThreshold + " threshold by " + percentageValOverTh(mean, meanThreshold) + "%.", true);
             } else {
                 LOGGER.error("mean was to be checked, but there is no " + key + " in " + properties);
@@ -184,7 +184,7 @@ public class Logs {
                 long p50Threshold = app.thresholdProperties.get(key);
                 assertThreshold(failures, p50 <= p50Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p50 response latency " +
-                                p50 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "  more" : "") + ", which is over " +
+                                p50 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
                                 p50Threshold + "  threshold by " + percentageValOverTh(p50, p50Threshold) + "%.", true);
             } else {
                 LOGGER.error("p99 was to be checked, but there is no " + key + " in " + properties);
