@@ -968,7 +968,9 @@ public class Commands {
      * @return pid - caller is responsible for closing the tunnel
      */
     public static long openSSHTunnel(String identity, String sshPort, String user, String host, String port, boolean local) {
-        final List<String> cmd = getRunCommand("ssh", "-i", identity, "-p", sshPort, local ? "-L" : "-R", port + ":" + host + ":" + port, user + "@" + host, "-N");
+        final List<String> cmd = getRunCommand(
+                "ssh", "-o", "StrictHostKeyChecking=no", "-i", identity, "-p", sshPort,
+                local ? "-L" : "-R", port + ":" + host + ":" + port, user + "@" + host, "-N");
         LOGGER.infof("Command: %s", cmd);
         final ProcessBuilder processBuilder = new ProcessBuilder(cmd);
         final Map<String, String> envA = processBuilder.environment();
