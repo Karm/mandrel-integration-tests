@@ -117,7 +117,7 @@ public class DebugSymbolsTest {
 
     @Test
     @Tag("debugSymbolsSmoke")
-    @DisabledOnOs({OS.WINDOWS})
+    @DisabledOnOs({OS.WINDOWS, OS.MAC}) // This targets GCC/GDB toolchain specifically.
     public void debugSymbolsSmokeGDB(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_SYMBOLS_SMOKE;
         LOGGER.info("Testing app: " + app);
@@ -212,7 +212,7 @@ public class DebugSymbolsTest {
 
     @Test
     @Tag("debugSymbolsQuarkus")
-    @DisabledOnOs({OS.WINDOWS})
+    @DisabledOnOs({OS.WINDOWS, OS.MAC}) // This targets GCC/GDB toolchain specifically.
     public void debugSymbolsQuarkus(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_QUARKUS_FULL_MICROPROFILE;
         LOGGER.info("Testing app: " + app);
@@ -321,7 +321,7 @@ public class DebugSymbolsTest {
     @Test
     @Tag("debugSymbolsQuarkus")
     @Tag("builder-image")
-    @DisabledOnOs({ OS.WINDOWS })
+    @DisabledOnOs({ OS.WINDOWS, OS.MAC }) // This targets GCC/GDB toolchain specifically.
     public void debugSymbolsQuarkusContainer(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_QUARKUS_BUILDER_IMAGE_VERTX;
         LOGGER.info("Testing app: " + app);
