@@ -140,6 +140,8 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*The request could not be executed.*:4317.*"),
                     // MacOS https://github.com/quarkusio/quarkus/issues/40938
                     Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"),
+                    // Allow the quarkus main warning of older Mandrel releases
+                    Pattern.compile(".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"),
             };
         }
     },
