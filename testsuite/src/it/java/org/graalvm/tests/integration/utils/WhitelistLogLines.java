@@ -142,6 +142,12 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"),
                     // Allow the quarkus main warning of older Mandrel releases
                     Pattern.compile(".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"),
+                    // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+                    // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release\\. Please refer to the GraalVM release notes.*"),
+                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release\\. This can be caused by a proxy-config.json file in your META-INF directory.*"),
+                    // Dependency sources plugin may produce this warning on some systems. See https://issues.apache.org/jira/browse/MNG-7706
+                    Pattern.compile(".*\\[WARNING\\] Parameter 'local' is deprecated core expression; Avoid use of ArtifactRepository type\\. If you need access to local repository, switch to .* expression and get LRM from it instead\\..*"),
             };
         }
     },
