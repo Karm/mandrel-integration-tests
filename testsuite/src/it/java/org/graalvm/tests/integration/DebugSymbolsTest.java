@@ -330,7 +330,7 @@ public class DebugSymbolsTest {
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
-        final Pattern dbReady = Pattern.compile(".*ready to accept connections.*");
+        final Pattern dbReady = Pattern.compile(".*listening on IPv4 address.*port 5432.*");
         final Pattern appStarted = Pattern.compile(".*started.*");
         String patch = null;
 
