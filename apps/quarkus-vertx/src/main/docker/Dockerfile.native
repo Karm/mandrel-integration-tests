@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
 RUN microdnf --enablerepo=ubi-8-baseos-debug-rpms --enablerepo=ubi-8-appstream-debug-rpms install gdb zlib-debuginfo glibc-debuginfo
 WORKDIR /work/
 COPY target/quarkus-runner /work/application
