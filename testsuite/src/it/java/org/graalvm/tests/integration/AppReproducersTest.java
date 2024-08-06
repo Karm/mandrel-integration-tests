@@ -790,7 +790,8 @@ public class AppReproducersTest {
             Logs.checkLog(cn, mn, app, processLog);
             processStopper(process, false);
             final Pattern pok = Pattern.compile(".*Done all 9000 iterations.*");
-            assertTrue(searchLogLines(pok, processLog, Charset.defaultCharset()), "Expected pattern " + pok + " was not found in the log.");
+            assertTrue(searchLogLines(pok, processLog, Charset.defaultCharset()), "Expected pattern " + pok + " was not found in the log." +
+                    "Perhaps ContendedPaddingWidth default has changed from 128 bytes to something else?");
 
             if (inContainer) {
                 removeContainers(app.runtimeContainer.name);
