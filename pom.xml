@@ -99,6 +99,7 @@
                 <module>apps/reslocations</module>
                 <module>apps/timezones</module>
                 <module>apps/versions</module>
+                <module>apps/monitor-field-offset</module>
                 <module>testsuite</module>
             </modules>
         </profile>

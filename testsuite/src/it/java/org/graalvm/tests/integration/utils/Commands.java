@@ -1117,14 +1117,14 @@ public class Commands {
      *               "-Dcustom.final.name=quarkus-json_-ParseOnce"},
      * //@formatter:on
      */
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir,
+    public static void builderRoutine(int startIndexInclusive, int endIndexExclusive, Apps app, StringBuilder report, String cn, String mn, File appDir,
                                       File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
         // The last command is reserved for running it
         assertTrue(app.buildAndRunCmds.cmds.length > 1);
         if (report != null) {
             Logs.appendln(report, "# " + cn + ", " + mn);
         }
-        for (int i = 0; i < steps; i++) {
+        for (int i = startIndexInclusive; i < endIndexExclusive; i++) {
             // We cannot run commands in parallel, we need them to follow one after another
             final ExecutorService buildService = Executors.newFixedThreadPool(1);
             final List<String> cmd;
@@ -1147,15 +1147,25 @@ public class Commands {
     }
 
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
-        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, null);
+        builderRoutine(0, app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, null);
     }
 
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog, Map<String, String> env) throws IOException {
-        builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env, null);
+        builderRoutine(0, app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, env, null);
     }
 
-    public static void builderRoutine(int steps, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
-        builderRoutine(steps, app, report, cn, mn, appDir, processLog, null, null);
+    public static void builderRoutine(int endIndexExclusive, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
+        builderRoutine(0, endIndexExclusive, app, report, cn, mn, appDir, processLog, null, null);
+    }
+
+    public static void builderRoutine(int endIndexExclusive, Apps app, StringBuilder report, String cn, String mn, File appDir,
+            File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
+        builderRoutine(0, endIndexExclusive, app, report, cn, mn, appDir, processLog, env, switchReplacements);
+
+    }
+
+    public static void builderRoutine(int startIndexInclusive, int endIndexExclusive, Apps app, StringBuilder report, String cn, String mn, File appDir, File processLog) throws IOException {
+        builderRoutine(startIndexInclusive, endIndexExclusive, app, report, cn, mn, appDir, processLog, null, null);
     }
 
     public static List<String> replaceSwitchesInCmd(final List<String> cmd, final Map<String, String> switchReplacements) {
@@ -1267,6 +1277,9 @@ public class Commands {
         // Archive logs no matter what
         for (File f : log) {
             Logs.archiveLog(cn, mn, f);
+        }
+        if (app.runtimeContainer != ContainerNames.NONE) {
+            removeContainers(app.runtimeContainer.name);
         }
         Logs.writeReport(cn, mn, report.toString());
         cleanTarget(app);

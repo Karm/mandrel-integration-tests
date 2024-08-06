@@ -176,7 +176,17 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.RESLOCATIONS,
             BuildAndRunCmds.RESLOCATIONS,
-            ContainerNames.NONE);
+            ContainerNames.NONE),
+    MONITOR_OFFSET("apps" + File.separator + "monitor-field-offset",
+            URLContent.NONE,
+            WhitelistLogLines.MONITOR_OFFSET,
+            BuildAndRunCmds.MONITOR_OFFSET,
+            ContainerNames.NONE),
+    MONITOR_OFFSET_BUILDER_IMAGE("apps" + File.separator + "monitor-field-offset",
+            URLContent.NONE,
+            WhitelistLogLines.MONITOR_OFFSET,
+            BuildAndRunCmds.MONITOR_OFFSET_BUILDER_IMAGE,
+            ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE);
 
     public final String dir;
     public final URLContent urlContent;
