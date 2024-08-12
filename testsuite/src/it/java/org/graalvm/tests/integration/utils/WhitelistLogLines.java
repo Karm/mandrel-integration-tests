@@ -303,6 +303,17 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*com\\.sun\\.imageio\\.plugins\\.common.*is internal proprietary API and may be removed in a future release.*")
             };
         }
+    },
+    MONITOR_OFFSET {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            return new Pattern[]{
+                    Pattern.compile(".*Failed generating.*"),
+                    Pattern.compile(".*The build process encountered an unexpected error.*"),
+                    Pattern.compile(".*monitor_field_offset.Main480 has an invalid monitor field offset.*"),
+                    Pattern.compile(".*error report at:.*"),
+            };
+        }
     };
 
     public abstract Pattern[] get(boolean inContainer);

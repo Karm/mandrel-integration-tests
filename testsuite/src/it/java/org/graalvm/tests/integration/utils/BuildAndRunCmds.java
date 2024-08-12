@@ -376,6 +376,35 @@ public enum BuildAndRunCmds {
                     "-J--add-exports=java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED",
                     "-jar", "./target/reslocations.jar", "target/reslocations"},
             new String[]{IS_THIS_WINDOWS ? "target\\reslocations.exe" : "./target/reslocations"}
+    }),
+    MONITOR_OFFSET(new String[][] {
+            new String[] { "mvn", "package", "-POK" },
+            new String[] { "native-image", "-R:-InstallSegfaultHandler", "-march=native", "--gc=serial", "--no-fallback",
+                    "-jar", "target/monitor-field-offsets-ok.jar", "target/monitor-field-offsets-ok" },
+            new String[] { IS_THIS_WINDOWS ? "target\\monitor-field-offsets-ok" : "./target/monitor-field-offsets-ok" },
+            new String[] { "mvn", "package", "-PNOK" },
+            new String[] { "native-image", "-R:-InstallSegfaultHandler", "-march=native", "--gc=serial", "--no-fallback",
+                    "-jar", "target/monitor-field-offsets-nok.jar", "target/monitor-field-offsets-nok" }
+    }),
+    MONITOR_OFFSET_BUILDER_IMAGE(new String[][] {
+            new String[] { "mvn", "package", "-POK" },
+            new String[] {
+                    CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "monitor-field-offset:/project:z",
+                    "--name", ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE.name,
+                    BUILDER_IMAGE, "-R:-InstallSegfaultHandler", "-march=native", "--gc=serial", "--no-fallback",
+                    "-jar", "target/monitor-field-offsets-ok.jar", "target/monitor-field-offsets-ok" },
+            new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-t", ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE.name, "."},
+            new String[] { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "monitor-field-offset:/work:z",
+                    ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE.name, "target/monitor-field-offsets-ok" },
+            new String[] { "mvn", "package", "-PNOK" },
+            new String[] {
+                    CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "monitor-field-offset:/project:z",
+                    "--name", ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE.name,
+                    BUILDER_IMAGE, "-R:-InstallSegfaultHandler", "-march=native", "--gc=serial", "--no-fallback",
+                    "-jar", "target/monitor-field-offsets-nok.jar", "target/monitor-field-offsets-nok" },
     });
 
     public final String[][] cmds;

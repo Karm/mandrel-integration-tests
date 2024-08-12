@@ -68,6 +68,7 @@ import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.listStaticLibs;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.searchLogLines;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
@@ -745,7 +746,67 @@ public class AppReproducersTest {
             cleanup(process, cn, mn, report, app, processLog);
         }
     }
-    
+
+    @Test
+    @Tag("builder-image")
+    @IfMandrelVersion(minJDK = "21.0.3", inContainer = true)
+    public void monitorFieldOffsetContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+        monitorFieldOffset(testInfo, Apps.MONITOR_OFFSET_BUILDER_IMAGE);
+    }
+
+    @Test
+    @IfMandrelVersion(minJDK = "21.0.3")
+    public void monitorFieldOffsetTest(TestInfo testInfo) throws IOException, InterruptedException {
+        monitorFieldOffset(testInfo, Apps.MONITOR_OFFSET);
+    }
+
+    public void monitorFieldOffset(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
+        Process process = null;
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        final boolean inContainer = app == Apps.MONITOR_OFFSET_BUILDER_IMAGE;
+        try {
+            // Cleanup
+            cleanTarget(app);
+            if (inContainer) {
+                removeContainers(app.runtimeContainer.name);
+            }
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // OK version
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+            builderRoutine(inContainer ? 3 : 2, app, report, cn, mn, appDir, processLog);
+            LOGGER.info("Running...");
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 3]);
+            process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            Logs.checkLog(cn, mn, app, processLog);
+            processStopper(process, false);
+            final Pattern pok = Pattern.compile(".*Done all 9000 iterations.*");
+            assertTrue(searchLogLines(pok, processLog, Charset.defaultCharset()), "Expected pattern " + pok + " was not found in the log." +
+                    "Perhaps ContendedPaddingWidth default has changed from 128 bytes to something else?");
+
+            if (inContainer) {
+                removeContainers(app.runtimeContainer.name);
+            }
+
+            // NOK version
+            builderRoutine(inContainer ? 4 : 3, app.buildAndRunCmds.cmds.length, app, report, cn, mn, appDir, processLog);
+            Logs.checkLog(cn, mn, app, processLog);
+            final Pattern pnok = Pattern.compile(".*Class monitor_field_offset.Main480 has an invalid monitor field offset.*");
+            assertTrue(searchLogLines(pnok, processLog, Charset.defaultCharset()), "Expected pattern " + pnok + " was not found in the log.");
+        } finally {
+            cleanup(process, cn, mn, report, app, processLog);
+        }
+    }
+
     @Test
     @Tag("calendars")
     @IfMandrelVersion(min = "22.3.5") // The fix for this test is in 22.3.5 and better
