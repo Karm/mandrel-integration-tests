@@ -56,11 +56,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.LockExperimentalVMOptions_23_1;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.UnlockExperimentalVMOptions_23_1;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
@@ -524,7 +525,8 @@ public class AppReproducersTest {
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            builderRoutine(app, report, cn, mn, appDir, processLog);
+            builderRoutine(0, app.buildAndRunCmds.cmds.length - 1,
+                    app, report, cn, mn, appDir, processLog, null, getSwitches(app));
 
             // Record images' hashsums as created by a Java process
             final List<String> errors = new ArrayList<>(12);
@@ -1055,6 +1057,11 @@ public class AppReproducersTest {
             switches.put(TrackNodeSourcePosition_23_0.token, "");
             switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
             switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
+        }
+        if (version.compareTo(Version.create(24, 2, 0)) >= 0) {
+            switches.put(ForeignAPISupport_24_2.token, ForeignAPISupport_24_2.replacement);
+        } else {
+            switches.put(ForeignAPISupport_24_2.token, "");
         }
         return switches;
     }

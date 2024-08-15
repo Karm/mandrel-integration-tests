@@ -19,8 +19,6 @@
  */
 package org.graalvm.tests.integration.utils;
 
-import org.graalvm.tests.integration.DebugSymbolsTest;
-
 import java.io.File;
 
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
@@ -29,6 +27,12 @@ import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.FINAL_NAME_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.MX_HEAP_MB;
 import static org.graalvm.tests.integration.PerfCheckTest.NATIVE_IMAGE_XMX_GB;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
@@ -209,7 +213,8 @@ public enum BuildAndRunCmds {
             new String[]{"mvn", "clean", "package"},
             new String[]{"java", "-Djava.awt.headless=true", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar"},
             new String[]{"jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF"},
-            new String[]{"native-image", "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
+            new String[]{"native-image", UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
+                    "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
             new String[]{IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio", "-Djava.home=.", "-Djava.awt.headless=true"}
     }),
     IMAGEIO_BUILDER_IMAGE(new String[][]{
@@ -229,7 +234,7 @@ public enum BuildAndRunCmds {
             // Native image build itself (jar was updated with properties in the previous step)
             new String[]{CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
-                    BUILDER_IMAGE,
+                    BUILDER_IMAGE, UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
                     "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio"},
             // We build a runtime image, ubi 8 minimal based, runtime dependencies installed
             new String[]{CONTAINER_RUNTIME, "build", "--network=host", "-t", ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "."},
@@ -246,12 +251,12 @@ public enum BuildAndRunCmds {
                     :
                     new String[]{"unzip", "test_data.txt.zip", "-d", "target"},
 
-            new String[] { "native-image", DebugSymbolsTest.DebugOptions.UnlockExperimentalVMOptions_23_1.token,
+            new String[] { "native-image", UnlockExperimentalVMOptions_23_1.token,
                     "-H:GenerateDebugInfo=" + (IS_THIS_MACOS ? "0" : "1"), "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
-                    DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0.token,
-                    DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0.token,
-                    DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0.token,
-                    DebugSymbolsTest.DebugOptions.LockExperimentalVMOptions_23_1.token,
+                    TrackNodeSourcePosition_23_0.token,
+                    DebugCodeInfoUseSourceMappings_23_0.token,
+                    OmitInlinedMethodDebugLineInfo_23_0.token,
+                    LockExperimentalVMOptions_23_1.token,
                     "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" },
             new String[]{"java", "-jar", "./target/debug-symbols-smoke.jar"},
             new String[]{IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke"}
