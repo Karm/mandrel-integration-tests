@@ -610,31 +610,40 @@ public class AppReproducersTest {
 
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
-            Set<String> expected = Set.of("libawt.a", "libawt_headless.a", "libfdlibm.a", "libfontmanager.a", "libjava.a", "libjavajpeg.a", "libjvm.a", "liblcms.a", "liblibchelper.a", "libnet.a", "libnio.a", "libzip.a");
+            final Set<String> expected = new HashSet<>();
+            expected.add("libawt.a");
+            expected.add("libawt_headless.a");
+            expected.add("libfdlibm.a");
+            expected.add("libfontmanager.a");
+            expected.add("libjava.a");
+            expected.add("libjavajpeg.a");
+            expected.add("libjvm.a");
+            expected.add("liblcms.a");
+            expected.add("liblibchelper.a");
+            expected.add("libnet.a");
+            expected.add("libnio.a");
+            expected.add("libzip.a");
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
+                expected.add("libsvm_container.a");
+            }
             if (UsedVersion.getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
                 // The set of static libs for imageio is smaller beginning with Mandrel 23+ as
                 // it has dynamic AWT support.
-                Set<String> modifiable = new HashSet<>(expected);
-                modifiable.remove("libawt_headless.a");
-                modifiable.remove("libfontmanager.a");
-                modifiable.remove("libjavajpeg.a");
-                modifiable.remove("liblcms.a");
-                modifiable.remove("libawt.a");
-                expected = Collections.unmodifiableSet(modifiable);
+                expected.remove("libawt_headless.a");
+                expected.remove("libfontmanager.a");
+                expected.remove("libjavajpeg.a");
+                expected.remove("liblcms.a");
+                expected.remove("libawt.a");
             }
             if (UsedVersion.jdkFeature(inContainer) >= 21) {
                 // JDK 21 has fdlibm ported to Java. See JDK-8171407
-                Set<String> modifiable = new HashSet<>(expected);
-                modifiable.remove("libfdlibm.a");
-                expected = Collections.unmodifiableSet(modifiable);
+                expected.remove("libfdlibm.a");
             }
             if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
                 // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
                 // NO-OP
             } else {
-                Set<String> modifiable = new HashSet<>(expected);
-                modifiable.add("libharfbuzz.a");
-                expected = Collections.unmodifiableSet(modifiable);
+                expected.add("libharfbuzz.a");
             }
 
             final Set<String> actual = listStaticLibs(executable);
