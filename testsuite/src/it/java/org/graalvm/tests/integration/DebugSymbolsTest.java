@@ -56,11 +56,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.DebugCodeInfoUseSourceMappings_23_0;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.LockExperimentalVMOptions_23_1;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.OmitInlinedMethodDebugLineInfo_23_0;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.DebugSymbolsTest.DebugOptions.UnlockExperimentalVMOptions_23_1;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
+import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CMD_LONG_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
@@ -98,22 +98,6 @@ public class DebugSymbolsTest {
 
     // GOTO i.e. accessing a URL of a debugged test app to trigger a certain code path
     private static final long GOTO_URL_SLEEP_MS = 50;
-
-    public enum DebugOptions {
-        UnlockExperimentalVMOptions_23_1("<DEBUG_FLAGS_23_1_a>", "-H:+UnlockExperimentalVMOptions"),
-        LockExperimentalVMOptions_23_1("<DEBUG_FLAGS_23_1_b>", "-H:-UnlockExperimentalVMOptions"),
-        TrackNodeSourcePosition_23_0("<DEBUG_FLAGS_23_0_a>", "-H:+TrackNodeSourcePosition"),
-        DebugCodeInfoUseSourceMappings_23_0("<DEBUG_FLAGS_23_0_b>", "-H:+DebugCodeInfoUseSourceMappings"),
-        OmitInlinedMethodDebugLineInfo_23_0("<DEBUG_FLAGS_23_0_c>", "-H:+OmitInlinedMethodDebugLineInfo");
-
-        public final String token;
-        final String replacement;
-
-        DebugOptions(String token, String replacement) {
-            this.token = token;
-            this.replacement = replacement;
-        }
-    }
 
     @Test
     @Tag("debugSymbolsSmoke")
