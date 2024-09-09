@@ -33,6 +33,7 @@ public enum ContainerNames {
     JFR_PLAINTEXT_BUILDER_IMAGE("my-jfr-plaintext-runner"),
     HYPERFOIL("hyperfoil-container"),
     MONITOR_OFFSET_BUILDER_IMAGE("my-monitor-offset-runner"),
+    FOR_SERIALIZATION_BUILDER_IMAGE("my-for-serialization-runner"),
     NONE("NO_CONTAINER");
 
     public final String name;

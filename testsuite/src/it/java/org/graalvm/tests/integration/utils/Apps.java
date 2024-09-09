@@ -22,14 +22,11 @@ package org.graalvm.tests.integration.utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
 import static org.graalvm.tests.integration.utils.thresholds.Thresholds.parseProperties;
@@ -186,7 +183,17 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.MONITOR_OFFSET,
             BuildAndRunCmds.MONITOR_OFFSET_BUILDER_IMAGE,
-            ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE);
+            ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE),
+    FOR_SERIALIZATION("apps" + File.separator + "for-serialization",
+            URLContent.NONE,
+            WhitelistLogLines.FOR_SERIALIZATION,
+            BuildAndRunCmds.FOR_SERIALIZATION,
+            ContainerNames.NONE),
+    FOR_SERIALIZATION_BUILDER_IMAGE("apps" + File.separator + "for-serialization",
+            URLContent.NONE,
+            WhitelistLogLines.FOR_SERIALIZATION,
+            BuildAndRunCmds.FOR_SERIALIZATION_BUILDER_IMAGE,
+            ContainerNames.FOR_SERIALIZATION_BUILDER_IMAGE);
 
     public final String dir;
     public final URLContent urlContent;

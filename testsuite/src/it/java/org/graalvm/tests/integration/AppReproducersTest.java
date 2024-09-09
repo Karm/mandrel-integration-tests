@@ -42,7 +42,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -497,7 +496,7 @@ public class AppReproducersTest {
 
     @Test
     @Tag("imageio")
-    @DisabledOnOs({OS.WINDOWS, OS.MAC}) // AWT support is not there yet
+    @DisabledOnOs({ OS.WINDOWS, OS.MAC }) // AWT support is not there yet
     @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO);
@@ -815,6 +814,68 @@ public class AppReproducersTest {
             assertTrue(searchLogLines(pnok, processLog, Charset.defaultCharset()), "Expected pattern " + pnok + " was not found in the log.");
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
+        }
+    }
+
+    @Test
+    @Tag("builder-image")
+    @IfMandrelVersion(min = "23.1.5", inContainer = true)
+    public void forSerializationContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+        forSerialization(testInfo, Apps.FOR_SERIALIZATION_BUILDER_IMAGE);
+    }
+
+    @Test
+    @IfMandrelVersion(minJDK = "23.1.5")
+    public void forSerializationTest(TestInfo testInfo) throws IOException, InterruptedException {
+        forSerialization(testInfo, Apps.FOR_SERIALIZATION);
+    }
+
+    public void forSerialization(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final File metaINF = Path.of(BASE_DIR, app.dir, "src", "main", "resources", "META-INF", "native-image").toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        final boolean inContainer = app == Apps.FOR_SERIALIZATION_BUILDER_IMAGE;
+        try {
+            // Cleanup
+            cleanTarget(app);
+            if (metaINF.exists()) {
+                FileUtils.cleanDirectory(metaINF);
+            }
+            if (inContainer) {
+                removeContainers(app.runtimeContainer.name);
+            }
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+            builderRoutine(inContainer ? 4 : 3, app, report, cn, mn, appDir, processLog);
+            LOGGER.info("Running...");
+
+            final List<String> cmdHotSpot = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            final List<String> cmdNative = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            final String hotSpotOutput = runCommand(cmdHotSpot, appDir);
+            final String nativeOutput = runCommand(cmdNative, appDir);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmdHotSpot));
+            Logs.appendlnSection(report, hotSpotOutput);
+            Logs.appendlnSection(report, String.join(" ", cmdNative));
+            Logs.appendlnSection(report, nativeOutput);
+
+            assertEquals(hotSpotOutput, nativeOutput, "The output of the HotSpot and native-image runs must be the same.");
+
+            Logs.checkLog(cn, mn, app, processLog);
+
+            if (inContainer) {
+                removeContainers(app.runtimeContainer.name);
+            }
+
+        } finally {
+            cleanup(null, cn, mn, report, app, processLog);
+            if (metaINF.exists()) {
+                FileUtils.cleanDirectory(metaINF);
+            }
         }
     }
 

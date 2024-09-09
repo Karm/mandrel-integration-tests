@@ -410,6 +410,41 @@ public enum BuildAndRunCmds {
                     "--name", ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE.name,
                     BUILDER_IMAGE, "-R:-InstallSegfaultHandler", "-march=native", "--gc=serial", "--no-fallback",
                     "-jar", "target/monitor-field-offsets-nok.jar", "target/monitor-field-offsets-nok" },
+    }),
+    FOR_SERIALIZATION(new String[][] {
+            new String[] { "mvn", "package" },
+            new String[] { "java", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image",
+                    "-jar", "target/for-serialization.jar" },
+            new String[] { "native-image", "-ea", "-march=native", "--no-fallback", "--link-at-build-time",
+                    "-H:ConfigurationFileDirectories=src/main/resources/META-INF/native-image",
+                    "-jar", "target/for-serialization.jar", "target/for-serialization" },
+            new String[] { "java", "-jar", "target/for-serialization.jar" },
+            new String[] { IS_THIS_WINDOWS ? "target\\for-serialization.exe" : "./target/for-serialization" }
+    }),
+    FOR_SERIALIZATION_BUILDER_IMAGE(new String[][] {
+            // Maven build
+            new String[] { "mvn", "package" },
+            // Collect agent info
+            new String[] { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "for-serialization:/project:z",
+                    BUILDER_IMAGE, "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image",
+                    "-jar", "target/for-serialization.jar" },
+            // Native image build
+            new String[] { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "for-serialization:/project:z",
+                    BUILDER_IMAGE, "-ea", "-march=native", "--no-fallback", "--link-at-build-time",
+                    "-H:ConfigurationFileDirectories=src/main/resources/META-INF/native-image",
+                    "-jar", "target/for-serialization.jar", "target/for-serialization" },
+            // Build runtime container for native executable
+            new String[] { CONTAINER_RUNTIME, "build", "--network=host", "-t", ContainerNames.FOR_SERIALIZATION_BUILDER_IMAGE.name, "." },
+            // Run Java, HotSpot version in container, uses our builder image
+            new String[] { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "for-serialization:/project:z",
+                    BUILDER_IMAGE, "-jar", "target/for-serialization.jar" },
+            // Run native executable in container, uses a plain UBI image
+            new String[] { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                    "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "for-serialization:/work:z",
+                    ContainerNames.FOR_SERIALIZATION_BUILDER_IMAGE.name, "target/for-serialization" },
     });
 
     public final String[][] cmds;
