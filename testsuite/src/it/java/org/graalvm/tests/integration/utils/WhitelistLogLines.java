@@ -316,6 +316,14 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*error report at:.*"),
             };
         }
+    },
+    FOR_SERIALIZATION {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            return new Pattern[]{
+                    Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*")
+            };
+        }
     };
 
     public abstract Pattern[] get(boolean inContainer);
