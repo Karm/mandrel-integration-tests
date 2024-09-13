@@ -825,7 +825,7 @@ public class AppReproducersTest {
     }
 
     @Test
-    @IfMandrelVersion(minJDK = "23.1.5")
+    @IfMandrelVersion(min = "23.1.5")
     public void forSerializationTest(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION);
     }
