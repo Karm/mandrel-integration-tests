@@ -819,26 +819,26 @@ public class AppReproducersTest {
 
     @Test
     @Tag("builder-image")
-    @IfMandrelVersion(min = "23.1.5", maxJDK = "21.0.999", inContainer = true)
+    @IfMandrelVersion(min = "23.1.5", max = "23.1.999", inContainer = true)
     public void forSerializationContainer21Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION_BUILDER_IMAGE);
     }
 
     @Test
-    @IfMandrelVersion(min = "23.1.5", maxJDK = "21.0.999")
+    @IfMandrelVersion(min = "23.1.5", max = "23.1.999")
     public void forSerialization21Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION);
     }
 
     @Test
     @Tag("builder-image")
-    @IfMandrelVersion(min = "23.1.5", minJDK = "23", inContainer = true)
+    @IfMandrelVersion(min = "24.2.0", inContainer = true)
     public void forSerializationContainer23Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION_BUILDER_IMAGE);
     }
 
     @Test
-    @IfMandrelVersion(min = "23.1.5", minJDK = "23")
+    @IfMandrelVersion(min = "24.2.0")
     public void forSerialization23Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION);
     }
