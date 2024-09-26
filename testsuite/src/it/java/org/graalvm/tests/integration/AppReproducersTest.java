@@ -820,26 +820,26 @@ public class AppReproducersTest {
     @Test
     @Tag("builder-image")
     @IfMandrelVersion(min = "23.1.5", max = "23.1.999", inContainer = true)
-    public void forSerializationContainer21Test(TestInfo testInfo) throws IOException, InterruptedException {
+    public void forSerializationContainer23_1Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION_BUILDER_IMAGE);
     }
 
     @Test
     @IfMandrelVersion(min = "23.1.5", max = "23.1.999")
-    public void forSerialization21Test(TestInfo testInfo) throws IOException, InterruptedException {
+    public void forSerialization23_1Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION);
     }
 
     @Test
     @Tag("builder-image")
     @IfMandrelVersion(min = "24.2.0", inContainer = true)
-    public void forSerializationContainer23Test(TestInfo testInfo) throws IOException, InterruptedException {
+    public void forSerializationContainerPost24_2Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION_BUILDER_IMAGE);
     }
 
     @Test
     @IfMandrelVersion(min = "24.2.0")
-    public void forSerialization23Test(TestInfo testInfo) throws IOException, InterruptedException {
+    public void forSerializationPost24_2Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION);
     }
 
