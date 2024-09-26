@@ -93,8 +93,8 @@ public class Main {
                 Long[][].class,
                 Short[].class,
                 Short[][].class,
-                // https://github.com/oracle/graal/issues/9581
-                String[].class,
+                // Disabled till https://github.com/oracle/graal/issues/9581 gets resolved
+                // String[].class,
                 String[][].class,
                 Void[].class,
                 Void[][].class,
