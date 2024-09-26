@@ -22,6 +22,8 @@ package org.graalvm.tests.integration.utils;
 import java.io.File;
 
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
+import static org.graalvm.tests.integration.AppReproducersTest.LOCALEINCLUDES_TOKEN_1;
+import static org.graalvm.tests.integration.AppReproducersTest.LOCALEINCLUDES_TOKEN_2;
 import static org.graalvm.tests.integration.JFRTest.JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN;
 import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.FINAL_NAME_TOKEN;
@@ -191,7 +193,7 @@ public enum BuildAndRunCmds {
     }),
     TIMEZONES(new String[][]{
             new String[]{"mvn", "package"},
-            new String[]{"native-image", "-J-Duser.country=CA", "-J-Duser.language=fr", "-jar", "target/timezones.jar", "target/timezones"},
+            new String[]{"native-image", LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_TOKEN_2, "-jar", "target/timezones.jar", "target/timezones"},
             new String[]{IS_THIS_WINDOWS ? "target\\timezones.exe" : "./target/timezones"}
     }),
     CALENDARS(new String[][]{
