@@ -150,6 +150,11 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release: This can be caused by a proxy-config.json file in your META-INF directory.*"),
                     // Dependency sources plugin may produce this warning on some systems. See https://issues.apache.org/jira/browse/MNG-7706
                     Pattern.compile(".*\\[WARNING\\] Parameter 'local' is deprecated core expression; Avoid use of ArtifactRepository type\\. If you need access to local repository, switch to .* expression and get LRM from it instead\\..*"),
+                    // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                    Pattern.compile(".*WARNING: A restricted method in java.lang.System has been called.*"),
+                    Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"),
+                    Pattern.compile(".*WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"),
+                    Pattern.compile(".*WARNING: Restricted methods will be blocked in a future release unless native access is enabled.*"),
             };
         }
     },
@@ -294,6 +299,11 @@ public enum WhitelistLogLines {
                         Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release: This can be caused by a proxy-config.json file in your META-INF directory.*"),
                         // Allow the quarkus main warning of older Mandrel releases
                         Pattern.compile(".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"),
+                        // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                        Pattern.compile(".*WARNING: A restricted method in java.lang.System has been called.*"),
+                        Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"),
+                        Pattern.compile(".*WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"),
+                        Pattern.compile(".*WARNING: Restricted methods will be blocked in a future release unless native access is enabled.*"),
                 };
             }
         }
