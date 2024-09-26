@@ -85,8 +85,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class AppReproducersTest {
 
     private static final Logger LOGGER = Logger.getLogger(AppReproducersTest.class.getName());
+    private static final String LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_PRE_24_2_0 = "-J-Duser.country=CA";
+    private static final String LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_PRE_24_2_0 = "-J-Duser.language=fr";
+    private static final String LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_POST_24_2_0 = "-H:IncludeLocales=fr-CA";
+    private static final String LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_POST_24_2_0 = "";
+    private static final String EXTRA_TZONES_OPTS = "-Duser.language=fr";
 
     public static final String BASE_DIR = getBaseDir();
+    public static final String LOCALEINCLUDES_TOKEN_1 = "<TZ_INCLUDE_TOKEN_1>";
+    public static final String LOCALEINCLUDES_TOKEN_2 = "<TZ_INCLUDE_TOKEN_2>";
 
     @Test
     @Tag("randomNumbers")
@@ -702,10 +709,25 @@ public class AppReproducersTest {
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            builderRoutine(app, report, cn, mn, appDir, processLog);
+            Map<String, String> switches = null;
+            final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
+                // Locale inclusion for Mandrel 24.2 ignores -Duser.language and -Duser.country settings
+                // at build time.
+                switches = Map.of(LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_POST_24_2_0,
+                                  LOCALEINCLUDES_TOKEN_2, LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_POST_24_2_0);
+            } else {
+                switches = Map.of(LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_PRE_24_2_0,
+                                  LOCALEINCLUDES_TOKEN_2, LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_PRE_24_2_0);
+            }
+            builderRoutine(0, app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, switches);
 
             LOGGER.info("Running...");
             List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
+                // Mandrel 24.2 needs the desired language set at runtime
+                cmd.add(EXTRA_TZONES_OPTS);
+            }
             process = runCommand(cmd, appDir, processLog, app);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(5, TimeUnit.SECONDS);
