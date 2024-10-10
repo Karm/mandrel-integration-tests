@@ -223,8 +223,8 @@ public class JFRTest {
             }
 
             // Container build requires an additional step: docker build...
-            builderRoutine(inContainer ? 2 : 1, appJfr, report, cn, mn, appDir, processLog, null, switches);
-            builderRoutine(inContainer ? 2 : 1, appNoJfr, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(appJfr, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(appNoJfr, report, cn, mn, appDir, processLog, null, switches);
 
             startComparisonForBenchmark(Endpoint.REGULAR, true, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr, inContainer);
             LOGGER.info("REGULAR workload completed.");
@@ -365,7 +365,7 @@ public class JFRTest {
                     assertTrue(waitForTcpClosed("localhost", 8090, 10),
                             "Hyperfoil likely hanging on port 8090.");
                 }
-                final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[inContainer ? 2 : 1]);
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
                 clearCaches(); //TODO consider using warm up instead of clearing caches
                 Logs.appendln(report, "Trial " + i + " in " + appDir.getAbsolutePath());
                 Logs.appendlnSection(report, String.join(" ", cmd));
@@ -390,7 +390,7 @@ public class JFRTest {
             }
 
             // Run Hyperfoil controller in container and expose port for test
-            final List<String> getAndStartHyperfoil = getRunCommand(app.buildAndRunCmds.cmds[inContainer ? 3 : 2]);
+            final List<String> getAndStartHyperfoil = getRunCommand(app.buildAndRunCmds.runCommands[1]);
             hyperfoilProcess = runCommand(getAndStartHyperfoil, appDir, processLog, app);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", getAndStartHyperfoil));
@@ -643,14 +643,14 @@ public class JFRTest {
             } else {
                 switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
             }
-            // In this case, four last commands are used to run the app, JVM, JVM JFR, Native, Native JFR
-            builderRoutine(app.buildAndRunCmds.cmds.length - 4, app, report, cn, mn, appDir, processLog, null, switches);
+            // In this case, four commands are used to run the app, JVM, JVM JFR, Native, Native JFR
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 
             final File inputData = Path.of(BASE_DIR, app.dir, "target", "test_data.txt").toFile();
 
             LOGGER.info("Running JVM mode...");
             long start = System.currentTimeMillis();
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 4]);
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
@@ -660,7 +660,7 @@ public class JFRTest {
 
             LOGGER.info("Running JVM JFR mode...");
             start = System.currentTimeMillis();
-            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 3]);
+            cmd = getRunCommand(app.buildAndRunCmds.runCommands[1]);
             if (UsedVersion.jdkFeature(inContainer) >= 17) {
                 cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_17_FLIGHT_RECORDER.replacement));
             } else {
@@ -675,7 +675,7 @@ public class JFRTest {
 
             LOGGER.info("Running Native mode...");
             start = System.currentTimeMillis();
-            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 2]);
+            cmd = getRunCommand(app.buildAndRunCmds.runCommands[2]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
@@ -685,7 +685,7 @@ public class JFRTest {
 
             LOGGER.info("Running Native mode JFR...");
             start = System.currentTimeMillis();
-            cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            cmd = getRunCommand(app.buildAndRunCmds.runCommands[3]);
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
@@ -817,7 +817,7 @@ public class JFRTest {
             } else {
                 switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
             }
-            builderRoutine(2, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 
             final Map<String[], Pattern> cmdOutput = new HashMap<>();
             cmdOutput.put(new String[]{"./target/timezones",

@@ -120,7 +120,7 @@ public class DebugSymbolsTest {
 
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app.buildAndRunCmds.cmds.length - 2, app, report, cn, mn, appDir, processLog, null, getSwitches());
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, getSwitches());
 
             assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "debug-symbols-smoke")),
                     "debug-symbols-smoke executable does not exist. Compilation failed. Check the logs.");
@@ -231,7 +231,7 @@ public class DebugSymbolsTest {
             } else {
                 switches = null;
             }
-            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 
             assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "quarkus-runner")),
                     "Quarkus executable does not exist. Compilation failed. Check the logs.");
@@ -341,12 +341,12 @@ public class DebugSymbolsTest {
 
             // Build app and start db
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            builderRoutine(app.buildAndRunCmds.cmds.length - 1, app, report, cn, mn, appDir, processLog);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
             waitForContainerLogToMatch("quarkus_test_db", dbReady, 20, 1, TimeUnit.SECONDS);
 
             // Start app
             LOGGER.info("Running...");
-            final List<String> cmd = getRunCommand(app.buildAndRunCmds.cmds[app.buildAndRunCmds.cmds.length - 1]);
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
             runCommand(cmd, appDir, processLog, app);
             Files.writeString(processLog.toPath(), String.join(" ", cmd) + "\n", StandardOpenOption.APPEND,
                     StandardOpenOption.CREATE);
