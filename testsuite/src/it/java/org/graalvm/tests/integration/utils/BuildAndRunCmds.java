@@ -99,6 +99,9 @@ public enum BuildAndRunCmds {
     ),
     QUARKUS_FULL_MICROPROFILE(
             new String[][] {
+                    { CONTAINER_RUNTIME, "run", "--rm", "-d", "-p", "4317:4317", "-e", "COLLECTOR_OTLP_ENABLED=true", "-p", "5775:5775/udp", "-p", "6831:6831/udp", "-p", "6832:6832/udp", "-p", "5778:5778", "-p",
+                            "16686:16686", "-p", "14268:14268", "--name", "quarkus_jaeger", "quay.io/jaegertracing/all-in-one:latest"
+                    },
                     { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-H:Log=registerResource:," +
@@ -119,6 +122,9 @@ public enum BuildAndRunCmds {
     ),
     QUARKUS_FULL_MICROPROFILE_PERF(
             new String[][] {
+                    { CONTAINER_RUNTIME, "run", "--rm", "-d", "-p", "4317:4317", "-e", "COLLECTOR_OTLP_ENABLED=true", "-p", "5775:5775/udp", "-p", "6831:6831/udp", "-p", "6832:6832/udp", "-p", "5778:5778", "-p",
+                            "16686:16686", "-p", "14268:14268", "--name", "quarkus_jaeger", "quay.io/jaegertracing/all-in-one:latest"
+                    },
                     { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-H:Log=registerResource:," +

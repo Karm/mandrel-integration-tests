@@ -80,6 +80,7 @@ import static org.graalvm.tests.integration.utils.Commands.parsePerfRecord;
 import static org.graalvm.tests.integration.utils.Commands.parsePort;
 import static org.graalvm.tests.integration.utils.Commands.parseSerialGCLog;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.waitForFileToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
@@ -430,6 +431,7 @@ public class PerfCheckTest {
         try {
             // Cleanup
             cleanTarget(app);
+            removeContainer("quarkus_jaeger");
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
 
             if (patch != null) {
@@ -524,6 +526,7 @@ public class PerfCheckTest {
                     "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
+            removeContainer("quarkus_jaeger");
             if (patch != null) {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
