@@ -55,6 +55,7 @@ import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.parsePort;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
 import static org.graalvm.tests.integration.utils.Commands.stopRunningContainer;
@@ -170,6 +171,7 @@ public class RuntimesSmokeTest {
             // it might be valuable to have the binary and not just the logs?
             // Nope: Delete it. One can reproduce it from the journal file we maintain.
             cleanTarget(app);
+            removeContainers("quarkus_jaeger");
         }
     }
 
