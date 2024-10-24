@@ -24,6 +24,7 @@ import org.graalvm.tests.integration.utils.Commands;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -256,7 +257,22 @@ public class UsedVersion {
         }
 
         public static MVersion of(boolean inContainer) {
-            final List<String> lines = runNativeImageVersion(inContainer);
+            List<String> versionOutput = runNativeImageVersion(inContainer);
+            List<String> lines = new ArrayList<>(versionOutput.size());
+
+            // Drop everything until we see "GraalVM" or "native-image" in the output
+            // This way we can ignore warnings and other output that might be present
+            boolean dropping = true;
+            for (String l : versionOutput) {
+                if (dropping) {
+                    if (!l.startsWith("GraalVM") && !l.startsWith("native-image")) {
+                        continue;
+                    }
+                    dropping = false;
+                }
+                lines.add(l);
+            }
+
             final MVersion mandrelVersion;
             if (lines.size() == 1) {
                 mandrelVersion = parseOldVersion(lines, inContainer);
