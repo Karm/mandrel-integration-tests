@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -49,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class Logs {
     private static final Logger LOGGER = Logger.getLogger(Logs.class.getName());
-    private static final Pattern WARN_ERROR_DETECTION_PATTERN = Pattern.compile("(?i:.*(ERROR|WARN|No such file|Not found|unknown).*)");
+    private static final Pattern WARN_ERROR_DETECTION_PATTERN = Pattern.compile("(?i:.*(ERROR|SEVERE|WARN|No such file|Not found|unknown).*)");
     public static final long SKIP = -1L;
 
     public static void checkLog(String testClass, String testMethod, Apps app, File log) throws IOException {
