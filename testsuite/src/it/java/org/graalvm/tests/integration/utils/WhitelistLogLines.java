@@ -67,6 +67,15 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
                     // Testcontainers, depends on local setup. Not our test issue.
                     Pattern.compile(".*Please ignore if you don't have images in an authenticated registry.*"),
+                    // Common new Q versions
+                    Pattern.compile(".*io.quarkus.narayana.jta.runtime.graal.DisableLoggingFeature.*"),
+                    // Podman / Docker extension incompatibilities with Podman versions
+                    Pattern.compile(".*Database JDBC URL \\[undefined/unknown\\].*"),
+                    Pattern.compile(".*Database driver: undefined/unknown.*"),
+                    Pattern.compile(".*Autocommit mode: undefined/unknown.*"),
+                    Pattern.compile(".*Minimum pool size: undefined/unknown.*"),
+                    Pattern.compile(".*Isolation level: <unknown>.*"),
+                    Pattern.compile(".*Maximum pool size: undefined/unknown.*"),
             };
         }
     },
@@ -168,12 +177,14 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Attempted to read Testcontainers configuration file.*"));
             p.add(Pattern.compile(".*does not support the reuse of containers.*"));
             // Ryuk can spit warning that is on its own line.
-            p.add(Pattern.compile("^\\[WARNING\\]$"));
+            p.add(Pattern.compile("^\\[WARNING\\][\\s\\t]*$"));
             // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI)
             // see https://github.com/Karm/mandrel-integration-tests/issues/68
             p.add(Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"));
             // JUnit output
             p.add(Pattern.compile(".* Failures: 0, Errors: 0,.*"));
+            // Docker image extension being mean
+            p.add(Pattern.compile(".*Using executable podman within the quarkus-container-image-docker.*"));
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 // Testcontainers
                 p.add(Pattern.compile(".*org.tes.uti.ResourceReaper.*"));

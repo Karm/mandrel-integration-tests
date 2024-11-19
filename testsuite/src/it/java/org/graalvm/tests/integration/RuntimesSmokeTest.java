@@ -42,6 +42,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
@@ -59,6 +60,7 @@ import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
 import static org.graalvm.tests.integration.utils.Commands.stopRunningContainer;
+import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
 
 /**
@@ -105,6 +107,10 @@ public class RuntimesSmokeTest {
             process = runCommand(cmd, appDir, processLog, app);
             Logs.appendln(report, appDir.getAbsolutePath());
             Logs.appendlnSection(report, String.join(" ", cmd));
+
+            if (app.runtimeContainer != ContainerNames.NONE) {
+                waitForContainerLogToMatch(app.runtimeContainer.name, Pattern.compile(".*started.*"), 5, 1, TimeUnit.SECONDS);
+            }
 
             // Test web pages
             final long timeToFirstOKRequest = WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
