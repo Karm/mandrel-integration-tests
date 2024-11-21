@@ -17,7 +17,7 @@ public class GreetingService {
         // exercise the type repo code (by adding the object's class).
         // Source: https://github.com/Karm/mandrel-integration-tests/pull/179#discussion_r1295944151
         LockSupport.parkNanos(this,1);
-        return Integer.toString(text.hashCode() % (int) (Math.random() * 100));
+        return Integer.toString(text.hashCode() % (int) (Math.random() * 100 + 1)); // +1 to avoid division by 0
     }
 
     /** This endpoint is used to test new JFR development changes. Always with JFR recording.

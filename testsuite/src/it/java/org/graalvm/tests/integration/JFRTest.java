@@ -827,7 +827,7 @@ public class JFRTest {
                     Pattern.compile(".* Started recording .* \\{maxsize=9.8kB.*", Pattern.DOTALL));
             cmdOutput.put(new String[]{"./target/timezones",
                             "-XX:+FlightRecorder",
-                            "-XX:StartFlightRecording=maxsize=10000c,filename=logs/flight-native.jfr",
+                            "-XX:StartFlightRecording=maxsize=10000,filename=logs/flight-native.jfr",
                             "-XX:FlightRecorderLogging=jfr"},
                     Pattern.compile(".* Started recording .* \\{maxsize=9.8kB.*", Pattern.DOTALL));
             cmdOutput.put(new String[]{"./target/timezones",
