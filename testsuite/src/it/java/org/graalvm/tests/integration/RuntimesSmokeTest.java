@@ -109,7 +109,7 @@ public class RuntimesSmokeTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             if (app.runtimeContainer != ContainerNames.NONE) {
-                waitForContainerLogToMatch(app.runtimeContainer.name, Pattern.compile(".*started.*"), 5, 1, TimeUnit.SECONDS);
+                waitForContainerLogToMatch(app.runtimeContainer.name, Pattern.compile(".*started.*"), 3000, 500, TimeUnit.MILLISECONDS);
             }
 
             // Test web pages
