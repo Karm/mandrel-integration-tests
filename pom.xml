@@ -89,6 +89,7 @@
                 <module>apps/debug-symbols-smoke</module>
                 <module>apps/helidon-quickstart-se</module>
                 <module>apps/imageio</module>
+                <module>apps/jdkreflections</module>
                 <module>apps/jfr-native-image-performance</module>
                 <module>apps/quarkus-full-microprofile</module>
                 <module>apps/quarkus-json</module>

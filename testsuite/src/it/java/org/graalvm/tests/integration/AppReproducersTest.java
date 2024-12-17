@@ -860,6 +860,63 @@ public class AppReproducersTest {
 
     @Test
     @Tag("builder-image")
+    @IfMandrelVersion(minJDK = "21.0.3", inContainer = true)
+    public void jdkReflectionsContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+        jdkReflections(testInfo, Apps.JDK_REFLECTIONS_BUILDER_IMAGE);
+    }
+
+    @Test
+    @IfMandrelVersion(minJDK = "21.0.3")
+    public void jdkReflectionsTest(TestInfo testInfo) throws IOException, InterruptedException {
+        jdkReflections(testInfo, Apps.JDK_REFLECTIONS);
+    }
+
+    public void jdkReflections(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
+        Process process = null;
+        File buildLog = null;
+        File runLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+        try {
+            // Cleanup
+            cleanTarget(app);
+            if (inContainer) {
+                removeContainers(app.runtimeContainer.name);
+            }
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+            buildLog = Path.of(appDir.getAbsolutePath(), "logs", "build.log").toFile();
+            runLog = Path.of(appDir.getAbsolutePath(), "logs", "run.log").toFile();
+            builderRoutine(app, report, cn, mn, appDir, buildLog);
+            LOGGER.info("Running...");
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
+            process = runCommand(cmd, appDir, runLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + buildLog.getName() +
+                    " and also check https://github.com/graalvm/graalvm-community-jdk21u/issues/28");
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            Logs.checkLog(cn, mn, app, buildLog);
+            Logs.checkLog(cn, mn, app, runLog);
+            processStopper(process, true);
+            final Pattern p = Pattern.compile(".*Hello from a virtual thread called meh-10000.*");
+            assertTrue(searchLogLines(p, runLog, Charset.defaultCharset()),
+                    "Expected pattern " + p + " was not found in the log. Check " + getLogsDir(cn, mn) + File.separator + runLog.getName() +
+                            " and also check https://github.com/graalvm/graalvm-community-jdk21u/issues/28");
+            final Pattern p1 = Pattern.compile(".*java.lang.NoSuchMethodException: java.lang.Thread.getNextThreadIdOffset.*");
+            assertTrue(searchLogLines(p, runLog, Charset.defaultCharset()),
+                    "Expected pattern " + p1 + " was not found in the log. Check " + getLogsDir(cn, mn) + File.separator + runLog.getName() +
+                            ". The method getNextThreadIdOffset is deleted from native-image intentionally.");
+        } finally {
+            cleanup(process, cn, mn, report, app, buildLog, runLog);
+        }
+    }
+
+    @Test
+    @Tag("builder-image")
     @IfMandrelVersion(min = "23.1.5", max = "23.1.999", inContainer = true)
     public void forSerializationContainer23_1Test(TestInfo testInfo) throws IOException, InterruptedException {
         forSerialization(testInfo, Apps.FOR_SERIALIZATION_BUILDER_IMAGE);

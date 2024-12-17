@@ -362,6 +362,13 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*")
             };
         }
+    },
+    JDK_REFLECTIONS {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            return new Pattern[]{
+            };
+        }
     };
 
     public abstract Pattern[] get(boolean inContainer);
