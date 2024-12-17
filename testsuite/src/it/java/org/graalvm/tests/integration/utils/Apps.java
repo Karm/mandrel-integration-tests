@@ -203,7 +203,17 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.FOR_SERIALIZATION,
             BuildAndRunCmds.FOR_SERIALIZATION_BUILDER_IMAGE,
-            ContainerNames.FOR_SERIALIZATION_BUILDER_IMAGE);
+            ContainerNames.FOR_SERIALIZATION_BUILDER_IMAGE),
+    JDK_REFLECTIONS("apps" + File.separator + "jdkreflections",
+            URLContent.NONE,
+            WhitelistLogLines.JDK_REFLECTIONS,
+            BuildAndRunCmds.JDK_REFLECTIONS,
+            ContainerNames.NONE),
+    JDK_REFLECTIONS_BUILDER_IMAGE("apps" + File.separator + "jdkreflections",
+            URLContent.NONE,
+            WhitelistLogLines.JDK_REFLECTIONS,
+            BuildAndRunCmds.JDK_REFLECTIONS_BUILDER_IMAGE,
+            ContainerNames.JDK_REFLECTIONS_BUILDER_IMAGE);
 
     public final String dir;
     public final URLContent urlContent;

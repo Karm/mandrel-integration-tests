@@ -226,6 +226,32 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\timezones.exe" : "./target/timezones" } }
     ),
+    JDK_REFLECTIONS(
+            new String[][] {
+                    { "mvn", "package" },
+                    { "java", "--add-opens=java.base/java.lang=ALL-UNNAMED", "-agentlib:native-image-agent=config-output-dir=./target/AGENT",
+                            "-cp", "target/jdkreflections.jar", "jdkreflections.Main" },
+                    { "native-image", "-J--add-opens=java.base/java.lang=ALL-UNNAMED", "-H:ConfigurationFileDirectories=./target/AGENT",
+                            "--link-at-build-time=", "--no-fallback", "-march=native", "-jar", "target/jdkreflections.jar", "target/jdkreflections" }
+            },
+            new String[][] {
+                    { IS_THIS_WINDOWS ? "target\\jdkreflections.exe" : "./target/jdkreflections" } }
+    ),
+    JDK_REFLECTIONS_BUILDER_IMAGE(
+            new String[][] {
+                    { "mvn", "package" },
+                    { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                            "-t", "--entrypoint", "java",  "-v", BASE_DIR + File.separator + "apps" + File.separator + "jdkreflections:/project:z",
+                            BUILDER_IMAGE, "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                            "-agentlib:native-image-agent=config-output-dir=./target/AGENT", "-cp", "target/jdkreflections.jar", "jdkreflections.Main" },
+                    { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                            "-v", BASE_DIR + File.separator + "apps" + File.separator + "jdkreflections:/project:z",
+                            BUILDER_IMAGE, "-J--add-opens=java.base/java.lang=ALL-UNNAMED",
+                            "-H:ConfigurationFileDirectories=./target/AGENT", "--link-at-build-time=", "--no-fallback", "-march=native",
+                            "-jar", "target/jdkreflections.jar", "target/jdkreflections" } },
+            new String[][] {
+                    { IS_THIS_WINDOWS ? "target\\jdkreflections.exe" : "./target/jdkreflections" } }
+    ),
     CALENDARS(
             new String[][] {
                     { "mvn", "package" },
@@ -525,7 +551,7 @@ public enum BuildAndRunCmds {
         }
     }
 
-    final String[][] buildCommands;
+    public final String[][] buildCommands;
     public final String[][] runCommands;
 
     BuildAndRunCmds(String[][] buildCommands, String[][] runCommands)

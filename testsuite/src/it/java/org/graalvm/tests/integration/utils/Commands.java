@@ -293,7 +293,7 @@ public class Commands {
         if (logFile != null) {
             final String c = "Command: " + String.join(" ", command) + "\n";
             LOGGER.infof("Command: %s", command);
-            Files.write(logFile.toPath(), c.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            Files.write(logFile.toPath(), c.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
             processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
         }
         if (input != null) {

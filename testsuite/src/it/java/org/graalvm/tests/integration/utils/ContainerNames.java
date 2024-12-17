@@ -34,6 +34,7 @@ public enum ContainerNames {
     HYPERFOIL("hyperfoil-container"),
     MONITOR_OFFSET_BUILDER_IMAGE("my-monitor-offset-runner"),
     FOR_SERIALIZATION_BUILDER_IMAGE("my-for-serialization-runner"),
+    JDK_REFLECTIONS_BUILDER_IMAGE("my-jdkreflections-runner"),
     NONE("NO_CONTAINER");
 
     public final String name;
