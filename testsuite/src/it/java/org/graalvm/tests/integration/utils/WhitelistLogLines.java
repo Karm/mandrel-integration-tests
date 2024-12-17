@@ -166,6 +166,11 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"),
                     Pattern.compile(".*WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"),
                     Pattern.compile(".*WARNING: Restricted methods will be blocked in a future release unless native access is enabled.*"),
+                    // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                    Pattern.compile(".*WARNING: A terminally deprecated method in sun.misc.Unsafe has been called.*"),
+                    Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"),
+                    Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"),
+                    Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"),
             };
         }
     },
@@ -255,7 +260,12 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*Using a deprecated option --allow-incomplete-classpath from" +
                             ".*helidon-webserver-2.2.2.jar.*" +
                             "Allowing an incomplete classpath is now the default. " +
-                            "Use --link-at-build-time to report linking errors at image build time for a class or package.*")
+                            "Use --link-at-build-time to report linking errors at image build time for a class or package.*"),
+                    // Ignore JDK 24+ warning till https://github.com/classgraph/classgraph/issues/899 gets fixed
+                    Pattern.compile(".*WARNING: A terminally deprecated method in sun.misc.Unsafe has been called.*"),
+                    Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner has been called by .*nonapi.io.github.classgraph.utils.FileUtils.*"),
+                    Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*nonapi.io.github.classgraph.utils.FileUtils"),
+                    Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner will be removed in a future release"),
             };
         }
     },
@@ -317,6 +327,11 @@ public enum WhitelistLogLines {
                         Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"),
                         Pattern.compile(".*WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"),
                         Pattern.compile(".*WARNING: Restricted methods will be blocked in a future release unless native access is enabled.*"),
+                        // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                        Pattern.compile(".*WARNING: A terminally deprecated method in sun.misc.Unsafe has been called.*"),
+                        Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"),
+                        Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"),
+                        Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"),
                 };
             }
         }
