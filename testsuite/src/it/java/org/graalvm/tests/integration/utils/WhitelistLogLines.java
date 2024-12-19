@@ -366,8 +366,7 @@ public enum WhitelistLogLines {
     JDK_REFLECTIONS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
-            };
+            return new Pattern[]{};
         }
     };
 
