@@ -860,13 +860,13 @@ public class AppReproducersTest {
 
     @Test
     @Tag("builder-image")
-    @IfMandrelVersion(minJDK = "21.0.0", inContainer = true)
+    @IfMandrelVersion(min = "23.1.6", inContainer = true)
     public void jdkReflectionsContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jdkReflections(testInfo, Apps.JDK_REFLECTIONS_BUILDER_IMAGE);
     }
 
     @Test
-    @IfMandrelVersion(minJDK = "21.0.0")
+    @IfMandrelVersion(min = "23.1.6")
     public void jdkReflectionsTest(TestInfo testInfo) throws IOException, InterruptedException {
         jdkReflections(testInfo, Apps.JDK_REFLECTIONS);
     }
