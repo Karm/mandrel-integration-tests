@@ -59,8 +59,7 @@ public enum GDBSession {
                                                 "void debug_symbols_smoke.Main::lambda\\$thisIsTheEnd\\$0\\(java.io.ByteArrayOutputStream \\*, debug_symbols_smoke.ClassA \\*\\).*" +
                                                 "void debug_symbols_smoke.Main::main\\(java.lang.String\\[\\] \\*\\).*" +
                                                 "void debug_symbols_smoke.Main::thisIsTheEnd\\(java.util.List \\*\\).*"
-                                        , Pattern.DOTALL),
-                                15000), // Increase timeout to work around https://github.com/oracle/graal/issues/10512
+                                        , Pattern.DOTALL)),
                         new CP("break Main.java:70\n",
                                 Pattern.compile(".*Breakpoint 1 at .*: file debug_symbols_smoke/Main.java, line 70.*",
                                         Pattern.DOTALL)),
@@ -153,7 +152,8 @@ public enum GDBSession {
                                                 "void debug_symbols_smoke.Main::lambda\\$thisIsTheEnd\\$0\\(java.io.ByteArrayOutputStream\\*, debug_symbols_smoke.ClassA\\*\\).*" +
                                                 "void debug_symbols_smoke.Main::main\\(java.lang.String\\[\\]\\*\\).*" +
                                                 "void debug_symbols_smoke.Main::thisIsTheEnd\\(java.util.List\\*\\).*"
-                                        , Pattern.DOTALL)),
+                                        , Pattern.DOTALL),
+                                15000), // Increase timeout to work around https://github.com/oracle/graal/issues/10512
                         new CP("break Main.java:70\n",
                                 Pattern.compile(".*Breakpoint 1 at .*: file debug_symbols_smoke/Main.java, line 70.*",
                                         Pattern.DOTALL)),
