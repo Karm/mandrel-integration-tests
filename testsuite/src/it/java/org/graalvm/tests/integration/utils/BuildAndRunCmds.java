@@ -117,7 +117,7 @@ public enum BuildAndRunCmds {
                                     "-H:Log=registerResource:," +
                                     "--trace-object-instantiation=java.util.Random"
                     },
-                    { "mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
+                    { "mvn", "dependency:resolve-sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
             new String[][] { { IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner" } }
     ),
     QUARKUS_FULL_MICROPROFILE_PERF(
@@ -193,7 +193,7 @@ public enum BuildAndRunCmds {
     ),
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(
             new String[][] {
-                    { "mvn", "dependency:sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() },
+                    { "mvn", "dependency:resolve-sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() },
                     { "mvn", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE,
