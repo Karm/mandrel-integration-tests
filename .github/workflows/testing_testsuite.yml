@@ -26,18 +26,18 @@ jobs:
         java-version: [ '17' ]
         os: [ ubuntu-20.04, windows-2019 ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
           path: ts
       - name: Cache local Maven repository
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ matrix.os }}-
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Mandrel installation cached
         id: cache_mandrel
         with:
@@ -113,7 +113,7 @@ jobs:
         if: failure()
         run: tar czvf test-reports-mandrel-it.tgz ${{ github.workspace }}/ts/testsuite/target/archived-logs
       - name: Upload failure Archive (if maven failed)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: reports-${{ matrix.mandrel-version }}-${{ matrix.java-version }}-${{ matrix.os }}
