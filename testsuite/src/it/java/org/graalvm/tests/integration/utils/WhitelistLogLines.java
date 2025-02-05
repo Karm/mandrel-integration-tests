@@ -171,6 +171,8 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"),
                     Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"),
                     Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"),
+                    // Ignore INFO message about class containing Error in its name
+                    Pattern.compile(".*\\[INFO\\] Can't extract module name from .*JsonMissingMessageBodyReaderErrorMessageContextualizer.*"),
             };
         }
     },
