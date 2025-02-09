@@ -1,0 +1,5 @@
+FROM quay.io/centos/centos:stream10-minimal
+RUN microdnf install freetype fontconfig -y
+WORKDIR /work/
+RUN chmod "g+rwX" /work \
+    && chown 1000:root /work
