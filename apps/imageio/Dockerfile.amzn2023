@@ -1,5 +1,5 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
-RUN microdnf install freetype fontconfig
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023
+RUN yum install freetype fontconfig -y
 WORKDIR /work/
 RUN chown 100 /work \
     && chmod "g+rwX" /work \
