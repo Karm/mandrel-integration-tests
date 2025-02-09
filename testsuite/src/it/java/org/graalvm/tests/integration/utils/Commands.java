@@ -1119,7 +1119,7 @@ public class Commands {
      */
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir,
                                       File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
-        String[][] buildCommands = app.buildAndRunCmds.buildCommands;
+        final String[][] buildCommands = app.buildAndRunCmds.buildCommands;
         assertTrue(buildCommands.length > 0);
         if (report != null) {
             Logs.appendln(report, "# " + cn + ", " + mn);
@@ -1210,6 +1210,15 @@ public class Commands {
         replaceInSmallTextFile(search, replace, file, Charset.defaultCharset());
     }
 
+    public static String getSubstringFromSmallTextFile(Pattern search, Path file, Charset charset) throws IOException {
+        final String data = Files.readString(file, charset);
+        final Matcher m = search.matcher(data);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return null;
+    }
+
     /**
      * Finds the first matching executable in a given dir,
      * <b>does not dive into the tree</b>, is not recursive...
@@ -1269,5 +1278,17 @@ public class Commands {
         }
         Logs.writeReport(cn, mn, report.toString());
         cleanTarget(app);
+    }
+
+    public static boolean compareArrays(int[] a, int[] b, int[] threshold) {
+        if (a.length != b.length || a.length != threshold.length) {
+            return false;
+        }
+        for (int i = 0; i < a.length; i++) {
+            if (Math.max(a[i], b[i]) - Math.min(a[i], b[i]) > threshold[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
