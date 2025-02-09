@@ -119,7 +119,7 @@ public class Main {
 
     private static void resizeImage() throws IOException {
         final BufferedImage img = ImageIO.read(Main.class.getResourceAsStream("/Grace_M._Hopper.jp2"));
-        int height = 50;
+        int height = 555;
         int currentW = img.getWidth();
         int currentH = img.getHeight();
         int width = currentW * height / currentH;
