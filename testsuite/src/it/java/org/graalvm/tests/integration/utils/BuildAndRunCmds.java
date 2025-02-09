@@ -22,8 +22,10 @@ package org.graalvm.tests.integration.utils;
 import java.io.File;
 
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
+import static org.graalvm.tests.integration.AppReproducersTest.BUILDX_LOAD_TOKEN;
 import static org.graalvm.tests.integration.AppReproducersTest.LOCALEINCLUDES_TOKEN_1;
 import static org.graalvm.tests.integration.AppReproducersTest.LOCALEINCLUDES_TOKEN_2;
+import static org.graalvm.tests.integration.AppReproducersTest.RUNTIME_IMAGE_BASE_TOKEN;
 import static org.graalvm.tests.integration.JFRTest.JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN;
 import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.FINAL_NAME_TOKEN;
@@ -289,15 +291,17 @@ public enum BuildAndRunCmds {
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
                             BUILDER_IMAGE, UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
-                            "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio" },
-                    // We build a runtime image, ubi 8 minimal based, runtime dependencies installed
-                    { CONTAINER_RUNTIME, "build", "--network=host", "-t", ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "." } },
+                            "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio" }
+            },
             new String[][] {
-                    // We have to run in the same env as we run the java part above, i.e. in the same container base.
-                    // Hashsums of font rotations would differ otherwise as your linux host might have different freetype native libs.
+                    // We build runtime images, different bases, runtime dependencies, e.g. fontconfig installed.
+                    { CONTAINER_RUNTIME, "build", "--network=host", "-f", "Dockerfile." + RUNTIME_IMAGE_BASE_TOKEN,
+                            "-t", ContainerNames.IMAGEIO_BUILDER_IMAGE.name + "_" + RUNTIME_IMAGE_BASE_TOKEN, BUILDX_LOAD_TOKEN,"." },
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/work:z",
-                            ContainerNames.IMAGEIO_BUILDER_IMAGE.name, "/work/target/imageio", "-Djava.home=.", "-Djava.awt.headless=true" } }
+                            ContainerNames.IMAGEIO_BUILDER_IMAGE.name + "_" + RUNTIME_IMAGE_BASE_TOKEN,
+                            "/work/target/imageio", "-Djava.home=.", "-Djava.awt.headless=true" }
+            }
     ),
     DEBUG_SYMBOLS_SMOKE(
             new String[][] {

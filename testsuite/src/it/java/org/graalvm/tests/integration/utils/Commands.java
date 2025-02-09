@@ -85,6 +85,9 @@ public class Commands {
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(getProperty("PODMAN_WITH_SUDO", "true"));
     // Docker: Error response from daemon: No such container: {{.MemUsage}}. Stats work when called with sudo.
     public static final boolean DOCKER_WITH_SUDO = Boolean.parseBoolean(getProperty("DOCKER_WITH_SUDO", "false"));
+    // When docker/setup-buildx-action is used, docker build requires '--load' to store image in local registry after tagging.
+    public static final boolean DOCKER_GHA_BUILDX = Boolean.parseBoolean(getProperty("DOCKER_GHA_BUILDX", "false"));
+    public static final String DOCKER_GHA_SUMMARY_NAME = getProperty("DOCKER_GHA_SUMMARY_NAME", null);
     public static final FailOnPerfRegressionEnum FAIL_ON_PERF_REGRESSION = FailOnPerfRegressionEnum.valueOf(getProperty("FAIL_ON_PERF_REGRESSION", "true").toUpperCase());
 
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
@@ -1125,7 +1128,7 @@ public class Commands {
      */
     public static void builderRoutine(Apps app, StringBuilder report, String cn, String mn, File appDir,
                                       File processLog, Map<String, String> env, Map<String, String> switchReplacements) throws IOException {
-        String[][] buildCommands = app.buildAndRunCmds.buildCommands;
+        final String[][] buildCommands = app.buildAndRunCmds.buildCommands;
         assertTrue(buildCommands.length > 0);
         if (report != null) {
             Logs.appendln(report, "# " + cn + ", " + mn);
@@ -1216,6 +1219,15 @@ public class Commands {
         replaceInSmallTextFile(search, replace, file, Charset.defaultCharset());
     }
 
+    public static String getSubstringFromSmallTextFile(Pattern search, Path file, Charset charset) throws IOException {
+        final String data = Files.readString(file, charset);
+        final Matcher m = search.matcher(data);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return null;
+    }
+
     /**
      * Finds the first matching executable in a given dir,
      * <b>does not dive into the tree</b>, is not recursive...
@@ -1285,5 +1297,17 @@ public class Commands {
         } catch (Exception e) {
             LOGGER.error("Failed to start Jaeger container", e);
         }
+    }
+
+    public static boolean compareArrays(int[] a, int[] b, int[] threshold) {
+        if (a.length != b.length || a.length != threshold.length) {
+            return false;
+        }
+        for (int i = 0; i < a.length; i++) {
+            if (Math.abs(a[i] - b[i]) > threshold[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
