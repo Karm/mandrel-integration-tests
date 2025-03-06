@@ -1288,7 +1288,7 @@ public class Commands {
             return false;
         }
         for (int i = 0; i < a.length; i++) {
-            if (Math.max(a[i], b[i]) - Math.min(a[i], b[i]) > threshold[i]) {
+            if (Math.abs(a[i] - b[i]) > threshold[i]) {
                 return false;
             }
         }
