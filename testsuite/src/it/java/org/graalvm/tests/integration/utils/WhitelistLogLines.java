@@ -40,46 +40,56 @@ public enum WhitelistLogLines {
     ALL {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
-                    // Harmless download, e.g.
-                    // Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-error-diagnostics...
-                    Pattern.compile(".*maven-error-diagnostics.*"),
-                    // Download https://repo.maven.apache.org/maven2/com/google/errorprone
-                    Pattern.compile(".*com/google/errorprone/error_prone.*"),
-                    Pattern.compile(".*com.google.errorprone.*"),
-                    // JDK:
-                    Pattern.compile(".*location of system modules is not set in conjunction with -source 11.*"),
-                    Pattern.compile("WARNING.* reflective access.*"),
-                    Pattern.compile("WARNING: All illegal access operations.*"),
-                    Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"),
-                    Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*"),
-                    // JAVA_HOME (e.g. 17) != GRAALVM_HOME (e.g. 21)
-                    Pattern.compile(".*system modules path not set in conjunction with -source .*"),
-                    // It's accompanied by a list of all warnings, so this particular one can be white-listed globally
-                    Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"),
-                    // Quarkus main 2024-03-21 deprecates this maven plugin directive
-                    Pattern.compile(".*Configuration property 'quarkus.package.type' has been deprecated.*"),
-                    // Microdnf complaining, benign
-                    Pattern.compile(".*microdnf.*Found 0 entitlement certificates.*"),
-                    // Podman, container image build
-                    Pattern.compile(".*microdnf.*lib.*WARNING.*"),
-                    // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
-                    Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"),
-                    Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"),
-                    // Podman -> registry network/comm issue?
-                    Pattern.compile(".*time=.*level=warning.*msg=.*Failed, retrying in.*pull&service=quay\\.io.*: net/http: TLS handshake timeout.*"),
-                    // Testcontainers, depends on local setup. Not our test issue.
-                    Pattern.compile(".*Please ignore if you don't have images in an authenticated registry.*"),
-                    // Common new Q versions
-                    Pattern.compile(".*io.quarkus.narayana.jta.runtime.graal.DisableLoggingFeature.*"),
-                    // Podman / Docker extension incompatibilities with Podman versions
-                    Pattern.compile(".*Database JDBC URL \\[undefined/unknown\\].*"),
-                    Pattern.compile(".*Database driver: undefined/unknown.*"),
-                    Pattern.compile(".*Autocommit mode: undefined/unknown.*"),
-                    Pattern.compile(".*Minimum pool size: undefined/unknown.*"),
-                    Pattern.compile(".*Isolation level: <unknown>.*"),
-                    Pattern.compile(".*Maximum pool size: undefined/unknown.*"),
-            };
+            final List<Pattern> p = new ArrayList<>();
+            // Harmless download, e.g.
+            // Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-error-diagnostics...
+            p.add(Pattern.compile(".*maven-error-diagnostics.*"));
+            // Download https://repo.maven.apache.org/maven2/com/google/errorprone
+            p.add(Pattern.compile(".*com/google/errorprone/error_prone.*"));
+            p.add(Pattern.compile(".*com.google.errorprone.*"));
+            // JDK:
+            p.add(Pattern.compile(".*location of system modules is not set in conjunction with -source 11.*"));
+            p.add(Pattern.compile("WARNING.* reflective access.*"));
+            p.add(Pattern.compile("WARNING: All illegal access operations.*"));
+            p.add(Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"));
+            p.add(Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*"));
+            // JAVA_HOME (e.g. 17) != GRAALVM_HOME (e.g. 21)
+            p.add(Pattern.compile(".*system modules path not set in conjunction with -source .*"));
+            // It's accompanied by a list of all warnings, so this particular one can be white-listed globally
+            p.add(Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"));
+            // Quarkus main 2024-03-21 deprecates this maven plugin directive
+            p.add(Pattern.compile(".*Configuration property 'quarkus.package.type' has been deprecated.*"));
+            // Microdnf complaining, benign
+            p.add(Pattern.compile(".*microdnf.*Found 0 entitlement certificates.*"));
+            // Podman, container image build
+            p.add(Pattern.compile(".*microdnf.*lib.*WARNING.*"));
+            // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
+            p.add(Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"));
+            p.add(Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"));
+            // Podman -> registry network/comm issue?
+            p.add(Pattern.compile(".*time=.*level=warning.*msg=.*Failed, retrying in.*pull&service=quay\\.io.*: net/http: TLS handshake timeout.*"));
+            // Testcontainers, depends on local setup. Not our test issue.
+            p.add(Pattern.compile(".*Please ignore if you don't have images in an authenticated registry.*"));
+            // Common new Q versions
+            p.add(Pattern.compile(".*io.quarkus.narayana.jta.runtime.graal.DisableLoggingFeature.*"));
+            // Podman / Docker extension incompatibilities with Podman versions
+            p.add(Pattern.compile(".*Database JDBC URL \\[undefined/unknown\\].*"));
+            p.add(Pattern.compile(".*Database driver: undefined/unknown.*"));
+            p.add(Pattern.compile(".*Autocommit mode: undefined/unknown.*"));
+            p.add(Pattern.compile(".*Minimum pool size: undefined/unknown.*"));
+            p.add(Pattern.compile(".*Isolation level: <unknown>.*"));
+            p.add(Pattern.compile(".*Maximum pool size: undefined/unknown.*"));
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                p.add(Pattern.compile(".*A restricted method in java.lang.System has been called.*"));
+                p.add(Pattern.compile(".*A terminally deprecated method in sun.misc.Unsafe has been called.*"));
+                p.add(Pattern.compile(".*java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module.*jansi-.*.jar.*"));
+                p.add(Pattern.compile(".*Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*"));
+                p.add(Pattern.compile(".*Restricted methods will be blocked in a future release unless native access is enabled.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*guava-.*.jar.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset will be removed in a future release.*"));
+                p.add(Pattern.compile(".*Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     NONE {
