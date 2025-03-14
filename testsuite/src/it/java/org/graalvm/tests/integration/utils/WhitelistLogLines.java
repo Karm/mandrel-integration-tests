@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 
 /**
@@ -360,9 +361,17 @@ public enum WhitelistLogLines {
     FOR_SERIALIZATION {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
-                    Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*")
-            };
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) && IS_THIS_WINDOWS) {
+                return new Pattern[] {
+                        Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*"),
+                        // See https://github.com/Karm/mandrel-integration-tests/issues/314
+                        Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"),
+                };
+            } else {
+                return new Pattern[] {
+                        Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*")
+                };
+            }
         }
     },
     JDK_REFLECTIONS {
