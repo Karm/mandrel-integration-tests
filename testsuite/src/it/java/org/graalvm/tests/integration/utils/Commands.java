@@ -78,7 +78,7 @@ public class Commands {
 
     private static final Logger LOGGER = Logger.getLogger(Commands.class.getName());
 
-    public static final String CONTAINER_RUNTIME = getProperty("QUARKUS_NATIVE_CONTAINER-RUNTIME", "docker");
+    public static final String CONTAINER_RUNTIME = getProperty("QUARKUS_NATIVE_CONTAINER-RUNTIME", "podman");
     public static final boolean ROOTLESS_CONTAINER_RUNTIME = Boolean.parseBoolean(getProperty("ROOTLESS_CONTAINER-RUNTIME", "false"));
     // Podman: Error: stats is not supported in rootless mode without cgroups v2
     public static final boolean PODMAN_WITH_SUDO = Boolean.parseBoolean(getProperty("PODMAN_WITH_SUDO", "true"));
