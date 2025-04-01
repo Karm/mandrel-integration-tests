@@ -78,7 +78,7 @@ public class Logs {
             assertTrue(offendingLines.isEmpty(),
                     log.getName() + " log should not contain error or warning lines that are not whitelisted. " +
                             "See " + Path.of(BASE_DIR, "testsuite", "target", "archived-logs", testClass, testMethod, log.getName()) +
-                            " and check these offending lines: \n" + String.join("\n", offendingLines));
+                            " and check these offending " + offendingLines.size() + " lines: \n" + String.join("\n", offendingLines));
         }
     }
 
