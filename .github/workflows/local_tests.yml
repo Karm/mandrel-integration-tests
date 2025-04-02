@@ -3,6 +3,8 @@ name: Mandrel Locally
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths-ignore:
       - 'LICENSE'
       - '**.md'
@@ -28,126 +30,116 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - quarkus-version: '2.13.3.Final'
-            mandrel-version: '21.3.6.0-Final'
-            java-version: '11'
-            os: 'windows-2019'
-            timeout-minutes: 80
-          - quarkus-version: '2.13.3.Final'
-            mandrel-version: '21.3.6.0-Final'
-            java-version: '11'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 80
-
-          - quarkus-version: '2.13.3.Final'
-            mandrel-version: '21.3.6.0-Final'
-            java-version: '17'
-            os: 'windows-2019'
-            timeout-minutes: 80
-          - quarkus-version: '2.13.3.Final'
-            mandrel-version: '21.3.6.0-Final'
-            java-version: '17'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 80
-
           - quarkus-version: '2.13.9.Final'
-            mandrel-version: '22.3.4.0-Final'
-            java-version: '17'
-            os: 'windows-2019'
-            timeout-minutes: 80
-          - quarkus-version: '2.13.9.Final'
-            mandrel-version: '22.3.4.0-Final'
-            java-version: '17'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 80
-
-          - quarkus-version: '2.16.12.Final'
             mandrel-version: '22.3.5.0-Final'
             java-version: '17'
             os: 'windows-2019'
             timeout-minutes: 80
-          - quarkus-version: '2.16.12.Final'
+          - quarkus-version: '2.13.9.Final'
             mandrel-version: '22.3.5.0-Final'
             java-version: '17'
             os: 'ubuntu-20.04'
             timeout-minutes: 80
 
           - quarkus-version: '3.2.12.Final'
-            mandrel-version: '23.0.3.0-Final'
+            mandrel-version: '23.0.6.0-Final'
             java-version: '17'
             os: 'windows-2022'
             timeout-minutes: 80
           - quarkus-version: '3.2.12.Final'
-            mandrel-version: '23.0.3.0-Final'
+            mandrel-version: '23.0.6.0-Final'
             java-version: '17'
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.5.3'
-            mandrel-version: '23.1.1.0-Final'
+          - quarkus-version: '3.8.6.1'
+            mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'windows-2022'
             timeout-minutes: 80
-          - quarkus-version: '3.5.3'
-            mandrel-version: '23.1.1.0-Final'
+          - quarkus-version: '3.8.6.1'
+            mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.6.0'
-            mandrel-version: '23.1.1.0-Final'
+          - quarkus-version: '3.15.4'
+            mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'windows-2022'
             timeout-minutes: 80
-          - quarkus-version: '3.6.0'
-            mandrel-version: '23.1.1.0-Final'
+          - quarkus-version: '3.15.4'
+            mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.8.4'
-            mandrel-version: '23.1.2.0-Final'
+          - quarkus-version: '3.21.0'
+            mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'windows-2022'
             timeout-minutes: 80
-          - quarkus-version: '3.8.4'
-            mandrel-version: '23.1.2.0-Final'
+          - quarkus-version: '3.21.0'
+            mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.9.5'
-            mandrel-version: '23.1.2.0-Final'
-            java-version: '21'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.9.5'
-            mandrel-version: '23.1.2.0-Final'
-            java-version: '21'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 130
-
-          - quarkus-version: '3.9.5'
-            mandrel-version: '24.0.1.0-Final'
+          - quarkus-version: '3.21.0'
+            mandrel-version: '24.0.2.0-Final'
             java-version: '22'
             os: 'windows-2022'
             timeout-minutes: 80
-          - quarkus-version: '3.9.5'
-            mandrel-version: '24.0.1.0-Final'
+          - quarkus-version: '3.21.0'
+            mandrel-version: '24.0.2.0-Final'
             java-version: '22'
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.10.0'
-            mandrel-version: '24.0.1.0-Final'
-            java-version: '22'
+          - quarkus-version: '3.21.0'
+            mandrel-version: '24.1.2.0-Final'
+            java-version: '23'
             os: 'windows-2022'
             timeout-minutes: 80
-          - quarkus-version: '3.10.0'
-            mandrel-version: '24.0.1.0-Final'
-            java-version: '22'
+          - quarkus-version: '3.21.0'
+            mandrel-version: '24.1.2.0-Final'
+            java-version: '23'
             os: 'ubuntu-20.04'
             timeout-minutes: 130
+
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'windows-2022'
+         #  timeout-minutes: 80
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'ubuntu-20.04'
+         #  timeout-minutes: 130
+
+          - quarkus-version: '3.21.0'
+            mandrel-version: '23.1.6.0-Final'
+            java-version: '21'
+            os: 'ubuntu-22.04-arm'
+            timeout-minutes: 130
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'ubuntu-22.04-arm'
+         #  timeout-minutes: 130
+
+          - quarkus-version: '3.21.0'
+            mandrel-version: '23.1.6.0-Final'
+            java-version: '21'
+            os: 'macos-14'
+            timeout-minutes: 130
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'macos-14'
+         #  timeout-minutes: 130
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -185,11 +177,23 @@ jobs:
           $path=(Get-ChildItem mandrel-*).name
           move $path ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
         shell: powershell
-      - name: Install Mandrel Linux
-        if: startsWith(matrix.os, 'ubuntu') && steps.cache_mandrel.outputs.cache-hit != 'true'
+      - name: Install Mandrel Linux (amd64 and arm64)
+        if: (startsWith(matrix.os, 'ubuntu-20.04') || startsWith(matrix.os, 'ubuntu-22.04')) && steps.cache_mandrel.outputs.cache-hit != 'true'
         run: |
-          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-amd64-${{ matrix.mandrel-version }}.tar.gz"
-          tar -xf mandrel-java${{ matrix.java-version }}-linux-amd64-${{ matrix.mandrel-version }}.tar.gz
+          ARCH="amd64"
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04-arm" ]]; then
+            ARCH="aarch64"
+          fi
+          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-${ARCH}-${{ matrix.mandrel-version }}.tar.gz"
+          tar -xf mandrel-java${{ matrix.java-version }}-linux-${ARCH}-${{ matrix.mandrel-version }}.tar.gz
+          rm *.tar.gz
+          mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
+        shell: bash
+      - name: Install Mandrel macOS (aarch64)
+        if: startsWith(matrix.os, 'macos') && steps.cache_mandrel.outputs.cache-hit != 'true'
+        run: |
+          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz"
+          tar -xf mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
           mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
         shell: bash
@@ -218,7 +222,7 @@ jobs:
           copy .github/mvn-settings.xml ~/.m2/settings.xml
           mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: cmd
-      - name: Linux test
+      - name: Linux test (amd64 and arm64)
         if: startsWith(matrix.os, 'ubuntu')
         timeout-minutes: ${{ matrix.timeout-minutes }}
         env:
@@ -238,6 +242,28 @@ jobs:
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
           echo 0 | sudo tee /proc/sys/kernel/perf_event_paranoid
+          mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
+        shell: bash
+      - name: macOS test (aarch64)
+        if: startsWith(matrix.os, 'macos')
+        timeout-minutes: ${{ matrix.timeout-minutes }}
+        env:
+          MAVEN_OPTS: -Xmx1g
+        run: |
+          export JAVA_HOME=${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}/Contents/Home
+          export GRAALVM_HOME="${JAVA_HOME}"
+          export PATH="${JAVA_HOME}/bin:$PATH"
+          if [[ ! -e "${JAVA_HOME}/bin/native-image" ]]; then
+              echo "Cannot find native-image tool. Quitting..."
+              exit 1
+          fi
+          native-image --version
+          pushd ts
+          mkdir -p ~/.m2/
+          cp .github/mvn-settings.xml ~/.m2/settings.xml
+          netstat -anv | grep 8080
+          netstat -anv | grep 8081
+          ps aux
           mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
