@@ -3,6 +3,8 @@ name: Mandrel Locally
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths-ignore:
       - 'LICENSE'
       - '**.md'
