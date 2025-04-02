@@ -389,7 +389,6 @@ public enum WhitelistLogLines {
         public Pattern[] get(boolean inContainer) {
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) && IS_THIS_WINDOWS) {
                 return new Pattern[] {
-                        Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*"),
                         // See https://github.com/Karm/mandrel-integration-tests/issues/314
                         Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"),
                 };
