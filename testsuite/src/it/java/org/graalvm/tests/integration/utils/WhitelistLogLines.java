@@ -393,7 +393,7 @@ public enum WhitelistLogLines {
                         Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"),
                 };
             } else {
-                return new Pattern[]{};
+                return new Pattern[] {};
             }
         }
     };
