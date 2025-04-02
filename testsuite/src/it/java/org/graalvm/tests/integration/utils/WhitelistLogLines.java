@@ -387,7 +387,14 @@ public enum WhitelistLogLines {
     JDK_REFLECTIONS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{};
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) && IS_THIS_WINDOWS) {
+                return new Pattern[] {
+                        // See https://github.com/Karm/mandrel-integration-tests/issues/314
+                        Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"),
+                };
+            } else {
+                return new Pattern[]{};
+            }
         }
     };
 
