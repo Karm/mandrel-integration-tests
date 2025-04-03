@@ -26,8 +26,6 @@
                     <compilerArgs>
                         <arg>--add-exports</arg>
                         <arg>java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED</arg>
-                        <arg>--add-opens</arg>
-                        <arg>java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
