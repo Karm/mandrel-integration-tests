@@ -241,6 +241,9 @@ public enum WhitelistLogLines {
                 // https://github.com/quarkusio/quarkus/discussions/47150
                 p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
             }
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.20.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                p.add(Pattern.compile(".*org.jboss.resteasy.reactive.MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
+            }
             return p.toArray(new Pattern[0]);
         }
     },

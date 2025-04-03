@@ -97,6 +97,7 @@
                 <module>apps/quarkus-spöklik-encoding</module>
                 <module>apps/quarkus-vertx</module>
                 <module>apps/random-numbers</module>
+                <module>apps/recordannotations</module>
                 <module>apps/reslocations</module>
                 <module>apps/timezones</module>
                 <module>apps/versions</module>
