@@ -63,7 +63,7 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.QUARKUS_MP_ORM_DBS_AWT,
             BuildAndRunCmds.QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT,
-            ContainerNames.NONE),
+            ContainerNames.QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT),
     QUARKUS_JSON_PERF_PARSEONCE("apps" + File.separator + "quarkus-json",
             URLContent.QUARKUS_JSON_PERF,
             WhitelistLogLines.QUARKUS_FULL_MICROPROFILE,
