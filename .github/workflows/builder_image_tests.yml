@@ -17,6 +17,7 @@ env:
   FAIL_ON_PERF_REGRESSION: false
   CMD_LONG_TIMEOUT_MS: 180000
   LONG_GOTO_URL_TIMEOUT_MS: 200000
+  QUARKUS_NATIVE_CONTAINER_RUNTIME: 'docker'
 
 jobs:
   local-run:
@@ -66,6 +67,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           check-latest: true
+          maven-version: '3.9.9'
       - name: Linux test
         if: startsWith(matrix.os, 'ubuntu')
         timeout-minutes: 55
@@ -77,7 +79,9 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite-builder-image -Dquarkus.version=${{ matrix.quarkus-version }} -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-image }}
+          mvn clean verify -Ptestsuite-builder-image --batch-mode \
+              -Dquarkus.version=${{ matrix.quarkus-version }} \
+              -Dquarkus.native.builder-image=quay.io/quarkus/${{ matrix.mandrel-builder-base }}-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-version }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()
