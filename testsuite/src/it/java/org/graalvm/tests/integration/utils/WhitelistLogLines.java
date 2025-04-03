@@ -20,6 +20,7 @@
 package org.graalvm.tests.integration.utils;
 
 import org.graalvm.home.Version;
+import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 
 import java.util.ArrayList;
@@ -95,13 +96,13 @@ public enum WhitelistLogLines {
     NONE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{};
+            return new Pattern[] {};
         }
     },
     IMAGEIO {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
                     Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
                     // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
@@ -114,7 +115,7 @@ public enum WhitelistLogLines {
     IMAGEIO_BUILDER_IMAGE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
                     Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
                     // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
@@ -125,66 +126,67 @@ public enum WhitelistLogLines {
     QUARKUS_FULL_MICROPROFILE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
-                    // Unused argument on new Graal; Quarkus uses it for backward compatibility.
-                    Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
-                    // Windows specific warning
-                    Pattern.compile(".*oracle/graal/issues/2387.*"),
-                    // Windows specific warning, O.K.
-                    Pattern.compile(".*objcopy executable not found in PATH.*"),
-                    Pattern.compile(".*That will result in a larger native image.*"),
-                    Pattern.compile(".*That also means that resulting native executable is larger.*"),
-                    Pattern.compile(".*contain duplicate files, e.g. javax/activation/ActivationDataFlavor.class.*"),
-                    Pattern.compile(".*contain duplicate files, e.g. javax/servlet/http/HttpUtils.class.*"),
-                    Pattern.compile(".*contain duplicate files, e.g. javax/annotation/ManagedBean.class.*"),
-                    // Jaeger Opentracing initialization, Quarkus 2.x specific issue.
-                    Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException:.*"),
-                    // Jaeger Opentracing, Quarkus 2.x specific issue.
-                    Pattern.compile(".*MpPublisherMessageBodyReader is already registered.*"),
-                    // Params quirk, harmless
-                    Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
-                    Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
-                    // GitHub workflow Windows executor flaw:
-                    Pattern.compile(".*Unable to make the Vert.x cache directory.*"),
-                    // Not sure, definitely not Mandrel related though
-                    Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-                    // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
-                    Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"),
-                    // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
-                    Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
-                    // netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                    Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
-                    // We don't run any OpenTracing collector point for simplicity, hence the exception. Q 3.6.0+ specific.
-                    Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*"),
-                    // https://github.com/quarkusio/quarkus/issues/39667
-                    Pattern.compile(".*io.quarkus.security.runtime.SecurityIdentity.*"),
-                    // OpenTelemetry
-                    Pattern.compile(".*No BatchSpanProcessor delegate specified.*"),
-                    Pattern.compile(".*Connection refused: .*:4317.*"),
-                    Pattern.compile(".*The request could not be executed.*:4317.*"),
-                    // MacOS https://github.com/quarkusio/quarkus/issues/40938
-                    Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"),
-                    // Allow the quarkus main warning of older Mandrel releases
-                    Pattern.compile(".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"),
-                    // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
-                    // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
-                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release\\. Please refer to the GraalVM release notes.*"),
-                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release: This can be caused by a proxy-config.json file in your META-INF directory.*"),
-                    // Dependency sources plugin may produce this warning on some systems. See https://issues.apache.org/jira/browse/MNG-7706
-                    Pattern.compile(".*\\[WARNING\\] Parameter 'local' is deprecated core expression; Avoid use of ArtifactRepository type\\. If you need access to local repository, switch to .* expression and get LRM from it instead\\..*"),
-                    // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
-                    Pattern.compile(".*WARNING: A restricted method in java.lang.System has been called.*"),
-                    Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"),
-                    Pattern.compile(".*WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"),
-                    Pattern.compile(".*WARNING: Restricted methods will be blocked in a future release unless native access is enabled.*"),
-                    // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
-                    Pattern.compile(".*WARNING: A terminally deprecated method in sun.misc.Unsafe has been called.*"),
-                    Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"),
-                    Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"),
-                    Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"),
-                    // Ignore INFO message about class containing Error in its name
-                    Pattern.compile(".*\\[INFO\\] Can't extract module name from .*JsonMissingMessageBodyReaderErrorMessageContextualizer.*"),
-            };
+            final List<Pattern> p = new ArrayList<>();
+            // Unused argument on new Graal; Quarkus uses it for backward compatibility.
+            p.add(Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"));
+            // Windows specific warning
+            p.add(Pattern.compile(".*oracle/graal/issues/2387.*"));
+            // Windows specific warning, O.K.
+            p.add(Pattern.compile(".*objcopy executable not found in PATH.*"));
+            p.add(Pattern.compile(".*That will result in a larger native image.*"));
+            p.add(Pattern.compile(".*That also means that resulting native executable is larger.*"));
+            p.add(Pattern.compile(".*contain duplicate files, e.g. javax/activation/ActivationDataFlavor.class.*"));
+            p.add(Pattern.compile(".*contain duplicate files, e.g. javax/servlet/http/HttpUtils.class.*"));
+            p.add(Pattern.compile(".*contain duplicate files, e.g. javax/annotation/ManagedBean.class.*"));
+            // Jaeger Opentracing initialization, Quarkus 2.x specific issue.
+            p.add(Pattern.compile(".*io.jaegertracing.internal.exceptions.SenderException:.*"));
+            // Jaeger Opentracing, Quarkus 2.x specific issue.
+            p.add(Pattern.compile(".*MpPublisherMessageBodyReader is already registered.*"));
+            // Params quirk, harmless
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            // GitHub workflow Windows executor flaw:
+            p.add(Pattern.compile(".*Unable to make the Vert.x cache directory.*"));
+            // Not sure, definitely not Mandrel related though
+            p.add(Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"));
+            // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
+            p.add(Pattern.compile(".*GC warning: [0-9.]+s spent in [0-9]+ GCs during the last stage, taking up [0-9]+.[0-9]+% of the time.*"));
+            // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
+            p.add(Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"));
+            // netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
+            p.add(Pattern.compile(".*'-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"));
+            // We don't run any OpenTracing collector point for simplicity, hence the exception. Q 3.6.0+ specific.
+            p.add(Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Connection refused:.*"));
+            // https://github.com/quarkusio/quarkus/issues/39667
+            p.add(Pattern.compile(".*io.quarkus.security.runtime.SecurityIdentity.*"));
+            // OpenTelemetry
+            p.add(Pattern.compile(".*No BatchSpanProcessor delegate specified.*"));
+            p.add(Pattern.compile(".*Connection refused: .*:4317.*"));
+            p.add(Pattern.compile(".*The request could not be executed.*:4317.*"));
+            // MacOS https://github.com/quarkusio/quarkus/issues/40938
+            p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
+            // Allow the quarkus main warning of older Mandrel releases
+            p.add(Pattern.compile(".*You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"));
+            // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+            // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+            p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+            // Dependency sources plugin may produce this warning on some systems. See https://issues.apache.org/jira/browse/MNG-7706
+            p.add(Pattern.compile(".*\\[WARNING\\] Parameter 'local' is deprecated core expression; Avoid use of ArtifactRepository type\\..*"));
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
+                // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
+                p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
+            }
+            // Ignore INFO message about class containing Error in its name
+            p.add(Pattern.compile(".*\\[INFO\\] Can't extract module name from .*JsonMissingMessageBodyReaderErrorMessageContextualizer.*"));
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.17.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                // https://github.com/quarkusio/quarkus/discussions/47150
+                p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     QUARKUS_MP_ORM_DBS_AWT {
@@ -235,13 +237,17 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".* sequence \"hibernate_sequence\" does not exist.*"));
                 p.add(Pattern.compile(".*DDL \"drop sequence hibernate_sequence\" .*"));
             }
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.17.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                // https://github.com/quarkusio/quarkus/discussions/47150
+                p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            }
             return p.toArray(new Pattern[0]);
         }
     },
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Params quirk, harmless
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
@@ -264,18 +270,14 @@ public enum WhitelistLogLines {
     HELIDON_QUICKSTART_SE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Experimental options not being unlocked, produces warnings, yet it's driven by the helidon-maven-plugin
                     Pattern.compile(".*The option '.*' is experimental and must be enabled via '-H:\\+UnlockExperimentalVMOptions' in the future.*"),
                     // Unused argument on new Graal
                     Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
                     // --allow-incomplete-classpath not available in new GraalVM https://github.com/Karm/mandrel-integration-tests/issues/76
-                    Pattern.compile(".*Using a deprecated option --allow-incomplete-classpath from" +
-                            ".*helidon-webserver-2.2.2.jar.*" +
-                            "Allowing an incomplete classpath is now the default. " +
-                            "Use --link-at-build-time to report linking errors at image build time for a class or package.*"),
+                    Pattern.compile(".*Using a deprecated option --allow-incomplete-classpath from.*helidon-webserver-2.2.2.jar.*"),
                     // Ignore JDK 24+ warning till https://github.com/classgraph/classgraph/issues/899 gets fixed
-                    Pattern.compile(".*WARNING: A terminally deprecated method in sun.misc.Unsafe has been called.*"),
                     Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner has been called by .*nonapi.io.github.classgraph.utils.FileUtils.*"),
                     Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*nonapi.io.github.classgraph.utils.FileUtils"),
                     Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner will be removed in a future release"),
@@ -285,7 +287,7 @@ public enum WhitelistLogLines {
     QUARKUS_BUILDER_IMAGE_ENCODING {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     // Params quirk, harmless
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
                     Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
@@ -294,65 +296,63 @@ public enum WhitelistLogLines {
                     // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
                     Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
                     // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                    Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
+                    Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"),
             };
         }
     },
     JFR {
         @Override
         public Pattern[] get(boolean inContainer) {
+            final List<Pattern> p = new ArrayList<>();
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) <= 0) {
-                return new Pattern[]{
-                        // https://github.com/oracle/graal/issues/3636
-                        Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
-                        // https://github.com/oracle/graal/issues/4431
-                        Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*")};
+                // https://github.com/oracle/graal/issues/3636
+                p.add(Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"));
+                // https://github.com/oracle/graal/issues/4431
+                p.add(Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*"));
             } else {
-                return new Pattern[]{
-                        /* We don't support the OldObjectSample event or the JFR Deprecated events annotation yet.
-                         * https://github.com/oracle/graal/pull/8057 intercepts calls to adjust settings related to
-                         * such events and instead logs a warning specific to SubstrateVM.
-                         * Allow list those log lines until they are supported.
-                         */
-                        Pattern.compile(".*@Deprecated JFR events, and leak profiling are not yet supported.*"),
-                        // https://github.com/oracle/graal/issues/3636
-                        Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"),
-                        // Hyperfoil spits this on GHA CI, cannot reproduce locally
-                        Pattern.compile(".*ControllerVerticle] Uncaught error: java.lang.NullPointerException.*"),
-                        // For some reason, Podman spits this when terminating Hyperfoil containers
-                        Pattern.compile(".*Could not retrieve exit code from event: died not found: unable to find event.*"),
-                        // Again Hyperfoil and Podman. There might be something odd with stopping those agents? Not a Quaruks/Mandrel issue.
-                        Pattern.compile(".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"),
-                        // Quarkus 3.x intermittently with JDK 20 based build...
-                        Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"),
-                        // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                        Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"),
-                        // MacOS https://github.com/quarkusio/quarkus/issues/40938
-                        Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"),
-                        // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
-                        // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
-                        Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release\\. Please refer to the GraalVM release notes.*"),
-                        Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated and might be removed in a future release: This can be caused by a proxy-config.json file in your META-INF directory.*"),
-                        // Allow the quarkus main warning of older Mandrel releases
-                        Pattern.compile(".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"),
-                        // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
-                        Pattern.compile(".*WARNING: A restricted method in java.lang.System has been called.*"),
-                        Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"),
-                        Pattern.compile(".*WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"),
-                        Pattern.compile(".*WARNING: Restricted methods will be blocked in a future release unless native access is enabled.*"),
-                        // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
-                        Pattern.compile(".*WARNING: A terminally deprecated method in sun.misc.Unsafe has been called.*"),
-                        Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"),
-                        Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"),
-                        Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"),
-                };
+                /* We don't support the OldObjectSample event or the JFR Deprecated events annotation yet.
+                 * https://github.com/oracle/graal/pull/8057 intercepts calls to adjust settings related to
+                 * such events and instead logs a warning specific to SubstrateVM.
+                 * Allow list those log lines until they are supported.
+                 */
+                p.add(Pattern.compile(".*@Deprecated JFR events, and leak profiling are not yet supported.*"));
+                // https://github.com/oracle/graal/issues/3636
+                p.add(Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"));
+                // Hyperfoil spits this on GHA CI, cannot reproduce locally
+                p.add(Pattern.compile(".*ControllerVerticle] Uncaught error: java.lang.NullPointerException.*"));
+                // For some reason, Podman spits this when terminating Hyperfoil containers
+                p.add(Pattern.compile(".*Could not retrieve exit code from event: died not found: unable to find event.*"));
+                // Again Hyperfoil and Podman. There might be something odd with stopping those agents? Not a Quaruks/Mandrel issue.
+                p.add(Pattern.compile(".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"));
+                // Quarkus 3.x intermittently with JDK 20 based build...
+                p.add(Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"));
+                // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
+                p.add(Pattern.compile(
+                        ".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"));
+                // MacOS https://github.com/quarkusio/quarkus/issues/40938
+                p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
+                // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+                // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+                p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+                // Allow the quarkus main warning of older Mandrel releases
+                p.add(Pattern.compile(
+                        ".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"));
+                if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                    // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                    p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
+                    // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                    p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
+                    p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
+                    p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
+                }
             }
+            return p.toArray(new Pattern[0]);
         }
     },
     RESLOCATIONS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     Pattern.compile(".*com\\.sun\\.imageio\\.plugins\\.common.*is internal proprietary API and may be removed in a future release.*")
             };
         }
@@ -360,7 +360,7 @@ public enum WhitelistLogLines {
     MONITOR_OFFSET {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[]{
+            return new Pattern[] {
                     Pattern.compile(".*Failed generating.*"),
                     Pattern.compile(".*The build process encountered an unexpected error.*"),
                     Pattern.compile(".*monitor_field_offset.Main480 has an invalid monitor field offset.*"),

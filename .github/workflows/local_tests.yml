@@ -107,38 +107,38 @@ jobs:
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.21.0'
-            mandrel-version: '24.2.0.0-Final'
-            java-version: '24'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.21.0'
-            mandrel-version: '24.2.0.0-Final'
-            java-version: '24'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 130
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'windows-2022'
+         #  timeout-minutes: 80
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'ubuntu-20.04'
+         #  timeout-minutes: 130
 
           - quarkus-version: '3.21.0'
             mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'ubuntu-22.04-arm'
             timeout-minutes: 130
-          - quarkus-version: '3.21.0'
-            mandrel-version: '24.2.0.0-Final'
-            java-version: '24'
-            os: 'ubuntu-22.04-arm'
-            timeout-minutes: 130
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'ubuntu-22.04-arm'
+         #  timeout-minutes: 130
 
           - quarkus-version: '3.21.0'
             mandrel-version: '23.1.6.0-Final'
             java-version: '21'
             os: 'macos-14'
             timeout-minutes: 130
-          - quarkus-version: '3.21.0'
-            mandrel-version: '24.2.0.0-Final'
-            java-version: '24'
-            os: 'macos-14'
-            timeout-minutes: 130
+         #- quarkus-version: '3.21.0'
+         #  mandrel-version: '24.2.0.0-Final'
+         #  java-version: '24'
+         #  os: 'macos-14'
+         #  timeout-minutes: 130
 
     steps:
       - uses: actions/checkout@v4
