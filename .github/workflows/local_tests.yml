@@ -24,7 +24,7 @@ env:
 
 jobs:
   local-run:
-    name: ${{ matrix.os }} - ${{ matrix.java-version }} - ${{ matrix.mandrel-version }} - ${{ matrix.quarkus-version }}
+    name: ${{ matrix.mandrel-version }} - ${{ matrix.quarkus-version }} - ${{ matrix.os }} - ${{ matrix.java-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -85,12 +85,12 @@ jobs:
             os: 'ubuntu-20.04'
             timeout-minutes: 130
 
-          - quarkus-version: '3.21.0'
+          - quarkus-version: '3.15.4'
             mandrel-version: '24.0.2.0-Final'
             java-version: '22'
             os: 'windows-2022'
             timeout-minutes: 80
-          - quarkus-version: '3.21.0'
+          - quarkus-version: '3.15.4'
             mandrel-version: '24.0.2.0-Final'
             java-version: '22'
             os: 'ubuntu-20.04'
@@ -261,9 +261,17 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          netstat -anv | grep 8080
-          netstat -anv | grep 8081
+          netstat -anv | grep 8080 || true
+          netstat -anv | grep 8081 || true
           ps aux
+          brew install podman
+          export QUARKUS_NATIVE_CONTAINER_RUNTIME=podman
+          podman machine init --now || true
+          podman machine stop || true
+          podman machine set --memory 4096
+          eval "$(podman machine start | grep "DOCKER_HOST=")"
+          echo -e "GET /_ping HTTP/1.0\r\n\r\n" | nc -U $(echo $DOCKER_HOST | cut -d: -f2)
+          podman run hello-world
           mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: bash
       - name: Prepare failure archive (if maven failed)

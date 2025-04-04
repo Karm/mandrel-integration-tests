@@ -90,6 +90,8 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset will be removed in a future release.*"));
                 p.add(Pattern.compile(".*Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"));
             }
+            // TODO: Revisit when we leave JDK 17...
+            p.add(Pattern.compile(".*location of system modules is not set in conjunction with -source 17.*"));
             return p.toArray(new Pattern[0]);
         }
     },
@@ -207,6 +209,10 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".* Failures: 0, Errors: 0,.*"));
             // Docker image extension being mean
             p.add(Pattern.compile(".*Using executable podman within the quarkus-container-image-docker.*"));
+            // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+            // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+            p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+            p.add(Pattern.compile(".*MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 // Testcontainers
                 p.add(Pattern.compile(".*org.tes.uti.ResourceReaper.*"));
@@ -236,6 +242,7 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*Unable to determine a database type for default datasource.*"));
                 p.add(Pattern.compile(".* sequence \"hibernate_sequence\" does not exist.*"));
                 p.add(Pattern.compile(".*DDL \"drop sequence hibernate_sequence\" .*"));
+                p.add(Pattern.compile(".*quarkus-resteasy-mutiny extension is deprecated.*"));
             }
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.17.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
                 // https://github.com/quarkusio/quarkus/discussions/47150
@@ -267,6 +274,9 @@ public enum WhitelistLogLines {
                     // Deprecated/to be updated with Rest Easy Reactive
                     Pattern.compile(".*The option '-H:ReflectionConfigurationResources=META-INF/native-image/io.netty/netty-transport/reflection-config.json' is experimental.*"),
                     Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"),
+                    // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+                    // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*")
             };
         }
     },
