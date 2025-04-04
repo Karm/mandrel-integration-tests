@@ -1,0 +1,9 @@
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023
+RUN yum install freetype fontconfig -y
+WORKDIR /work/
+# On this particular image, according to strace, fontconfig is trying to write to
+# /.cache instead of .cache. Having it writeable prevents this warning:
+# Fontconfig error: No writable cache directories
+RUN mkdir /.cache \
+    && chmod "g+rwX" /work \
+    && chown 1000:root /work /.cache
