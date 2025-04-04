@@ -81,7 +81,7 @@ jobs:
           cp .github/mvn-settings.xml ~/.m2/settings.xml
           mvn clean verify -Ptestsuite-builder-image --batch-mode \
               -Dquarkus.version=${{ matrix.quarkus-version }} \
-              -Dquarkus.native.builder-image=quay.io/quarkus/${{ matrix.mandrel-builder-base }}-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-version }}
+              -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-image }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()
