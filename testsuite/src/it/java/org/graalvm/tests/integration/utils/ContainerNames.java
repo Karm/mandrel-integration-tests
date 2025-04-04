@@ -35,6 +35,7 @@ public enum ContainerNames {
     MONITOR_OFFSET_BUILDER_IMAGE("my-monitor-offset-runner"),
     FOR_SERIALIZATION_BUILDER_IMAGE("my-for-serialization-runner"),
     JDK_REFLECTIONS_BUILDER_IMAGE("my-jdkreflections-runner"),
+    QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT("my-quarkus-mp-orm-dbs-awt-container"),
     NONE("NO_CONTAINER");
 
     public final String name;
