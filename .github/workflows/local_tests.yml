@@ -261,9 +261,11 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
+          set +e
           netstat -anv | grep 8080
           netstat -anv | grep 8081
           ps aux
+          set -e
           mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
