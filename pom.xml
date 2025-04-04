@@ -29,20 +29,20 @@
         <!-- Quarkus apps -->
         <!-- Note that the TS switches Quarkus version at test run,
              see Commands.java, QUARKUS_VERSION -->
-        <global.quarkus.version>2.13.3.Final</global.quarkus.version>
+        <global.quarkus.version>2.13.9.Final</global.quarkus.version>
 
         <!-- Helidon quickstart -->
         <version.helidon>2.2.2</version.helidon>
 
         <!-- General TS deps -->
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <maven.failsafe.version>2.22.2</maven.failsafe.version>
-        <maven-jar-plugin.version></maven-jar-plugin.version>
-        <maven.build.helper.version>3.0.0</maven.build.helper.version>
+        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <maven.build.helper.version>3.6.0</maven.build.helper.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
@@ -52,7 +52,7 @@
         <log4j.version>2.23.1</log4j.version>
         <org.json.version>20240303</org.json.version>
 
-        <!-- Test to be executed by default (should be all of them) -->
+        <!-- Test to be executed by default (all of them except perfcheck) -->
         <includeTags>runtimes,reproducers</includeTags>
     </properties>
 
@@ -97,6 +97,7 @@
                 <module>apps/quarkus-spöklik-encoding</module>
                 <module>apps/quarkus-vertx</module>
                 <module>apps/random-numbers</module>
+                <module>apps/recordannotations</module>
                 <module>apps/reslocations</module>
                 <module>apps/timezones</module>
                 <module>apps/versions</module>
