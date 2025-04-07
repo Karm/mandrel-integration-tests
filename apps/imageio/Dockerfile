@@ -1,5 +1,5 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
-RUN microdnf install freetype fontconfig
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5
+RUN microdnf install freetype fontconfig -y
 WORKDIR /work/
 RUN chown 100 /work \
     && chmod "g+rwX" /work \

@@ -21,7 +21,7 @@ env:
 
 jobs:
   local-run:
-    name: ${{ matrix.mandrel-builder-version }}-${{ mandrel-builder-base }} - ${{ matrix.quarkus-version }} - ${{ matrix.os }}
+    name: ${{ matrix.mandrel-builder-version }}-${{ matrix.mandrel-builder-base }} - ${{ matrix.quarkus-version }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

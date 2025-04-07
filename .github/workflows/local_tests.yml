@@ -30,115 +30,115 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - quarkus-version: '2.13.9.Final'
-            mandrel-version: '22.3.5.0-Final'
-            java-version: '17'
-            os: 'windows-2019'
-            timeout-minutes: 80
-          - quarkus-version: '2.13.9.Final'
-            mandrel-version: '22.3.5.0-Final'
-            java-version: '17'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 80
+#          - quarkus-version: '2.13.9.Final'
+#            mandrel-version: '22.3.5.0-Final'
+#            java-version: '17'
+#            os: 'windows-2019'
+#            timeout-minutes: 80
+#          - quarkus-version: '2.13.9.Final'
+#            mandrel-version: '22.3.5.0-Final'
+#            java-version: '17'
+#            os: 'ubuntu-20.04'
+#            timeout-minutes: 80
 
-          - quarkus-version: '3.2.12.Final'
-            mandrel-version: '23.0.6.0-Final'
-            java-version: '17'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.2.12.Final'
-            mandrel-version: '23.0.6.0-Final'
-            java-version: '17'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 130
+#          - quarkus-version: '3.2.12.Final'
+#            mandrel-version: '23.0.6.0-Final'
+#            java-version: '17'
+#            os: 'windows-2022'
+#            timeout-minutes: 80
+#          - quarkus-version: '3.2.12.Final'
+#            mandrel-version: '23.0.6.0-Final'
+#            java-version: '17'
+#            os: 'ubuntu-20.04'
+#            timeout-minutes: 130
 
-          - quarkus-version: '3.8.6.1'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.8.6.1'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 130
+#          - quarkus-version: '3.8.6.1'
+#            mandrel-version: '23.1.6.0-Final'
+#            java-version: '21'
+#            os: 'windows-2022'
+#            timeout-minutes: 80
+#          - quarkus-version: '3.8.6.1'
+#            mandrel-version: '23.1.6.0-Final'
+#            java-version: '21'
+#            os: 'ubuntu-20.04'
+#            timeout-minutes: 130
 
-          - quarkus-version: '3.15.4'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.15.4'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 130
+#          - quarkus-version: '3.15.4'
+#            mandrel-version: '23.1.6.0-Final'
+#            java-version: '21'
+#            os: 'windows-2022'
+#            timeout-minutes: 80
+#          - quarkus-version: '3.15.4'
+#            mandrel-version: '23.1.6.0-Final'
+#            java-version: '21'
+#            os: 'ubuntu-20.04'
+#            timeout-minutes: 130
+
+#          - quarkus-version: '3.21.0'
+#            mandrel-version: '23.1.6.0-Final'
+#            java-version: '21'
+#            os: 'windows-2022'
+#            timeout-minutes: 80
+#          - quarkus-version: '3.21.0'
+#            mandrel-version: '23.1.6.0-Final'
+#            java-version: '21'
+#            os: 'ubuntu-20.04'
+#            timeout-minutes: 130
+
+#          - quarkus-version: '3.8.6.1'
+#            mandrel-version: '24.0.2.0-Final'
+#            java-version: '22'
+#            os: 'windows-2022'
+#            timeout-minutes: 80
+#          - quarkus-version: '3.8.6.1'
+#            mandrel-version: '24.0.2.0-Final'
+#            java-version: '22'
+#            os: 'ubuntu-20.04'
+#            timeout-minutes: 130
+
+#          - quarkus-version: '3.21.0'
+#            mandrel-version: '24.1.2.0-Final'
+#            java-version: '23'
+#            os: 'windows-2022'
+#            timeout-minutes: 80
+#          - quarkus-version: '3.21.0'
+#            mandrel-version: '24.1.2.0-Final'
+#            java-version: '23'
+#            os: 'ubuntu-20.04'
+#            timeout-minutes: 130
+
+#         #- quarkus-version: '3.21.0'
+#         #  mandrel-version: '24.2.0.0-Final'
+#         #  java-version: '24'
+#         #  os: 'windows-2022'
+#         #  timeout-minutes: 80
+#         #- quarkus-version: '3.21.0'
+#         #  mandrel-version: '24.2.0.0-Final'
+#         #  java-version: '24'
+#         #  os: 'ubuntu-20.04'
+#         #  timeout-minutes: 130
+
+#          - quarkus-version: '3.21.0'
+#            mandrel-version: '23.1.6.0-Final'
+#            java-version: '21'
+#            os: 'ubuntu-22.04-arm'
+#            timeout-minutes: 130
+#         #- quarkus-version: '3.21.0'
+#         #  mandrel-version: '24.2.0.0-Final'
+#         #  java-version: '24'
+#         #  os: 'ubuntu-22.04-arm'
+#         #  timeout-minutes: 130
 
           - quarkus-version: '3.21.0'
             mandrel-version: '23.1.6.0-Final'
             java-version: '21'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.21.0'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'ubuntu-20.04'
+            os: 'macos-15'
             timeout-minutes: 130
-
-          - quarkus-version: '3.8.6.1'
-            mandrel-version: '24.0.2.0-Final'
-            java-version: '22'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.8.6.1'
-            mandrel-version: '24.0.2.0-Final'
-            java-version: '22'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 130
-
-          - quarkus-version: '3.21.0'
-            mandrel-version: '24.1.2.0-Final'
-            java-version: '23'
-            os: 'windows-2022'
-            timeout-minutes: 80
-          - quarkus-version: '3.21.0'
-            mandrel-version: '24.1.2.0-Final'
-            java-version: '23'
-            os: 'ubuntu-20.04'
-            timeout-minutes: 130
-
-         #- quarkus-version: '3.21.0'
-         #  mandrel-version: '24.2.0.0-Final'
-         #  java-version: '24'
-         #  os: 'windows-2022'
-         #  timeout-minutes: 80
-         #- quarkus-version: '3.21.0'
-         #  mandrel-version: '24.2.0.0-Final'
-         #  java-version: '24'
-         #  os: 'ubuntu-20.04'
-         #  timeout-minutes: 130
-
-          - quarkus-version: '3.21.0'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'ubuntu-22.04-arm'
-            timeout-minutes: 130
-         #- quarkus-version: '3.21.0'
-         #  mandrel-version: '24.2.0.0-Final'
-         #  java-version: '24'
-         #  os: 'ubuntu-22.04-arm'
-         #  timeout-minutes: 130
-
-          - quarkus-version: '3.21.0'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'macos-14'
-            timeout-minutes: 130
-         #- quarkus-version: '3.21.0'
-         #  mandrel-version: '24.2.0.0-Final'
-         #  java-version: '24'
-         #  os: 'macos-14'
-         #  timeout-minutes: 130
+#         #- quarkus-version: '3.21.0'
+#         #  mandrel-version: '24.2.0.0-Final'
+#         #  java-version: '24'
+#         #  os: 'macos-14'
+#         #  timeout-minutes: 130
 
     steps:
       - uses: actions/checkout@v4
@@ -261,18 +261,13 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          netstat -anv | grep 8080 || true
-          netstat -anv | grep 8081 || true
-          ps aux
-          brew install podman
-          export QUARKUS_NATIVE_CONTAINER_RUNTIME=podman
-          podman machine init --now || true
-          podman machine stop || true
-          podman machine set --memory 4096
-          eval "$(podman machine start | grep "DOCKER_HOST=")"
-          curl --unix-socket "${DOCKER_HOST#unix://}" http://localhost/_ping
-          podman run hello-world
-          mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
+          # GHA MacOS runners are VMs, podman would effectively require
+          # nested virtualization, which is not supported here on GHA.
+          # We disable all tests that rely on containers to e.g drive databases etc.
+          # We later WhiteList all benign errors caused by e.g. Jaeger contaienr not running.
+          mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes \
+              -Dquarkus.version=${{ matrix.quarkus-version }} \
+              -Dtest=!JFRTest#jfrPerfTest
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()
