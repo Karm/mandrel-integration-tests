@@ -2,7 +2,7 @@ diff --git a/apps/quarkus-vertx/src/main/docker/Dockerfile.native b/apps/quarkus
 index 70ec986..2f44460 100644
 --- a/apps/quarkus-vertx/src/main/docker/Dockerfile.native
 +++ b/apps/quarkus-vertx/src/main/docker/Dockerfile.native
-@@ -3,7 +3,7 @@ RUN microdnf --enablerepo=ubi-8-baseos-debug-rpms --enablerepo=ubi-9-appstream-debug-rpms install gdb zlib-debuginfo glibc-debuginfo -y
+@@ -3,7 +3,7 @@ RUN microdnf --enablerepo=ubi-9-baseos-debug-rpms --enablerepo=ubi-9-appstream-debug-rpms install gdb zlib-debuginfo glibc-debuginfo -y
  WORKDIR /work/
  COPY target/quarkus-runner /work/application
  COPY target/quarkus-runner.debug /work/application.debug

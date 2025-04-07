@@ -30,115 +30,115 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - quarkus-version: '2.13.9.Final'
-#            mandrel-version: '22.3.5.0-Final'
-#            java-version: '17'
-#            os: 'windows-2019'
-#            timeout-minutes: 80
-#          - quarkus-version: '2.13.9.Final'
-#            mandrel-version: '22.3.5.0-Final'
-#            java-version: '17'
-#            os: 'ubuntu-20.04'
-#            timeout-minutes: 80
+           - quarkus-version: '2.13.9.Final'
+             mandrel-version: '22.3.5.0-Final'
+             java-version: '17'
+             os: 'windows-2019'
+             timeout-minutes: 80
+           - quarkus-version: '2.13.9.Final'
+             mandrel-version: '22.3.5.0-Final'
+             java-version: '17'
+             os: 'ubuntu-20.04'
+             timeout-minutes: 80
 
-#          - quarkus-version: '3.2.12.Final'
-#            mandrel-version: '23.0.6.0-Final'
-#            java-version: '17'
-#            os: 'windows-2022'
-#            timeout-minutes: 80
-#          - quarkus-version: '3.2.12.Final'
-#            mandrel-version: '23.0.6.0-Final'
-#            java-version: '17'
-#            os: 'ubuntu-20.04'
-#            timeout-minutes: 130
+           - quarkus-version: '3.2.12.Final'
+             mandrel-version: '23.0.6.0-Final'
+             java-version: '17'
+             os: 'windows-2022'
+             timeout-minutes: 80
+           - quarkus-version: '3.2.12.Final'
+             mandrel-version: '23.0.6.0-Final'
+             java-version: '17'
+             os: 'ubuntu-20.04'
+             timeout-minutes: 130
 
-#          - quarkus-version: '3.8.6.1'
-#            mandrel-version: '23.1.6.0-Final'
-#            java-version: '21'
-#            os: 'windows-2022'
-#            timeout-minutes: 80
-#          - quarkus-version: '3.8.6.1'
-#            mandrel-version: '23.1.6.0-Final'
-#            java-version: '21'
-#            os: 'ubuntu-20.04'
-#            timeout-minutes: 130
+           - quarkus-version: '3.8.6.1'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'windows-2022'
+             timeout-minutes: 80
+           - quarkus-version: '3.8.6.1'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'ubuntu-20.04'
+             timeout-minutes: 130
 
-#          - quarkus-version: '3.15.4'
-#            mandrel-version: '23.1.6.0-Final'
-#            java-version: '21'
-#            os: 'windows-2022'
-#            timeout-minutes: 80
-#          - quarkus-version: '3.15.4'
-#            mandrel-version: '23.1.6.0-Final'
-#            java-version: '21'
-#            os: 'ubuntu-20.04'
-#            timeout-minutes: 130
+           - quarkus-version: '3.15.4'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'windows-2022'
+             timeout-minutes: 80
+           - quarkus-version: '3.15.4'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'ubuntu-20.04'
+             timeout-minutes: 130
 
-#          - quarkus-version: '3.21.0'
-#            mandrel-version: '23.1.6.0-Final'
-#            java-version: '21'
-#            os: 'windows-2022'
-#            timeout-minutes: 80
-#          - quarkus-version: '3.21.0'
-#            mandrel-version: '23.1.6.0-Final'
-#            java-version: '21'
-#            os: 'ubuntu-20.04'
-#            timeout-minutes: 130
+           - quarkus-version: '3.21.0'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'windows-2022'
+             timeout-minutes: 80
+           - quarkus-version: '3.21.0'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'ubuntu-20.04'
+             timeout-minutes: 130
 
-#          - quarkus-version: '3.8.6.1'
-#            mandrel-version: '24.0.2.0-Final'
-#            java-version: '22'
-#            os: 'windows-2022'
-#            timeout-minutes: 80
-#          - quarkus-version: '3.8.6.1'
-#            mandrel-version: '24.0.2.0-Final'
-#            java-version: '22'
-#            os: 'ubuntu-20.04'
-#            timeout-minutes: 130
+           - quarkus-version: '3.8.6.1'
+             mandrel-version: '24.0.2.0-Final'
+             java-version: '22'
+             os: 'windows-2022'
+             timeout-minutes: 80
+           - quarkus-version: '3.8.6.1'
+             mandrel-version: '24.0.2.0-Final'
+             java-version: '22'
+             os: 'ubuntu-20.04'
+             timeout-minutes: 130
 
-#          - quarkus-version: '3.21.0'
-#            mandrel-version: '24.1.2.0-Final'
-#            java-version: '23'
-#            os: 'windows-2022'
-#            timeout-minutes: 80
-#          - quarkus-version: '3.21.0'
-#            mandrel-version: '24.1.2.0-Final'
-#            java-version: '23'
-#            os: 'ubuntu-20.04'
-#            timeout-minutes: 130
+           - quarkus-version: '3.21.0'
+             mandrel-version: '24.1.2.0-Final'
+             java-version: '23'
+             os: 'windows-2022'
+             timeout-minutes: 80
+           - quarkus-version: '3.21.0'
+             mandrel-version: '24.1.2.0-Final'
+             java-version: '23'
+             os: 'ubuntu-20.04'
+             timeout-minutes: 130
 
-#         #- quarkus-version: '3.21.0'
-#         #  mandrel-version: '24.2.0.0-Final'
-#         #  java-version: '24'
-#         #  os: 'windows-2022'
-#         #  timeout-minutes: 80
-#         #- quarkus-version: '3.21.0'
-#         #  mandrel-version: '24.2.0.0-Final'
-#         #  java-version: '24'
-#         #  os: 'ubuntu-20.04'
-#         #  timeout-minutes: 130
+          #- quarkus-version: '3.21.0'
+          #  mandrel-version: '24.2.0.0-Final'
+          #  java-version: '24'
+          #  os: 'windows-2022'
+          #  timeout-minutes: 80
+          #- quarkus-version: '3.21.0'
+          #  mandrel-version: '24.2.0.0-Final'
+          #  java-version: '24'
+          #  os: 'ubuntu-20.04'
+          #  timeout-minutes: 130
 
-#          - quarkus-version: '3.21.0'
-#            mandrel-version: '23.1.6.0-Final'
-#            java-version: '21'
-#            os: 'ubuntu-22.04-arm'
-#            timeout-minutes: 130
-#         #- quarkus-version: '3.21.0'
-#         #  mandrel-version: '24.2.0.0-Final'
-#         #  java-version: '24'
-#         #  os: 'ubuntu-22.04-arm'
-#         #  timeout-minutes: 130
+           - quarkus-version: '3.21.0'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'ubuntu-22.04-arm'
+             timeout-minutes: 130
+          #- quarkus-version: '3.21.0'
+          #  mandrel-version: '24.2.0.0-Final'
+          #  java-version: '24'
+          #  os: 'ubuntu-22.04-arm'
+          #  timeout-minutes: 130
 
-          - quarkus-version: '3.21.0'
-            mandrel-version: '23.1.6.0-Final'
-            java-version: '21'
-            os: 'macos-15'
-            timeout-minutes: 130
-#         #- quarkus-version: '3.21.0'
-#         #  mandrel-version: '24.2.0.0-Final'
-#         #  java-version: '24'
-#         #  os: 'macos-14'
-#         #  timeout-minutes: 130
+           - quarkus-version: '3.21.0'
+             mandrel-version: '23.1.6.0-Final'
+             java-version: '21'
+             os: 'macos-15'
+             timeout-minutes: 130
+          #- quarkus-version: '3.21.0'
+          #  mandrel-version: '24.2.0.0-Final'
+          #  java-version: '24'
+          #  os: 'macos-14'
+          #  timeout-minutes: 130
 
     steps:
       - uses: actions/checkout@v4
@@ -184,7 +184,7 @@ jobs:
           if [[ "${{ matrix.os }}" == "ubuntu-22.04-arm" ]]; then
             ARCH="aarch64"
           fi
-          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-${ARCH}-${{ matrix.mandrel-version }}.tar.gz"
+          wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-${ARCH}-${{ matrix.mandrel-version }}.tar.gz"
           tar -xf mandrel-java${{ matrix.java-version }}-linux-${ARCH}-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
           mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
@@ -192,7 +192,7 @@ jobs:
       - name: Install Mandrel macOS (aarch64)
         if: startsWith(matrix.os, 'macos') && steps.cache_mandrel.outputs.cache-hit != 'true'
         run: |
-          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz"
+          wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz"
           tar -xf mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
           mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}

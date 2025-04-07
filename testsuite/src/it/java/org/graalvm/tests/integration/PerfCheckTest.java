@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
+import static org.graalvm.tests.integration.utils.BuildAndRunCmds.RUN_JAEGER;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
@@ -82,6 +83,7 @@ import static org.graalvm.tests.integration.utils.Commands.parseSerialGCLog;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
+import static org.graalvm.tests.integration.utils.Commands.runJaegerContainer;
 import static org.graalvm.tests.integration.utils.Commands.waitForFileToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
 import static org.graalvm.tests.integration.utils.Uploader.PERF_APP_REPORT;
@@ -440,6 +442,8 @@ public class PerfCheckTest {
 
             // Build executables
             builderRoutine(app, null, null, null, appDir, processLog, null, getSwitches3());
+
+            runJaegerContainer();
 
             int line = 0;
             for (int i = 0; i < app.buildAndRunCmds.runCommands.length; i++) {

@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.graalvm.tests.integration.RuntimesSmokeTest.BASE_DIR;
+import static org.graalvm.tests.integration.utils.BuildAndRunCmds.RUN_JAEGER;
 import static org.graalvm.tests.integration.utils.GDBSession.GDB_IM_PROMPT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -458,11 +459,15 @@ public class Commands {
         }
     }
 
-    public static void removeContainer(String containerName) throws InterruptedException, IOException {
+    public static void removeContainer(String containerName) {
         final List<String> cmd = new ArrayList<>(getRunCommand(CONTAINER_RUNTIME, "rm", containerName, "--force"));
         LOGGER.infof("Command: %s", cmd);
-        final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
-        process.waitFor(5, TimeUnit.SECONDS);
+        try {
+            final Process process = Runtime.getRuntime().exec(cmd.toArray(String[]::new));
+            process.waitFor(3, TimeUnit.SECONDS);
+        } catch (IOException | InterruptedException e) {
+            LOGGER.errorf("Failed to remove container %s: %s", containerName, e.getMessage());
+        }
     }
 
     /*
@@ -1269,5 +1274,15 @@ public class Commands {
         }
         Logs.writeReport(cn, mn, report.toString());
         cleanTarget(app);
+    }
+
+    public static void runJaegerContainer() {
+        final List<String> cmd = getRunCommand(RUN_JAEGER.runCommands[0]);
+        LOGGER.infof("Command: %s", cmd);
+        try {
+            LOGGER.infof("Output: %s", runCommand(cmd));
+        } catch (Exception e) {
+            LOGGER.error("Failed to start Jaeger container", e);
+        }
     }
 }

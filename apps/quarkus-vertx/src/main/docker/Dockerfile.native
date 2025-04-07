@@ -1,5 +1,5 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5
-RUN microdnf --enablerepo=ubi-8-baseos-debug-rpms --enablerepo=ubi-9-appstream-debug-rpms install gdb zlib-debuginfo glibc-debuginfo -y
+RUN microdnf --enablerepo=ubi-9-baseos-debug-rpms --enablerepo=ubi-9-appstream-debug-rpms install gdb zlib-debuginfo glibc-debuginfo -y
 WORKDIR /work/
 COPY target/quarkus-runner /work/application
 COPY target/quarkus-runner.debug /work/application.debug

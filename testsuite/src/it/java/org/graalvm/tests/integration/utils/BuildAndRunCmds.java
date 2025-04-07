@@ -99,9 +99,6 @@ public enum BuildAndRunCmds {
     ),
     QUARKUS_FULL_MICROPROFILE(
             new String[][] {
-                    { CONTAINER_RUNTIME, "run", "--rm", "-d", "-p", "4317:4317", "-e", "COLLECTOR_OTLP_ENABLED=true", "-p", "5775:5775/udp", "-p", "6831:6831/udp", "-p", "6832:6832/udp", "-p", "5778:5778", "-p",
-                            "16686:16686", "-p", "14268:14268", "--name", "quarkus_jaeger", "quay.io/jaegertracing/all-in-one:latest"
-                    },
                     { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-H:Log=registerResource:," +
@@ -122,9 +119,6 @@ public enum BuildAndRunCmds {
     ),
     QUARKUS_FULL_MICROPROFILE_PERF(
             new String[][] {
-                    { CONTAINER_RUNTIME, "run", "--rm", "-d", "-p", "4317:4317", "-e", "COLLECTOR_OTLP_ENABLED=true", "-p", "5775:5775/udp", "-p", "6831:6831/udp", "-p", "6832:6832/udp", "-p", "5778:5778", "-p",
-                            "16686:16686", "-p", "14268:14268", "--name", "quarkus_jaeger", "quay.io/jaegertracing/all-in-one:latest"
-                    },
                     { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-H:Log=registerResource:," +
@@ -241,7 +235,7 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { "mvn", "package" },
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
-                            "-t", "--entrypoint", "java",  "-v", BASE_DIR + File.separator + "apps" + File.separator + "jdkreflections:/project:z",
+                            "-t", "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "jdkreflections:/project:z",
                             BUILDER_IMAGE, "--add-opens=java.base/java.lang=ALL-UNNAMED",
                             "-agentlib:native-image-agent=config-output-dir=./target/AGENT", "-cp", "target/jdkreflections.jar", "jdkreflections.Main" },
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
@@ -534,6 +528,15 @@ public enum BuildAndRunCmds {
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "for-serialization:/work:z",
                             ContainerNames.FOR_SERIALIZATION_BUILDER_IMAGE.name, "target/for-serialization" } }
+    ),
+    RUN_JAEGER(
+            new String[][] {},
+            new String[][] {
+                    { CONTAINER_RUNTIME, "run", "--rm", "-d", "-p", "4317:4317", "-e", "COLLECTOR_OTLP_ENABLED=true", "-p", "5775:5775/udp", "-p", "6831:6831/udp", "-p", "6832:6832/udp", "-p",
+                            "5778:5778", "-p",
+                            "16686:16686", "-p", "14268:14268", "--name", "quarkus_jaeger", "quay.io/jaegertracing/all-in-one:latest"
+                    }
+            }
     );
 
     private static String[] hyperfoil() {
