@@ -257,27 +257,30 @@ public enum WhitelistLogLines {
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    // Params quirk, harmless
-                    Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
-                    Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
-                    // Specific Podman version warning about the way we start gdb in an already running container; harmless.
-                    Pattern.compile(".*The --tty and --interactive flags might not work properly.*"),
-                    // Expected part of the app log
-                    Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*"),
-                    // Not sure, definitely not Mandrel related though
-                    Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"),
-                    // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
-                    Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
-                    // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
-                    Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
-                    // Deprecated/to be updated with Rest Easy Reactive
-                    Pattern.compile(".*The option '-H:ReflectionConfigurationResources=META-INF/native-image/io.netty/netty-transport/reflection-config.json' is experimental.*"),
-                    Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"),
-                    // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
-                    // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
-                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*")
-            };
+            final List<Pattern> p = new ArrayList<>();
+            // Params quirk, harmless
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            // Specific Podman version warning about the way we start gdb in an already running container; harmless.
+            p.add(Pattern.compile(".*The --tty and --interactive flags might not work properly.*"));
+            // Expected part of the app log
+            p.add(Pattern.compile(".*'table \"fruits\" does not exist, skipping'.*"));
+            // Not sure, definitely not Mandrel related though
+            p.add(Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"));
+            // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
+            p.add(Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"));
+            // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
+            p.add(Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"));
+            // Deprecated/to be updated with Rest Easy Reactive
+            p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationResources=META-INF/native-image/io.netty/netty-transport/reflection-config.json' is experimental.*"));
+            p.add(Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"));
+            // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+            // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+            p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+            if (QUARKUS_VERSION.majorIs(2)) {
+                p.add(Pattern.compile(".*quarkus-resteasy-mutiny extension is deprecated.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     HELIDON_QUICKSTART_SE {
@@ -310,6 +313,7 @@ public enum WhitelistLogLines {
                     Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
                     // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
                     Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"),
+                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"),
             };
         }
     },
