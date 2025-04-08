@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_MACOS;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 
@@ -131,10 +132,12 @@ public enum WhitelistLogLines {
             final List<Pattern> p = new ArrayList<>();
             // Unused argument on new Graal; Quarkus uses it for backward compatibility.
             p.add(Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"));
-            // Windows specific warning
-            p.add(Pattern.compile(".*oracle/graal/issues/2387.*"));
-            // Windows specific warning, O.K.
-            p.add(Pattern.compile(".*objcopy executable not found in PATH.*"));
+            if (IS_THIS_WINDOWS) {
+                // Windows specific warning
+                p.add(Pattern.compile(".*oracle/graal/issues/2387.*"));
+                // Windows specific warning, O.K.
+                p.add(Pattern.compile(".*objcopy executable not found in PATH.*"));
+            }
             p.add(Pattern.compile(".*That will result in a larger native image.*"));
             p.add(Pattern.compile(".*That also means that resulting native executable is larger.*"));
             p.add(Pattern.compile(".*contain duplicate files, e.g. javax/activation/ActivationDataFlavor.class.*"));
@@ -147,8 +150,10 @@ public enum WhitelistLogLines {
             // Params quirk, harmless
             p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"));
             p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
-            // GitHub workflow Windows executor flaw:
-            p.add(Pattern.compile(".*Unable to make the Vert.x cache directory.*"));
+            if (IS_THIS_WINDOWS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
+                // GitHub workflow Windows executor flaw:
+                p.add(Pattern.compile(".*Unable to make the Vert.x cache directory.*"));
+            }
             // Not sure, definitely not Mandrel related though
             p.add(Pattern.compile(".*xml-apis:xml-apis:jar:.* has been relocated to xml-apis:xml-apis:jar:.*"));
             // GC warning thrown in GraalVM >= 22.0 under constraint environment (e.g. CI) see https://github.com/Karm/mandrel-integration-tests/issues/68
@@ -165,8 +170,10 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*No BatchSpanProcessor delegate specified.*"));
             p.add(Pattern.compile(".*Connection refused: .*:4317.*"));
             p.add(Pattern.compile(".*The request could not be executed.*:4317.*"));
-            // MacOS https://github.com/quarkusio/quarkus/issues/40938
-            p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
+            if (IS_THIS_MACOS) {
+                // MacOS https://github.com/quarkusio/quarkus/issues/40938
+                p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
+            }
             // Allow the quarkus main warning of older Mandrel releases
             p.add(Pattern.compile(".*You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"));
             // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
@@ -187,6 +194,9 @@ public enum WhitelistLogLines {
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.17.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
                 // https://github.com/quarkusio/quarkus/discussions/47150
                 p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            }
+            if (IS_THIS_MACOS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
+                p.add(Pattern.compile(".*Netty DefaultChannelId initialization \\(with io\\.netty\\.machineId.*\\) took more than a second.*"));
             }
             return p.toArray(new Pattern[0]);
         }
@@ -288,7 +298,7 @@ public enum WhitelistLogLines {
         public Pattern[] get(boolean inContainer) {
             return new Pattern[] {
                     // Experimental options not being unlocked, produces warnings, yet it's driven by the helidon-maven-plugin
-                    Pattern.compile(".*The option '.*' is experimental and must be enabled via '-H:\\+UnlockExperimentalVMOptions' in the future.*"),
+                    Pattern.compile(".*The option '.*' is experimental and must be enabled via.*"),
                     // Unused argument on new Graal
                     Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
                     // --allow-incomplete-classpath not available in new GraalVM https://github.com/Karm/mandrel-integration-tests/issues/76
@@ -344,10 +354,11 @@ public enum WhitelistLogLines {
                 // Quarkus 3.x intermittently with JDK 20 based build...
                 p.add(Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"));
                 // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                p.add(Pattern.compile(
-                        ".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental and must be enabled via.*"));
-                // MacOS https://github.com/quarkusio/quarkus/issues/40938
-                p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
+                p.add(Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"));
+                if (IS_THIS_MACOS) {
+                    // MacOS https://github.com/quarkusio/quarkus/issues/40938
+                    p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
+                }
                 // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
                 // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
                 p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));

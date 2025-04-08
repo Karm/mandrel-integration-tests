@@ -148,6 +148,8 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
+          java --version
+          mvn --version
           mvn clean verify -Ptestsuite-builder-image --batch-mode \
               -Dquarkus.version=${{ matrix.quarkus-version }} \
               -Dquarkus.native.builder-image=quay.io/quarkus/${{ matrix.mandrel-builder-base }}-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-version }}
