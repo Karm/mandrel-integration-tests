@@ -21,6 +21,8 @@ env:
   LONG_GOTO_URL_TIMEOUT_MS: 200000
   QUARKUS_NATIVE_CONTAINER_RUNTIME: docker
   QUARKUS_NATIVE_CONTAINER_BUILD: false
+  JAVA_VERSION: 17
+  MAVEN_VERSION: 3.9.9
 
 jobs:
   local-run:
@@ -38,7 +40,7 @@ jobs:
            - quarkus-version: '2.13.9.Final'
              mandrel-version: '22.3.5.0-Final'
              java-version: '17'
-             os: 'ubuntu-20.04'
+             os: 'ubuntu-22.04'
              timeout-minutes: 80
 
            - quarkus-version: '3.2.12.Final'
@@ -49,7 +51,7 @@ jobs:
            - quarkus-version: '3.2.12.Final'
              mandrel-version: '23.0.6.0-Final'
              java-version: '17'
-             os: 'ubuntu-20.04'
+             os: 'ubuntu-22.04'
              timeout-minutes: 130
 
            - quarkus-version: '3.8.6.1'
@@ -60,7 +62,7 @@ jobs:
            - quarkus-version: '3.8.6.1'
              mandrel-version: '23.1.6.0-Final'
              java-version: '21'
-             os: 'ubuntu-20.04'
+             os: 'ubuntu-22.04'
              timeout-minutes: 130
 
            - quarkus-version: '3.15.4'
@@ -71,7 +73,7 @@ jobs:
            - quarkus-version: '3.15.4'
              mandrel-version: '23.1.6.0-Final'
              java-version: '21'
-             os: 'ubuntu-20.04'
+             os: 'ubuntu-22.04'
              timeout-minutes: 130
 
            - quarkus-version: '3.21.0'
@@ -82,7 +84,7 @@ jobs:
            - quarkus-version: '3.21.0'
              mandrel-version: '23.1.6.0-Final'
              java-version: '21'
-             os: 'ubuntu-20.04'
+             os: 'ubuntu-22.04'
              timeout-minutes: 130
 
            - quarkus-version: '3.8.6.1'
@@ -93,7 +95,7 @@ jobs:
            - quarkus-version: '3.8.6.1'
              mandrel-version: '24.0.2.0-Final'
              java-version: '22'
-             os: 'ubuntu-20.04'
+             os: 'ubuntu-22.04'
              timeout-minutes: 130
 
            - quarkus-version: '3.21.0'
@@ -104,7 +106,7 @@ jobs:
            - quarkus-version: '3.21.0'
              mandrel-version: '24.1.2.0-Final'
              java-version: '23'
-             os: 'ubuntu-20.04'
+             os: 'ubuntu-22.04'
              timeout-minutes: 130
 
           #- quarkus-version: '3.21.0'
@@ -115,7 +117,7 @@ jobs:
           #- quarkus-version: '3.21.0'
           #  mandrel-version: '24.2.0.0-Final'
           #  java-version: '24'
-          #  os: 'ubuntu-20.04'
+          #  os: 'ubuntu-22.04'
           #  timeout-minutes: 130
 
            - quarkus-version: '3.21.0'
@@ -137,7 +139,7 @@ jobs:
           #- quarkus-version: '3.21.0'
           #  mandrel-version: '24.2.0.0-Final'
           #  java-version: '24'
-          #  os: 'macos-14'
+          #  os: 'macos-15'
           #  timeout-minutes: 130
 
     steps:
@@ -150,52 +152,61 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ matrix.quarkus-version }}-${{ matrix.os }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ matrix.quarkus-version }}-${{ matrix.os }}-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          check-latest: true
-          maven-version: '3.9.9'
+          restore-keys: ${{ matrix.quarkus-version }}-${{ matrix.os }}-
       - uses: actions/cache@v4
         name: Mandrel installation cached
         id: cache_mandrel
         with:
-          path: |
-            ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
+          path: ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
           key: ${{ matrix.os }}-${{ matrix.java-version }}-${{ matrix.mandrel-version }}
+      - uses: actions/cache@v4
+        name: Maven installation cached
+        id: cache_maven
+        with:
+          path: ${{ github.workspace }}/mymaven
+          key: ${{ matrix.os }}-maven-${{ env.MAVEN_VERSION }}
+      - name: Install Maven Windows
+        if: startsWith(matrix.os, 'windows') && steps.cache_maven.outputs.cache-hit != 'true'
+        run: |
+          $url = "https://archive.apache.org/dist/maven/maven-${{ substring(env.MAVEN_VERSION, 0, 1) }}/${{ env.MAVEN_VERSION }}/binaries/apache-maven-${{ env.MAVEN_VERSION }}-bin.zip"
+          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\apache-maven-${{ env.MAVEN_VERSION }}-bin.zip"
+          Expand-Archive -Path "$env:TEMP\apache-maven-${{ env.MAVEN_VERSION }}-bin.zip" -DestinationPath "${{ github.workspace }}\mymaven"
+          Remove-Item "$env:TEMP\apache-maven-${{ env.MAVEN_VERSION }}-bin.zip"
+        shell: powershell
+      - name: Install Maven Unix (Linux and macOS)
+        if: (startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')) && steps.cache_maven.outputs.cache-hit != 'true'
+        run: |
+          curl -s -O -J "https://archive.apache.org/dist/maven/maven-${{ substring(env.MAVEN_VERSION, 0, 1) }}/${{ env.MAVEN_VERSION }}/binaries/apache-maven-${{ env.MAVEN_VERSION }}-bin.zip"
+          unzip -q ./apache-maven-${{ env.MAVEN_VERSION }}-bin.zip -d ./mymaven
+          rm ./apache-maven-${{ env.MAVEN_VERSION }}-bin.zip
+        shell: bash
       - name: Install Mandrel Windows
         if: startsWith(matrix.os, 'windows') && steps.cache_mandrel.outputs.cache-hit != 'true'
         run: |
-          $url= "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-windows-amd64-${{ matrix.mandrel-version }}.zip"
+          $url = "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-windows-amd64-${{ matrix.mandrel-version }}.zip"
           $wc = New-Object System.Net.WebClient
           $file = $(Split-Path -Path $url -Leaf)
-          Write-Host "Downloading $url to $Env:temp\$file"
           $wc.DownloadFile($url, "$Env:temp\$file")
           Expand-Archive "$Env:temp\$file" -DestinationPath "${{ github.workspace }}"
-          $path=(Get-ChildItem mandrel-*).name
-          move $path ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
+          Move-Item (Get-ChildItem mandrel-*).name ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
         shell: powershell
       - name: Install Mandrel Linux (amd64 and arm64)
-        if: (startsWith(matrix.os, 'ubuntu-20.04') || startsWith(matrix.os, 'ubuntu-22.04')) && steps.cache_mandrel.outputs.cache-hit != 'true'
+        if: (startsWith(matrix.os, 'ubuntu-22.04') || startsWith(matrix.os, 'ubuntu-22.04')) && steps.cache_mandrel.outputs.cache-hit != 'true'
         run: |
           ARCH="amd64"
-          if [[ "${{ matrix.os }}" == "ubuntu-22.04-arm" ]]; then
-            ARCH="aarch64"
-          fi
+          if [[ "${{ matrix.os }}" == "ubuntu-22.04-arm" ]]; then ARCH="aarch64"; fi
           wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-${ARCH}-${{ matrix.mandrel-version }}.tar.gz"
           tar -xf mandrel-java${{ matrix.java-version }}-linux-${ARCH}-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
-          mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
+          mv mandrel-java${{ matrix.java-version }}*-*/ ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
         shell: bash
       - name: Install Mandrel macOS (aarch64)
         if: startsWith(matrix.os, 'macos') && steps.cache_mandrel.outputs.cache-hit != 'true'
         run: |
-          wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz"
+          wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar Hitchcock.gz"
           tar -xf mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
-          mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
+          mv mandrel-java${{ matrix.java-version }}*-*/ ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
         shell: bash
       - name: Windows test
         if: startsWith(matrix.os, 'windows')
@@ -205,21 +216,17 @@ jobs:
         run: |
           set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\;%PATH%
           set PATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\;%PATH%
-          call vcvars64
-          IF NOT %ERRORLEVEL% == 0 ( exit 1 )
+          call vcvars64 || exit 1
           set "GRAALVM_HOME=${{ github.workspace }}\${{ matrix.java-version }}-${{ matrix.mandrel-version }}"
           set "JAVA_HOME=%GRAALVM_HOME%"
-          set "PATH=%JAVA_HOME%\bin;%PATH%"
-          if not exist "%GRAALVM_HOME%\bin\native-image.cmd" (
-            echo "Cannot find native-image tool. Quitting..."
-            exit 1
-          ) else (
-            echo "native-image.cmd is present, good."
-            cmd /C native-image --version
-          )
+          set "MAVEN_HOME=${{ github.workspace }}\mymaven\apache-maven-${{ env.MAVEN_VERSION }}"
+          set "PATH=%MAVEN_HOME%\bin;%JAVA_HOME%\bin;%PATH%"
+          if not exist "%GRAALVM_HOME%\bin\native-image.cmd" ( echo "Cannot find native-image tool. Quitting..." & exit 1 )
+          cmd /C native-image --version
+          mvn --version
           pushd ts
           mkdir ~/.m2
-          copy .github/mvn-settings.xml ~/.m2/settings.xml
+          copy .github\mvn-settings.xml ~/.m2\settings.xml
           mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: cmd
       - name: Linux test (amd64 and arm64)
@@ -232,17 +239,17 @@ jobs:
           sudo apt-get install -y gdb
           export JAVA_HOME=${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
           export GRAALVM_HOME="${JAVA_HOME}"
-          export PATH="${JAVA_HOME}/bin:$PATH"
-          if [[ ! -e "${JAVA_HOME}/bin/native-image" ]]; then
-              echo "Cannot find native-image tool. Quitting..."
-              exit 1
-          fi
+          export MAVEN_HOME=${{ github.workspace }}/mymaven/apache-maven-${{ env.MAVEN_VERSION }}
+          export PATH="${MAVEN_HOME}/bin:${JAVA_HOME}/bin:$PATH"
+          if [[ ! -e "${JAVA_HOME}/bin/native-image" ]]; then echo "Cannot find native-image tool. Quitting..." && exit 1; fi
           native-image --version
+          mvn --version
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
           echo 0 | sudo tee /proc/sys/kernel/perf_event_paranoid
-          mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes -Dquarkus.version=${{ matrix.quarkus-version }}
+          mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes \
+              -Dquarkus.version=${{ matrix.quarkus-version }}
         shell: bash
       - name: macOS test (aarch64)
         if: startsWith(matrix.os, 'macos')
@@ -252,19 +259,14 @@ jobs:
         run: |
           export JAVA_HOME=${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}/Contents/Home
           export GRAALVM_HOME="${JAVA_HOME}"
-          export PATH="${JAVA_HOME}/bin:$PATH"
-          if [[ ! -e "${JAVA_HOME}/bin/native-image" ]]; then
-              echo "Cannot find native-image tool. Quitting..."
-              exit 1
-          fi
+          export MAVEN_HOME=${{ github.workspace }}/mymaven/apache-maven-${{ env.MAVEN_VERSION }}
+          export PATH="${MAVEN_HOME}/bin:${JAVA_HOME}/bin:$PATH"
+          if [[ ! -e "${JAVA_HOME}/bin/native-image" ]]; then echo "Cannot find native-image tool. Quitting..." && exit 1; fi
           native-image --version
+          mvn --version
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          # GHA MacOS runners are VMs, podman would effectively require
-          # nested virtualization, which is not supported here on GHA.
-          # We disable all tests that rely on containers to e.g drive databases etc.
-          # We later WhiteList all benign errors caused by e.g. Jaeger contaienr not running.
           mvn clean verify --batch-mode -Ptestsuite -DincludeTags=reproducers,perfcheck,runtimes \
               -Dquarkus.version=${{ matrix.quarkus-version }} \
               -Dtest=!JFRTest#jfrPerfTest
@@ -277,4 +279,4 @@ jobs:
         if: failure()
         with:
           name: reports-${{ matrix.mandrel-version }}-${{ matrix.java-version }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
-          path: 'test-reports-mandrel-it.tgz'
+          path: test-reports-mandrel-it.tgz

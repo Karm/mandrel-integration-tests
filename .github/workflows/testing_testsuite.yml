@@ -24,7 +24,7 @@ jobs:
       matrix:
         mandrel-version: [ '22.3.5.0-Final', '23.0.6.0-Final' ]
         java-version: [ '17' ]
-        os: [ ubuntu-20.04, windows-2019 ]
+        os: [ ubuntu-22.04, windows-2019 ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -107,7 +107,7 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite -DexcludeTags=all -DincludeTags=testing-testsuite
+          mvn clean verify -Ptestsuite -DexcludeTags=all -DincludeTags=testing-testsuite --batch-mode
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()

@@ -67,7 +67,7 @@ public enum BuildAndRunCmds {
     // export TESTCONTAINERS_RYUK_DISABLED=true
     QUARKUS_MP_ORM_DBS_AWT(
             new String[][] {
-                    { "mvn", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.profile=test",
                             "-DBuildOutputJSONFile=" + GRAALVM_BUILD_OUTPUT_JSON_FILE,
                             "-DUnlockExperimentalBEGIN=" + GRAALVM_EXPERIMENTAL_BEGIN,
@@ -80,7 +80,7 @@ public enum BuildAndRunCmds {
     ),
     QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT(
             new String[][] {
-                    { "mvn", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
 
                             "-Dquarkus.native.container-build=true",
                             "-Dquarkus.container-image.build=true",
@@ -99,7 +99,7 @@ public enum BuildAndRunCmds {
     ),
     QUARKUS_FULL_MICROPROFILE(
             new String[][] {
-                    { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-H:Log=registerResource:," +
                                     "--trace-object-instantiation=java.util.Random"
@@ -109,24 +109,24 @@ public enum BuildAndRunCmds {
     ),
     DEBUG_QUARKUS_FULL_MICROPROFILE(
             new String[][] {
-                    { "mvn", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-H:Log=registerResource:," +
                                     "--trace-object-instantiation=java.util.Random"
                     },
-                    { "mvn", "dependency:resolve-sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
+                    { "mvn", "--batch-mode", "dependency:resolve-sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
             new String[][] { { IS_THIS_WINDOWS ? "target\\quarkus-runner.exe" : "./target/quarkus-runner" } }
     ),
     QUARKUS_FULL_MICROPROFILE_PERF(
             new String[][] {
-                    { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-H:Log=registerResource:," +
                                     "--trace-object-instantiation=java.util.Random," +
                                     "-R:MaxHeapSize=" + MX_HEAP_MB + "m" +
                                     GRAALVM_BUILD_OUTPUT_JSON_FILE
                     },
-                    { "mvn", "package", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
+                    { "mvn", "--batch-mode", "package", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
             new String[][] {
                     // GC: https://github.com/Karm/mandrel-integration-tests/pull/127#discussion_r1066802872
                     // -XX:+UseShenandoahGC
@@ -140,19 +140,19 @@ public enum BuildAndRunCmds {
     QUARKUS_JSON_PERF_PARSEONCE(
             new String[][] {
                     // TODO tune and report: https://www.graalvm.org/22.0/reference-manual/native-image/MemoryManagement/
-                    { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
                                     "-H:-ParseOnce" +
                                     GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
                             "-Dcustom.final.name=quarkus-json_-ParseOnce" },
-                    { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-R:MaxHeapSize=" + MX_HEAP_MB + "m," +
                                     "-H:+ParseOnce" +
                                     GRAALVM_BUILD_OUTPUT_JSON_FILE + "+ParseOnce",
                             "-Dcustom.final.name=quarkus-json_+ParseOnce" },
-                    { "mvn", "package", "-Dcustom.final.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
+                    { "mvn", "--batch-mode", "package", "-Dcustom.final.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
             new String[][] {
                     //-XX:+UseShenandoahGC
                     //-XX:+UseSerialGC
@@ -164,19 +164,19 @@ public enum BuildAndRunCmds {
     QUARKUS_JSON_PERF(
             new String[][] {
                     // TODO tune and report: https://www.graalvm.org/22.0/reference-manual/native-image/MemoryManagement/
-                    { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
                                     "-R:MaxHeapSize=" + MX_HEAP_MB + "m" +
                                     GRAALVM_BUILD_OUTPUT_JSON_FILE,
                             "-Dcustom.final.name=quarkus-json" },
-                    { "mvn", "package", "-Dcustom.final.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
+                    { "mvn", "--batch-mode", "package", "-Dcustom.final.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
             new String[][] {
                     { "perf", "stat", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
                     { "perf", "stat", "--delay", "1000", "./target/quarkus-json-runner", "-XX:+PrintGC" } }
     ),
     QUARKUS_BUILDER_IMAGE_ENCODING(
             new String[][] {
-                    { "mvn", "package", "-Pnative", "-Dquarkus.native.container-build=true",
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() },
                     { CONTAINER_RUNTIME, "build", "-f", "src/main/docker/Dockerfile.native", "-t", "my-quarkus-mandrel-app", "." } },
@@ -187,8 +187,8 @@ public enum BuildAndRunCmds {
     ),
     DEBUG_QUARKUS_BUILDER_IMAGE_VERTX(
             new String[][] {
-                    { "mvn", "dependency:resolve-sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() },
-                    { "mvn", "package", "-Pnative", "-Dquarkus.native.container-build=true",
+                    { "mvn", "--batch-mode", "dependency:resolve-sources", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() },
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE,
                             "-Dquarkus.native.debug.enabled=true", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() },
@@ -202,27 +202,27 @@ public enum BuildAndRunCmds {
     ),
     RANDOM_NUMBERS(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "native-image", "-jar", "target/random-numbers.jar", "target/random-numbers" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\random-numbers.exe" : "./target/random-numbers" } }
     ),
     HELIDON_QUICKSTART_SE(
             new String[][] {
-                    { "mvn", "package" } },
+                    { "mvn", "--batch-mode", "package" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\helidon-quickstart-se.exe" : "./target/helidon-quickstart-se" } }
     ),
     TIMEZONES(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "native-image", LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_TOKEN_2, "-jar", "target/timezones.jar", "target/timezones" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\timezones.exe" : "./target/timezones" } }
     ),
     JDK_REFLECTIONS(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "java", "--add-opens=java.base/java.lang=ALL-UNNAMED", "-agentlib:native-image-agent=config-output-dir=./target/AGENT",
                             "-cp", "target/jdkreflections.jar", "jdkreflections.Main" },
                     { "native-image", "-J--add-opens=java.base/java.lang=ALL-UNNAMED", "-H:ConfigurationFileDirectories=./target/AGENT",
@@ -233,7 +233,7 @@ public enum BuildAndRunCmds {
     ),
     JDK_REFLECTIONS_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "jdkreflections:/project:z",
                             BUILDER_IMAGE, "--add-opens=java.base/java.lang=ALL-UNNAMED",
@@ -248,28 +248,28 @@ public enum BuildAndRunCmds {
     ),
     CALENDARS(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "native-image", "--link-at-build-time=calendar.Main", "-jar", "target/calendars.jar", "target/calendars" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\calendars.exe" : "./target/calendars" } }
     ),
     RECORDANNOTATIONS(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "native-image", "--no-fallback", "-jar", "target/recordannotations.jar", "target/recordannotations" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\recordannotations.exe" : "./target/recordannotations" } }
     ),
     VERSIONS(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "native-image", "--features=org.graalvm.home.HomeFinderFeature", "-jar", "target/version.jar", "target/version" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\version.exe" : "./target/version" } }
     ),
     IMAGEIO(
             new String[][] {
-                    { "mvn", "clean", "package" },
+                    { "mvn", "--batch-mode", "clean", "package" },
                     { "java", "-Djava.awt.headless=true", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar" },
                     { "jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF" },
                     { "native-image", UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
@@ -280,7 +280,7 @@ public enum BuildAndRunCmds {
     IMAGEIO_BUILDER_IMAGE(
             new String[][] {
                     // Bring Your Own Maven (not a part of the builder image toolchain)
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     // TODO: Ad -u: Test access rights with -u on Windows, Docker Desktop Hyper-V backend vs. WSL2 backend.
                     // Java from Builder image container is used for the sake of consistence.
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
@@ -308,7 +308,7 @@ public enum BuildAndRunCmds {
     ),
     DEBUG_SYMBOLS_SMOKE(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     IS_THIS_WINDOWS ?
                             new String[] { "powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
                             : new String[] { "unzip", "test_data.txt.zip", "-d", "target" },
@@ -331,7 +331,7 @@ public enum BuildAndRunCmds {
                     // should generally be using for now so I decided it was best to test that one.
                     // I don't think the difference between the two will be that huge anyway though.
                     // Source: https://github.com/Karm/mandrel-integration-tests/pull/179#discussion_r1295933521
-                    { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr",
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr",
                             "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler",
                             "-DfinalName=jfr-perf" } },
             new String[][] {
@@ -343,7 +343,7 @@ public enum BuildAndRunCmds {
     ),
     PLAINTEXT_PERFORMANCE(
             new String[][] {
-                    { "mvn", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-DfinalName=jfr-plaintext" } },
             new String[][] {
                     { "./target/jfr-plaintext-runner" },
@@ -351,7 +351,7 @@ public enum BuildAndRunCmds {
     ),
     JFR_PERFORMANCE_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
+                    { "mvn", "--batch-mode", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr",
                             "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler",
@@ -370,7 +370,7 @@ public enum BuildAndRunCmds {
     ),
     PLAINTEXT_PERFORMANCE_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
+                    { "mvn", "--batch-mode", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-DfinalName=jfr-plaintext" },
@@ -385,7 +385,7 @@ public enum BuildAndRunCmds {
     ),
     JFR_SMOKE(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     IS_THIS_WINDOWS ?
                             new String[] { "powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
                             : new String[] { "unzip", "test_data.txt.zip", "-d", "target" },
@@ -404,7 +404,7 @@ public enum BuildAndRunCmds {
     ),
     JFR_SMOKE_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "unzip", "test_data.txt.zip", "-d", "target" },
                     { CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
@@ -432,12 +432,12 @@ public enum BuildAndRunCmds {
     ),
     JFR_OPTIONS(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/timezones.jar", "target/timezones" }/* @see JFRTest.java */ }
     ),
     JFR_OPTIONS_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "timezones:/project:z",
                             "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
@@ -445,7 +445,7 @@ public enum BuildAndRunCmds {
     ),
     RESLOCATIONS(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "native-image", "--initialize-at-build-time=.", "--no-fallback",
                             "-J--add-opens=java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED",
                             "-J--add-exports=java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED",
@@ -455,7 +455,7 @@ public enum BuildAndRunCmds {
     ),
     MONITOR_OFFSET_OK(
             new String[][] {
-                    { "mvn", "package", "-POK" },
+                    { "mvn", "--batch-mode", "package", "-POK" },
                     { "native-image", "-R:-InstallSegfaultHandler", "-march=native", "--gc=serial", "--no-fallback",
                             "-jar", "target/monitor-field-offsets-ok.jar", "target/monitor-field-offsets-ok" } },
             new String[][] {
@@ -463,13 +463,13 @@ public enum BuildAndRunCmds {
     ),
     MONITOR_OFFSET_NOK(
             new String[][] {
-                    { "mvn", "package", "-PNOK" },
+                    { "mvn", "--batch-mode", "package", "-PNOK" },
                     { "native-image", "-R:-InstallSegfaultHandler", "-march=native", "--gc=serial", "--no-fallback",
                             "-jar", "target/monitor-field-offsets-nok.jar", "target/monitor-field-offsets-nok" } }
     ),
     MONITOR_OFFSET_OK_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "package", "-POK" },
+                    { "mvn", "--batch-mode", "package", "-POK" },
                     { CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "monitor-field-offset:/project:z",
                             "--name", ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE.name,
@@ -483,7 +483,7 @@ public enum BuildAndRunCmds {
     ),
     MONITOR_OFFSET_NOK_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "package", "-PNOK" },
+                    { "mvn", "--batch-mode", "package", "-PNOK" },
                     { CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "monitor-field-offset:/project:z",
                             "--name", ContainerNames.MONITOR_OFFSET_BUILDER_IMAGE.name,
@@ -492,7 +492,7 @@ public enum BuildAndRunCmds {
     ),
     FOR_SERIALIZATION(
             new String[][] {
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     { "java", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image",
                             "-jar", "target/for-serialization.jar" },
                     { "native-image", "-ea", "-march=native", "--no-fallback", "--link-at-build-time",
@@ -505,7 +505,7 @@ public enum BuildAndRunCmds {
     FOR_SERIALIZATION_BUILDER_IMAGE(
             new String[][] {
                     // Maven build
-                    { "mvn", "package" },
+                    { "mvn", "--batch-mode", "package" },
                     // Collect agent info
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "for-serialization:/project:z",
