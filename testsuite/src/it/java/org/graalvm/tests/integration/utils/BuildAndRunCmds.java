@@ -260,13 +260,6 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\recordannotations.exe" : "./target/recordannotations" } }
     ),
-    VERSIONS(
-            new String[][] {
-                    { "mvn", "--batch-mode", "package" },
-                    { "native-image", "--features=org.graalvm.home.HomeFinderFeature", "-jar", "target/version.jar", "target/version" } },
-            new String[][] {
-                    { IS_THIS_WINDOWS ? "target\\version.exe" : "./target/version" } }
-    ),
     IMAGEIO(
             new String[][] {
                     { "mvn", "--batch-mode", "clean", "package" },

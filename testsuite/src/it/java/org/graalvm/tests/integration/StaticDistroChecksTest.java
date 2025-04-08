@@ -69,17 +69,15 @@ public class StaticDistroChecksTest {
             final List<String> cpyCmd;
             if (IS_THIS_WINDOWS) {
                 cpyCmd = List.of("xcopy", graalHome.toString(), graalHomeSpace.toString(), "/E", "/H", "/B", "/Q", "/I");
-            } else if (IS_THIS_MACOS) {
-                cpyCmd = List.of("cp", "-Rp", graalHome + File.separator, graalHomeSpace.toString());
             } else {
-                cpyCmd = List.of("cp", "-Rpd", graalHome.toString(), graalHomeSpace.toString());
+                cpyCmd = List.of("cp", IS_THIS_MACOS ? "-Rp" : "-Rpd", graalHome + File.separator + ".", graalHomeSpace.toString());
             }
             LOGGER.infof("COPY command: %s", cpyCmd);
             LOGGER.infof("COPY output: %s", runCommand(cpyCmd));
             assertTrue(Files.exists(graalHomeSpaceBin.toPath()), graalHomeSpaceBin + " does not exist");
             final String result = runCommand(IS_THIS_WINDOWS ?
                             List.of("cmd", "/C", "native-image", "--version") :
-                            List.of("sh", "native-image", "--version")
+                            List.of("bash", "native-image", "--version")
                     , graalHomeSpaceBin,
                     Map.of("GRAALVM_HOME", graalHomeSpace.toString(),
                             "PATH", graalHomeSpaceBin.getAbsolutePath() + File.pathSeparator + System.getenv("PATH")));
