@@ -188,6 +188,13 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
                 p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
+                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.21.3")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0.*"));
+                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory will be removed in a future release.*"));
+                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0.*"));
+                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class org.jboss.threads.JBossExecutors.*"));
+                    p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
+                }
             }
             // Ignore INFO message about class containing Error in its name
             p.add(Pattern.compile(".*\\[INFO\\] Can't extract module name from .*JsonMissingMessageBodyReaderErrorMessageContextualizer.*"));
@@ -261,6 +268,22 @@ public enum WhitelistLogLines {
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.20.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
                 p.add(Pattern.compile(".*org.jboss.resteasy.reactive.MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
             }
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
+                // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
+                p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
+                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.21.3")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0.*"));
+                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory will be removed in a future release.*"));
+                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0.*"));
+                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class org.jboss.threads.JBossExecutors.*"));
+                    p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
+                    p.add(Pattern.compile(".*java.lang.System::load has been called by com.sun.jna.Native in.*net/java/dev/jna.*"));
+                }
+            }
             return p.toArray(new Pattern[0]);
         }
     },
@@ -290,6 +313,14 @@ public enum WhitelistLogLines {
             if (QUARKUS_VERSION.majorIs(2)) {
                 p.add(Pattern.compile(".*quarkus-resteasy-mutiny extension is deprecated.*"));
             }
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
+                // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
+                p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
+            }
             return p.toArray(new Pattern[0]);
         }
     },
@@ -313,24 +344,33 @@ public enum WhitelistLogLines {
     QUARKUS_BUILDER_IMAGE_ENCODING {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    // Params quirk, harmless
-                    Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"),
-                    Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"),
-                    // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
-                    Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"),
-                    // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
-                    Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"),
-                    // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                    Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"),
-                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"),
-            };
+            final List<Pattern> p = new ArrayList<>();
+            // Params quirk, harmless
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
+            p.add(Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"));
+            // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
+            p.add(Pattern.compile(".*io.quarkus.deployment.OutputFilter.*Stream is closed, ignoring and trying to continue.*"));
+            // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
+            p.add(Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"));
+            p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
+                // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
+                p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     JFR {
         @Override
         public Pattern[] get(boolean inContainer) {
             final List<Pattern> p = new ArrayList<>();
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) <= 0) {
                 // https://github.com/oracle/graal/issues/3636
                 p.add(Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"));

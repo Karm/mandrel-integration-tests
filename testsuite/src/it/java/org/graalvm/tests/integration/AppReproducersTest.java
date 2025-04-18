@@ -61,6 +61,7 @@ import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimen
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
+import static org.graalvm.tests.integration.utils.Commands.ARCH;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
@@ -72,6 +73,7 @@ import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.searchLogLines;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
+import static org.graalvm.tests.integration.utils.versions.UsedVersion.getVersion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -345,8 +347,15 @@ public class AppReproducersTest {
     }
 
     public void imageioAWT(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
-        LOGGER.info("Testing app: " + app.toString());
-
+        final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+        if ("aarch64".equalsIgnoreCase(ARCH) &&
+                (getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) &&
+                (getVersion(inContainer).compareTo(Version.create(25, 0, 0)) <= 0)) {
+            LOGGER.warn("Support for the Foreign Function and Memory API is currently available only on the AMD64 architecture.");
+            LOGGER.warn("Skipping testing app: " + app);
+            return;
+        }
+        LOGGER.info("Testing app: " + app);
         final Map<String, String> controlData = new HashMap<>(12);
         Process process = null;
         File processLog = null;
@@ -415,7 +424,6 @@ public class AppReproducersTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             // Test output
-            final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
             controlData.forEach((fileName, hash) -> {
                 final File picture = new File(appDir, fileName);
                 if (picture.exists() && picture.isFile()) {
@@ -465,10 +473,10 @@ public class AppReproducersTest {
             expected.add("libnet.a");
             expected.add("libnio.a");
             expected.add("libzip.a");
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
                 expected.add("libsvm_container.a");
             }
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
                 // The set of static libs for imageio is smaller beginning with Mandrel 23+ as
                 // it has dynamic AWT support.
                 expected.remove("libawt_headless.a");
@@ -545,7 +553,7 @@ public class AppReproducersTest {
 
             Map<String, String> switches = null;
             final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
                 // Locale inclusion for Mandrel 24.2 ignores -Duser.language and -Duser.country settings
                 // at build time.
                 switches = Map.of(LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_POST_24_2_0,
@@ -558,7 +566,7 @@ public class AppReproducersTest {
 
             LOGGER.info("Running...");
             List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
                 // Mandrel 24.2 needs the desired language set at runtime
                 cmd.add(EXTRA_TZONES_OPTS);
             }
@@ -1000,7 +1008,7 @@ public class AppReproducersTest {
 
     private static Map<String, String> getSwitches(Apps app) {
         final Map<String, String> switches = new HashMap<>();
-        final Version version = UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE);
+        final Version version = getVersion(app.runtimeContainer != ContainerNames.NONE);
         if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
             switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
             switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);

@@ -109,38 +109,38 @@ jobs:
               os: 'ubuntu-22.04'
               timeout-minutes: 130
 
-           #- quarkus-version: '3.21.0'
-           #  mandrel-version: '24.2.0.0-Final'
-           #  java-version: '24'
-           #  os: 'windows-2022'
-           #  timeout-minutes: 80
-           #- quarkus-version: '3.21.0'
-           #  mandrel-version: '24.2.0.0-Final'
-           #  java-version: '24'
-           #  os: 'ubuntu-22.04'
-           #  timeout-minutes: 130
+            - quarkus-version: '3.22.0.CR1'
+              mandrel-version: '24.2.0.0-Final'
+              java-version: '24'
+              os: 'windows-2022'
+              timeout-minutes: 80
+            - quarkus-version: '3.22.0.CR1'
+              mandrel-version: '24.2.0.0-Final'
+              java-version: '24'
+              os: 'ubuntu-22.04'
+              timeout-minutes: 130
 
             - quarkus-version: '3.21.0'
               mandrel-version: '23.1.6.0-Final'
               java-version: '21'
               os: 'ubuntu-22.04-arm'
               timeout-minutes: 130
-           #- quarkus-version: '3.21.0'
-           #  mandrel-version: '24.2.0.0-Final'
-           #  java-version: '24'
-           #  os: 'ubuntu-22.04-arm'
-           #  timeout-minutes: 130
+            - quarkus-version: '3.22.0.CR1'
+              mandrel-version: '24.2.0.0-Final'
+              java-version: '24'
+              os: 'ubuntu-22.04-arm'
+              timeout-minutes: 130
 
             - quarkus-version: '3.21.0'
               mandrel-version: '23.1.6.0-Final'
               java-version: '21'
               os: 'macos-15'
               timeout-minutes: 130
-           #- quarkus-version: '3.21.0'
-           #  mandrel-version: '24.2.0.0-Final'
-           #  java-version: '24'
-           #  os: 'macos-15'
-           #  timeout-minutes: 130
+            - quarkus-version: '3.22.0.CR1'
+              mandrel-version: '24.2.0.0-Final'
+              java-version: '24'
+              os: 'macos-15'
+              timeout-minutes: 130
 
     steps:
       - uses: actions/checkout@v4
@@ -207,7 +207,7 @@ jobs:
       - name: Install Mandrel macOS (aarch64)
         if: startsWith(matrix.os, 'macos') && steps.cache_mandrel.outputs.cache-hit != 'true'
         run: |
-          wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar Hitchcock.gz"
+          wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz"
           tar -xf mandrel-java${{ matrix.java-version }}-macos-aarch64-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
           mv mandrel-java${{ matrix.java-version }}*-*/ ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}

@@ -89,6 +89,7 @@ public class Commands {
 
     public static final boolean IS_THIS_WINDOWS = System.getProperty("os.name").matches(".*[Ww]indows.*");
     public static final boolean IS_THIS_MACOS = System.getProperty("os.name").matches(".*[Mm]ac.*");
+    public static String ARCH = System.getProperty("os.arch");
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
     private static final Pattern CONTAINER_STATS_MEMORY = Pattern.compile("(?:table)?[ \t]*([0-9\\.]+)([a-zA-Z]+).*");
