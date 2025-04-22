@@ -3,6 +3,8 @@ name: Mandrel Builder Image
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths-ignore:
       - 'LICENSE'
       - '**.md'
@@ -18,38 +20,102 @@ env:
   CMD_LONG_TIMEOUT_MS: 180000
   LONG_GOTO_URL_TIMEOUT_MS: 200000
   QUARKUS_NATIVE_CONTAINER_RUNTIME: docker
+  JAVA_VERSION: 17
+  MAVEN_VERSION: 3.9.9
 
 jobs:
   local-run:
-    name: ${{ matrix.mandrel-builder-image }} - ${{ matrix.os }} - ${{ matrix.quarkus-version }}
+    name: ${{ matrix.mandrel-builder-version }}-${{ matrix.mandrel-builder-base }} - ${{ matrix.quarkus-version }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04 ]
         include:
-          - quarkus-version: '2.13.3.Final'
-            mandrel-builder-image: '21.3-java11'
-          - quarkus-version: '2.13.3.Final'
-            mandrel-builder-image: '21.3-java17'
           - quarkus-version: '2.13.9.Final'
-            mandrel-builder-image: '22.3-java17'
+            mandrel-builder-version: '22.3-java17'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+
           - quarkus-version: '2.16.12.Final'
-            mandrel-builder-image: '22.3-java17'
+            mandrel-builder-version: '22.3-java17'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+
           - quarkus-version: '3.2.12.Final'
-            mandrel-builder-image: 'jdk-17'
-          - quarkus-version: '3.5.3'
-            mandrel-builder-image: 'jdk-21'
-          - quarkus-version: '3.6.0'
-            mandrel-builder-image: 'jdk-21'
-          - quarkus-version: '3.8.4'
-            mandrel-builder-image: 'jdk-21'
-          - quarkus-version: '3.9.5'
-            mandrel-builder-image: 'jdk-21'
-          - quarkus-version: '3.9.5'
-            mandrel-builder-image: 'jdk-22'
-          - quarkus-version: '3.10.0'
-            mandrel-builder-image: 'jdk-22'
+            mandrel-builder-version: 'jdk-17'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+          - quarkus-version: '3.2.12.Final'
+            mandrel-builder-version: 'jdk-17'
+            mandrel-builder-base: 'ubi9'
+            os: 'ubuntu-24.04'
+
+          - quarkus-version: '3.8.6.1'
+            mandrel-builder-version: 'jdk-21'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+
+          - quarkus-version: '3.15.4'
+            mandrel-builder-version: 'jdk-21'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+
+          - quarkus-version: '3.20.0'
+            mandrel-builder-version: 'jdk-21'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+
+          - quarkus-version: '3.21.0'
+            mandrel-builder-version: 'jdk-21'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+          - quarkus-version: '3.21.0'
+            mandrel-builder-version: 'jdk-21'
+            mandrel-builder-base: 'ubi9'
+            os: 'ubuntu-24.04'
+          - quarkus-version: '3.21.0'
+            mandrel-builder-version: 'jdk-21'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04-arm'
+          - quarkus-version: '3.21.0'
+            mandrel-builder-version: 'jdk-21'
+            mandrel-builder-base: 'ubi9'
+            os: 'ubuntu-24.04-arm'
+
+          - quarkus-version: '3.8.6.1'
+            mandrel-builder-version: 'jdk-22'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+          - quarkus-version: '3.8.6.1'
+            mandrel-builder-version: 'jdk-22'
+            mandrel-builder-base: 'ubi9'
+            os: 'ubuntu-24.04'
+
+          - quarkus-version: '3.21.0'
+            mandrel-builder-version: 'jdk-23'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+          - quarkus-version: '3.21.0'
+            mandrel-builder-version: 'jdk-23'
+            mandrel-builder-base: 'ubi9'
+            os: 'ubuntu-24.04'
+
+          - quarkus-version: '3.22.0.CR1'
+            mandrel-builder-version: 'jdk-24'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04'
+          - quarkus-version: '3.22.0.CR1'
+            mandrel-builder-version: 'jdk-24'
+            mandrel-builder-base: 'ubi9'
+            os: 'ubuntu-24.04'
+          - quarkus-version: '3.22.0.CR1'
+            mandrel-builder-version: 'jdk-24'
+            mandrel-builder-base: 'ubi'
+            os: 'ubuntu-22.04-arm'
+          - quarkus-version: '3.22.0.CR1'
+            mandrel-builder-version: 'jdk-24'
+            mandrel-builder-base: 'ubi9'
+            os: 'ubuntu-24.04-arm'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,9 +131,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           check-latest: true
-          maven-version: '3.9.9'
       - name: Linux test
         if: startsWith(matrix.os, 'ubuntu')
         timeout-minutes: 55
@@ -76,12 +141,18 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y gdb
+          curl -s -O -J "https://archive.apache.org/dist/maven/maven-${MAVEN_VERSION:0:1}/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
+          unzip ./apache-maven-${MAVEN_VERSION}-bin.zip -d ./mymaven
+          export MAVEN_HOME=$(pwd)/mymaven/apache-maven-${MAVEN_VERSION}
+          export PATH=${MAVEN_HOME}/bin:${PATH}
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
+          java --version
+          mvn --version
           mvn clean verify -Ptestsuite-builder-image --batch-mode \
               -Dquarkus.version=${{ matrix.quarkus-version }} \
-              -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-image }}
+              -Dquarkus.native.builder-image=quay.io/quarkus/${{ matrix.mandrel-builder-base }}-quarkus-mandrel-builder-image:${{ matrix.mandrel-builder-version }}
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()
@@ -90,5 +161,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: reports-${{ matrix.mandrel-builder-image }}-${{ matrix.quarkus-version }}-${{ matrix.os }}
+          name: reports-${{ matrix.mandrel-builder-version }}-${{ matrix.quarkus-version }}-${{ matrix.mandrel-builder-base }}-${{ matrix.os }}
           path: 'test-reports-mandrel-it.tgz'

@@ -61,6 +61,7 @@ import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimen
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
+import static org.graalvm.tests.integration.utils.Commands.ARCH;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
@@ -72,6 +73,7 @@ import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.searchLogLines;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
+import static org.graalvm.tests.integration.utils.versions.UsedVersion.getVersion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -154,171 +156,6 @@ public class AppReproducersTest {
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
         }
-    }
-
-    @Test
-    @Tag("resources")
-    @IfMandrelVersion(min = "21.3", max = "21.999")
-    public void resLocationsA(TestInfo testInfo) throws IOException, InterruptedException {
-        final String expectedOutput = "" +
-                "Resources folders:\n" +
-                "0:  N/A\n" +
-                "1:  N/A\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  NO_SLASH FOLDER\n" +
-                "5:  NO_SLASH FOLDER\n" +
-                "6:  NO_SLASH FOLDER\n" +
-                "7:  NO_SLASH FOLDER\n" +
-                "8:  N/A\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: N/A\n" +
-                "\n" +
-                "iio-plugin.properties:\n" +
-                "0:  N/A\n" +
-                "1:  APP\n" +
-                "2:  N/A\n" +
-                "3:  JDK\n" +
-                "4:  JDK\n" +
-                "5:  APP\n" +
-                "6:  N/A\n" +
-                "7:  JDK\n" +
-                "8:  JDK\n" +
-                "9:  APP\n" +
-                "10: N/A\n" +
-                "11: JDK\n" +
-                "12: APP\n" +
-                "13: N/A\n" +
-                "14: JDK\n" +
-                "15: N/A\n" +
-                "16: JDK\n" +
-                "17: APP\n" +
-                "18: N/A\n" +
-                "19: JDK\n" +
-                "20: JDK\n" +
-                "21: APP\n" +
-                "22: N/A\n" +
-                "23: JDK\n" +
-                "24: JDK\n" +
-                "25: APP\n" +
-                "26: N/A\n" +
-                "27: JDK\n" +
-                "28: APP\n" +
-                "29: N/A\n" +
-                "30: JDK\n" +
-                "31: N/A\n";
-        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
-    }
-
-    @Test
-    @Tag("resources")
-    @IfMandrelVersion(min = "22.0", max = "22.0")
-    public void resLocationsB(TestInfo testInfo) throws IOException, InterruptedException {
-        final String expectedOutput = "" +
-                "Resources folders:\n" +
-                "0:  N/A\n" +
-                "1:  N/A\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  NO_SLASH FOLDER\n" +
-                "5:  NO_SLASH FOLDER\n" +
-                "6:  NO_SLASH FOLDER\n" +
-                "7:  NO_SLASH FOLDER\n" +
-                "8:  N/A\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: N/A\n" +
-                "\n" +
-                "iio-plugin.properties:\n" +
-                "0:  N/A\n" +
-                "1:  APP\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  JDK\n" +
-                "5:  N/A\n" +
-                "6:  N/A\n" +
-                "7:  JDK\n" +
-                "8:  JDK\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: JDK\n" +
-                "12: APP\n" +
-                "13: N/A\n" +
-                "14: N/A\n" +
-                "15: N/A\n" +
-                "16: JDK\n" +
-                "17: N/A\n" +
-                "18: N/A\n" +
-                "19: JDK\n" +
-                "20: JDK\n" +
-                "21: N/A\n" +
-                "22: N/A\n" +
-                "23: JDK\n" +
-                "24: JDK\n" +
-                "25: N/A\n" +
-                "26: N/A\n" +
-                "27: JDK\n" +
-                "28: N/A\n" +
-                "29: N/A\n" +
-                "30: JDK\n" +
-                "31: N/A\n";
-        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
-    }
-
-    @Test
-    @Tag("resources")
-    @IfMandrelVersion(min = "22.1", max = "22.2")
-    public void resLocationsC(TestInfo testInfo) throws IOException, InterruptedException {
-        final String expectedOutput = "" +
-                "Resources folders:\n" +
-                "0:  N/A\n" +
-                "1:  N/A\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  NO_SLASH FOLDER\n" +
-                "5:  SLASH FOLDER\n" +
-                "6:  N/A\n" +
-                "7:  N/A\n" +
-                "8:  N/A\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: N/A\n" +
-                "\n" +
-                "iio-plugin.properties:\n" +
-                "0:  N/A\n" +
-                "1:  APP\n" +
-                "2:  N/A\n" +
-                "3:  N/A\n" +
-                "4:  JDK\n" +
-                "5:  N/A\n" +
-                "6:  N/A\n" +
-                "7:  JDK\n" +
-                "8:  JDK\n" +
-                "9:  N/A\n" +
-                "10: N/A\n" +
-                "11: JDK\n" +
-                "12: APP\n" +
-                "13: N/A\n" +
-                "14: N/A\n" +
-                "15: N/A\n" +
-                "16: JDK\n" +
-                "17: N/A\n" +
-                "18: N/A\n" +
-                "19: JDK\n" +
-                "20: JDK\n" +
-                "21: N/A\n" +
-                "22: N/A\n" +
-                "23: JDK\n" +
-                "24: JDK\n" +
-                "25: N/A\n" +
-                "26: N/A\n" +
-                "27: JDK\n" +
-                "28: N/A\n" +
-                "29: N/A\n" +
-                "30: JDK\n" +
-                "31: N/A\n";
-        resLocations(testInfo, Apps.RESLOCATIONS, expectedOutput);
     }
 
     /**
@@ -510,8 +347,15 @@ public class AppReproducersTest {
     }
 
     public void imageioAWT(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
-        LOGGER.info("Testing app: " + app.toString());
-
+        final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+        if ("aarch64".equalsIgnoreCase(ARCH) &&
+                (getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) &&
+                (getVersion(inContainer).compareTo(Version.create(25, 0, 0)) <= 0)) {
+            LOGGER.warn("Support for the Foreign Function and Memory API is currently available only on the AMD64 architecture.");
+            LOGGER.warn("Skipping testing app: " + app);
+            return;
+        }
+        LOGGER.info("Testing app: " + app);
         final Map<String, String> controlData = new HashMap<>(12);
         Process process = null;
         File processLog = null;
@@ -580,7 +424,6 @@ public class AppReproducersTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             // Test output
-            final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
             controlData.forEach((fileName, hash) -> {
                 final File picture = new File(appDir, fileName);
                 if (picture.exists() && picture.isFile()) {
@@ -630,10 +473,10 @@ public class AppReproducersTest {
             expected.add("libnet.a");
             expected.add("libnio.a");
             expected.add("libzip.a");
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
                 expected.add("libsvm_container.a");
             }
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
                 // The set of static libs for imageio is smaller beginning with Mandrel 23+ as
                 // it has dynamic AWT support.
                 expected.remove("libawt_headless.a");
@@ -710,7 +553,7 @@ public class AppReproducersTest {
 
             Map<String, String> switches = null;
             final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
                 // Locale inclusion for Mandrel 24.2 ignores -Duser.language and -Duser.country settings
                 // at build time.
                 switches = Map.of(LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_POST_24_2_0,
@@ -723,7 +566,7 @@ public class AppReproducersTest {
 
             LOGGER.info("Running...");
             List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
+            if (getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
                 // Mandrel 24.2 needs the desired language set at runtime
                 cmd.add(EXTRA_TZONES_OPTS);
             }
@@ -1080,52 +923,6 @@ public class AppReproducersTest {
     }
 
     @Test
-    @Tag("versions")
-    @IfMandrelVersion(max = "23.0.99") // Skip it for 23.1+. It has the graal-sdk split and mandrel no longer includes polyglot.jar
-    public void versionsParsingMandrel(TestInfo testInfo) throws IOException, InterruptedException {
-        final Apps app = Apps.VERSIONS;
-        LOGGER.info("Testing app: " + app);
-        Process process = null;
-        File processLog = null;
-        final StringBuilder report = new StringBuilder();
-        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
-        final String cn = testInfo.getTestClass().get().getCanonicalName();
-        final String mn = testInfo.getTestMethod().get().getName();
-        try {
-            // Cleanup
-            cleanTarget(app);
-            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
-
-            // Build
-            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-
-            builderRoutine(app, report, cn, mn, appDir, processLog);
-
-            LOGGER.info("Running...");
-            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
-            process = runCommand(cmd, appDir, processLog, app);
-            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
-            process.waitFor(5, TimeUnit.SECONDS);
-            Logs.appendln(report, appDir.getAbsolutePath());
-            Logs.appendlnSection(report, String.join(" ", cmd));
-
-            String lastLine = null;
-            try (Scanner sc = new Scanner(processLog, UTF_8)) {
-                while (sc.hasNextLine()) {
-                    lastLine = sc.nextLine();
-                }
-            }
-
-            assertEquals("TargetSub: Hello!", lastLine, "Sanity check that Graal version parsing worked!");
-
-            processStopper(process, false);
-            Logs.checkLog(cn, mn, app, processLog);
-        } finally {
-            cleanup(process, cn, mn, report, app, processLog);
-        }
-    }
-
-    @Test
     @Tag("nativeJVMTextProcessing")
     public void nativeJVMTextProcessing(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.DEBUG_SYMBOLS_SMOKE;
@@ -1211,7 +1008,7 @@ public class AppReproducersTest {
 
     private static Map<String, String> getSwitches(Apps app) {
         final Map<String, String> switches = new HashMap<>();
-        final Version version = UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE);
+        final Version version = getVersion(app.runtimeContainer != ContainerNames.NONE);
         if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
             switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
             switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);

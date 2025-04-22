@@ -15,10 +15,6 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <properties>
-        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
-    </properties>
-
     <build>
         <finalName>reslocations</finalName>
         <plugins>
@@ -29,8 +25,6 @@
                 <configuration>
                     <compilerArgs>
                         <arg>--add-exports</arg>
-                        <arg>java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED</arg>
-                        <arg>--add-opens</arg>
                         <arg>java.desktop/com.sun.imageio.plugins.common=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>

@@ -62,7 +62,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
+import static org.graalvm.tests.integration.utils.Commands.ARCH;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
@@ -82,11 +84,13 @@ import static org.graalvm.tests.integration.utils.Commands.parseSerialGCLog;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
+import static org.graalvm.tests.integration.utils.Commands.runJaegerContainer;
 import static org.graalvm.tests.integration.utils.Commands.waitForFileToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
 import static org.graalvm.tests.integration.utils.Uploader.PERF_APP_REPORT;
 import static org.graalvm.tests.integration.utils.Uploader.postBuildtimePayload;
 import static org.graalvm.tests.integration.utils.Uploader.postRuntimePayload;
+import static org.graalvm.tests.integration.utils.versions.UsedVersion.getVersion;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_ACCEPTED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_CREATED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_OK;
@@ -99,7 +103,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag("perfcheck")
 // Windows: We need to replace perf with wmic & Dr.Memory or something.
 // Mac: We need to figure out what's Mac's "perf".
-@DisabledOnOs({ OS.WINDOWS, OS.MAC})
+@DisabledOnOs({ OS.WINDOWS, OS.MAC })
 public class PerfCheckTest {
 
     private static final Logger LOGGER = Logger.getLogger(PerfCheckTest.class.getName());
@@ -117,11 +121,11 @@ public class PerfCheckTest {
     public static final String APP_BUILDTIME_CONTEXT = "api/v1/image-stats";
 
     public static Map<String, String> populateHeader(Map<String, String> report) {
-        report.put("arch", getProperty("perf.app.arch", System.getProperty("os.arch")));
+        report.put("arch", getProperty("perf.app.arch", ARCH));
         report.put("os", getProperty("perf.app.os", System.getProperty("os.name")));
         report.put("quarkusVersion", QUARKUS_VERSION.isSnapshot() ?
                 QUARKUS_VERSION.getGitSHA() + '.' + QUARKUS_VERSION.getVersionString() : QUARKUS_VERSION.getVersionString());
-        report.put("mandrelVersion", UsedVersion.getVersion(false).toString());
+        report.put("mandrelVersion", getVersion(false).toString());
         report.put("jdkVersion", String.format("%s.%s.%s", UsedVersion.jdkFeature(false),
                 UsedVersion.jdkInterim(false), UsedVersion.jdkUpdate(false)));
         report.put("ramAvailableMB", Long.toString(
@@ -441,6 +445,8 @@ public class PerfCheckTest {
             // Build executables
             builderRoutine(app, null, null, null, appDir, processLog, null, getSwitches3());
 
+            runJaegerContainer();
+
             int line = 0;
             for (int i = 0; i < app.buildAndRunCmds.runCommands.length; i++) {
                 final Map<String, String> report = populateHeader(new TreeMap<>());
@@ -460,8 +466,18 @@ public class PerfCheckTest {
                 }
                 for (int j = 0; j < LIGHT_REQUESTS; j++) {
                     for (HttpRequest httpRequest : requests) {
-                        hc.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-                        System.out.print('.');
+                        try {
+                            if (hc.send(httpRequest, HttpResponse.BodyHandlers.ofString()).statusCode() == HTTP_OK) {
+                                System.out.print('.');
+                                continue;
+                            }
+                        } catch (IOException e) {
+                            LOGGER.error("Error while testing web page content", e);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            LOGGER.error("Error while testing web page content", e);
+                        }
+                        System.out.print('x');
                     }
                 }
                 System.out.println();
@@ -561,6 +577,13 @@ public class PerfCheckTest {
 
     public void testQuarkusMPOrmAwt(TestInfo testInfo, boolean inContainer) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = inContainer ? Apps.QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT : Apps.QUARKUS_MP_ORM_DBS_AWT;
+        if ("aarch64".equalsIgnoreCase(ARCH) &&
+                (getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) &&
+                (getVersion(inContainer).compareTo(Version.create(25, 0, 0)) <= 0)) {
+            LOGGER.warn("Support for the Foreign Function and Memory API is currently available only on the AMD64 architecture.");
+            LOGGER.warn("Skipping testing app: " + app);
+            return;
+        }
         LOGGER.info("Testing app: " + app);
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         final File processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
@@ -568,8 +591,9 @@ public class PerfCheckTest {
         final String mn = testInfo.getTestMethod().get().getName();
         String patch = null;
         final List<Path> jsonPayloads = new ArrayList<>(2);
-
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_21_0) >= 0) {
+            patch = "quarkus_3.21.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
             patch = "quarkus_3.9.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
             patch = "quarkus_3.2.x.patch";
@@ -587,10 +611,10 @@ public class PerfCheckTest {
             final Map<String, String> switches = new HashMap<>() {
                 {
                     put(FINAL_NAME_TOKEN, String.format("build-perf-%s-%s-mp-orm-dbs-awt",
-                            getProperty("perf.app.arch", System.getProperty("os.arch")),
+                            getProperty("perf.app.arch", ARCH),
                             getProperty("perf.app.os", System.getProperty("os.name"))));
                     put(GRAALVM_BUILD_OUTPUT_JSON_FILE, "quarkus-json.json");
-                    if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0)) {
+                    if ((getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0)) {
                         put(GRAALVM_EXPERIMENTAL_BEGIN, "-H:+UnlockExperimentalVMOptions,");
                         put(GRAALVM_EXPERIMENTAL_END, "-H:-UnlockExperimentalVMOptions,");
                     } else {
@@ -620,7 +644,7 @@ public class PerfCheckTest {
 
                 final String qversion = QUARKUS_VERSION.isSnapshot() ?
                         QUARKUS_VERSION.getGitSHA() + '.' + QUARKUS_VERSION.getVersionString() : QUARKUS_VERSION.getVersionString();
-                final String mversion = UsedVersion.getVersion(inContainer).toString();
+                final String mversion = getVersion(inContainer).toString();
                 final HttpResponse<String> r;
                 // The json files are like 4K tops, so we can afford Files.readString...
                 if (secondaryPayloads.size() == 1) {
@@ -651,8 +675,8 @@ public class PerfCheckTest {
 
     private static Map<String, String> getSwitches1() {
         final Map<String, String> switches;
-        if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+        if (getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
+            if (getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
                 switches = Map.of(
                         GRAALVM_BUILD_OUTPUT_JSON_FILE + "-ParseOnce",
                         ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json_minus-ParseOnce.json,-H:-UnlockExperimentalVMOptions",
@@ -680,8 +704,8 @@ public class PerfCheckTest {
 
     private static Map<String, String> getSwitches2() {
         final Map<String, String> switches;
-        if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+        if (getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
+            if (getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
                 switches = Map.of(GRAALVM_BUILD_OUTPUT_JSON_FILE,
                         ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
             } else {
@@ -696,8 +720,8 @@ public class PerfCheckTest {
 
     private static Map<String, String> getSwitches3() {
         final Map<String, String> switches = new HashMap<>();
-        if (UsedVersion.getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
-            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
+        if (getVersion(false).compareTo(Version.create(22, 2, 0)) >= 0) {
+            if (getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
                 switches.put(GRAALVM_BUILD_OUTPUT_JSON_FILE,
                         ",-H:+UnlockExperimentalVMOptions," + GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH + "quarkus-json.json,-H:-UnlockExperimentalVMOptions");
                 switches.put("-H:Log=registerResource:",

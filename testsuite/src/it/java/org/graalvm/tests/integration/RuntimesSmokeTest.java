@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.BuildAndRunCmds.RUN_JAEGER;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
@@ -58,6 +59,7 @@ import static org.graalvm.tests.integration.utils.Commands.parsePort;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
+import static org.graalvm.tests.integration.utils.Commands.runJaegerContainer;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
 import static org.graalvm.tests.integration.utils.Commands.stopRunningContainer;
 import static org.graalvm.tests.integration.utils.Commands.waitForContainerLogToMatch;
@@ -78,6 +80,7 @@ public class RuntimesSmokeTest {
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         testRuntime(testInfo, app, null);
     }
+
     public void testRuntime(TestInfo testInfo, Apps app, Map<String, String> switchReplacements) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         Process process = null;
@@ -89,7 +92,6 @@ public class RuntimesSmokeTest {
         try {
             // Cleanup
             cleanTarget(app);
-            removeContainer("quarkus_jaeger");
             if (app.runtimeContainer != ContainerNames.NONE) {
                 // If we are about to be working with containers, we need a clean slate.
                 stopAllRunningContainers();
@@ -178,7 +180,6 @@ public class RuntimesSmokeTest {
             // it might be valuable to have the binary and not just the logs?
             // Nope: Delete it. One can reproduce it from the journal file we maintain.
             cleanTarget(app);
-            removeContainer("quarkus_jaeger");
         }
     }
 
@@ -205,7 +206,10 @@ public class RuntimesSmokeTest {
         if (patch != null) {
             try {
                 runCommand(getRunCommand("git", "apply", patch), appDir);
+                removeContainer("quarkus_jaeger");
+                runJaegerContainer();
                 testRuntime(testInfo, app, switches);
+                removeContainer("quarkus_jaeger");
             } finally {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
@@ -235,7 +239,7 @@ public class RuntimesSmokeTest {
 
     @Test
     @Tag("helidon")
-    @DisabledOnOs({OS.WINDOWS})
+    @DisabledOnOs({ OS.WINDOWS })
     // No Windows. https://github.com/oracle/helidon/issues/2230
     public void helidonQuickStart(TestInfo testInfo) throws IOException, InterruptedException {
         testRuntime(testInfo, Apps.HELIDON_QUICKSTART_SE);

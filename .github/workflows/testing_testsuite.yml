@@ -22,9 +22,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mandrel-version: [ '22.3.4.0-Final', '23.0.2.1-Final' ]
+        mandrel-version: [ '22.3.5.0-Final', '23.0.6.0-Final' ]
         java-version: [ '17' ]
-        os: [ ubuntu-20.04, windows-2019 ]
+        os: [ ubuntu-22.04, windows-2019 ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,7 +59,7 @@ jobs:
       - name: Install Mandrel Linux
         if: startsWith(matrix.os, 'ubuntu') && steps.cache_mandrel.outputs.cache-hit != 'true'
         run: |
-          wget "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-amd64-${{ matrix.mandrel-version }}.tar.gz"
+          wget -q "https://github.com/graalvm/mandrel/releases/download/mandrel-${{ matrix.mandrel-version }}/mandrel-java${{ matrix.java-version }}-linux-amd64-${{ matrix.mandrel-version }}.tar.gz"
           tar -xf mandrel-java${{ matrix.java-version }}-linux-amd64-${{ matrix.mandrel-version }}.tar.gz
           rm *.tar.gz
           mv $( echo mandrel-java${{ matrix.java-version }}*-*/ ) ${{ github.workspace }}/${{ matrix.java-version }}-${{ matrix.mandrel-version }}
@@ -107,7 +107,7 @@ jobs:
           pushd ts
           mkdir -p ~/.m2/
           cp .github/mvn-settings.xml ~/.m2/settings.xml
-          mvn clean verify -Ptestsuite -DexcludeTags=all -DincludeTags=testing-testsuite
+          mvn clean verify -Ptestsuite -DexcludeTags=all -DincludeTags=testing-testsuite --batch-mode
         shell: bash
       - name: Prepare failure archive (if maven failed)
         if: failure()

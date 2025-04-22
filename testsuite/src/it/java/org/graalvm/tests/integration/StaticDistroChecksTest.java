@@ -21,6 +21,7 @@ package org.graalvm.tests.integration;
 
 import org.apache.commons.io.FileUtils;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.Commands.IS_THIS_MACOS;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,7 +46,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Michal Karm Babacek <karm@redhat.com>
  */
 @Tag("reproducers")
-public class StaticDistroChecks {
+public class StaticDistroChecksTest {
+
+    private static final Logger LOGGER = Logger.getLogger(StaticDistroChecksTest.class.getName());
 
     @Test
     @IfMandrelVersion(min = "22.2")
@@ -60,17 +64,24 @@ public class StaticDistroChecks {
             final Path graalHome = Path.of(home.replaceAll(File.separator + "+$", ""));
             assertTrue(Files.exists(Path.of(graalHome.toString(), "bin")), "There is something wrong with GRAALVM_HOME.");
             final File graalHomeSpaceBin = new File(graalHomeSpace.toFile(), "bin");
-            runCommand(IS_THIS_WINDOWS ?
-                    List.of("xcopy", graalHome.toString(), graalHomeSpace.toString(), "/E", "/H", "/B", "/Q", "/I") :
-                    List.of("cp", graalHome.toString(), graalHomeSpace.toString(), "-Rpd")
-            );
+            Files.createDirectories(graalHomeSpace);
+            assertTrue(Files.exists(graalHomeSpace), graalHomeSpace + " does not exist");
+            final List<String> cpyCmd;
+            if (IS_THIS_WINDOWS) {
+                cpyCmd = List.of("xcopy", graalHome.toString(), graalHomeSpace.toString(), "/E", "/H", "/B", "/Q", "/I");
+            } else {
+                cpyCmd = List.of("cp", IS_THIS_MACOS ? "-Rp" : "-Rpd", graalHome + File.separator + ".", graalHomeSpace.toString());
+            }
+            LOGGER.infof("COPY command: %s", cpyCmd);
+            LOGGER.infof("COPY output: %s", runCommand(cpyCmd));
+            assertTrue(Files.exists(graalHomeSpaceBin.toPath()), graalHomeSpaceBin + " does not exist");
             final String result = runCommand(IS_THIS_WINDOWS ?
                             List.of("cmd", "/C", "native-image", "--version") :
-                            List.of("sh", "native-image", "--version")
+                            List.of("bash", "native-image", "--version")
                     , graalHomeSpaceBin,
                     Map.of("GRAALVM_HOME", graalHomeSpace.toString(),
                             "PATH", graalHomeSpaceBin.getAbsolutePath() + File.pathSeparator + System.getenv("PATH")));
-            final Pattern p = Pattern.compile("(?:GraalVM|native-image).*Java Version.*", Pattern.DOTALL);
+            final Pattern p = Pattern.compile("(?:GraalVM|native-image).*(?:Java Version|OpenJDK Runtime).*", Pattern.DOTALL);
             assertTrue(p.matcher(result).matches(), "Correct --version output expected. Got: `" + result + "', " +
                     "possibly https://github.com/oracle/graal/pull/4635");
         } finally {
