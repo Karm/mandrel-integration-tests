@@ -28,7 +28,7 @@ public class GreetingService {
             try {
                 result = getNextString(text);
             } catch (Exception e) {
-                // Doesn't matter. Do nothing
+                throw new RuntimeException(e);
             }
         }
 

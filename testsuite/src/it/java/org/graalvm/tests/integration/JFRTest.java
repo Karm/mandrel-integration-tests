@@ -270,9 +270,9 @@ public class JFRTest {
                                              boolean inContainer) throws IOException, InterruptedException {
 
         final Map<String, Integer> measurementsJfr = runBenchmarkForApp(endpoint, 5, appJfr, appDir, processLog,
-                cn, mn, report, measurementsLog, inContainer);
+                cn, mn, report, measurementsLog, inContainer, inContainer ? ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name : "jfr-perf-runner");
         final Map<String, Integer> measurementsNoJfr = runBenchmarkForApp(endpoint, 5, appNoJfr, appDir, processLog,
-                cn, mn, report, measurementsLog, inContainer);
+                cn, mn, report, measurementsLog, inContainer, inContainer ? ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name : "jfr-plaintext-runner");
 
         LOGGER.info("JFR measurementsJfr records: " + measurementsJfr.size() + ", measurementsNoJfr records: " + measurementsNoJfr.size());
         long imageSizeDiff = getMeasurementDiff("imageSize", measurementsJfr, measurementsNoJfr);
@@ -345,7 +345,7 @@ public class JFRTest {
 
     private Map<String, Integer> runBenchmarkForApp(Endpoint endpoint, int trials, Apps app, File appDir, File processLog,
             String cn, String mn, StringBuilder report, Path measurementsLog,
-            boolean inContainer) throws IOException, InterruptedException {
+            boolean inContainer, String binaryName) throws IOException, InterruptedException {
 
         Process process = null;
         Process hyperfoilProcess = null;
@@ -444,7 +444,7 @@ public class JFRTest {
 
             // Get image size in KB, safe to be within int.
             final int imageSizeKB = (int) (findExecutable(Path.of(appDir.getAbsolutePath(), "target"),
-                    Pattern.compile(".*-runner")).length() / 1024L);
+                    Pattern.compile(".*" + binaryName)).length() / 1024L);
             LOGGER.info(app.name() + " image size " + imageSizeKB + " KB");
 
             // Parse JSON response from Hyperfoil controller server
@@ -525,7 +525,7 @@ public class JFRTest {
             command = getRunCommand(CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                     "-t", "--entrypoint", "jfr", "-v", jfrPerfJfc.getParent().toString() + ":/project:z",
                     BUILDER_IMAGE,
-                    "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output", "./" + jfrPerfJfc.getFileName().toString());
+                    "configure", "--input", "profile.jfc", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output", "./" + jfrPerfJfc.getFileName().toString());
         } else {
             command = getRunCommand("jfr", "configure", "method-profiling=max", "jdk.ThreadPark#threshold=0ns", "--output", jfrPerfJfc.toString());
         }
