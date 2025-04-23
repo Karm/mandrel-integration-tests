@@ -270,9 +270,9 @@ public class JFRTest {
                                              boolean inContainer) throws IOException, InterruptedException {
 
         final Map<String, Integer> measurementsJfr = runBenchmarkForApp(endpoint, 5, appJfr, appDir, processLog,
-                cn, mn, report, measurementsLog, inContainer, inContainer ? ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name : "jfr-perf-runner");
+                cn, mn, report, measurementsLog, inContainer, "jfr-perf-runner");
         final Map<String, Integer> measurementsNoJfr = runBenchmarkForApp(endpoint, 5, appNoJfr, appDir, processLog,
-                cn, mn, report, measurementsLog, inContainer, inContainer ? ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name : "jfr-plaintext-runner");
+                cn, mn, report, measurementsLog, inContainer,  "jfr-plaintext-runner");
 
         LOGGER.info("JFR measurementsJfr records: " + measurementsJfr.size() + ", measurementsNoJfr records: " + measurementsNoJfr.size());
         long imageSizeDiff = getMeasurementDiff("imageSize", measurementsJfr, measurementsNoJfr);
