@@ -467,12 +467,14 @@ public class AppReproducersTest {
                     Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
                 }
                 for (String base : RUNTIME_IMAGE_BASE) {
-                    if (DOCKER_GHA_SUMMARY_NAME != null) {
-                        if (BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base))) {
+                    if (BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base))) {
+                        if (DOCKER_GHA_SUMMARY_NAME != null) {
                             final String summary = "│   │   ⬛ " + base + " based runtime image test SKIPPED (glibc too old)\n";
                             Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
-                            continue;
+                        } else {
+                            LOGGER.info("Skipping " + base + " based runtime image test (glibc too old)");
                         }
+                        continue;
                     }
                     LOGGER.info("Running with " + base + " runtime image...");
                     final List<String> cmdBuildImage = replaceSwitchesInCmd(getRunCommand(app.buildAndRunCmds.runCommands[0]),
