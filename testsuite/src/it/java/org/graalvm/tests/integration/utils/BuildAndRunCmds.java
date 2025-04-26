@@ -344,7 +344,7 @@ public enum BuildAndRunCmds {
     ),
     JFR_PERFORMANCE_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "--batch-mode", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(), "-Dquarkus.native.monitoring=jfr",
                             "-Dquarkus.native.additional-build-args=-H:+SignalHandlerBasedExecutionSampler",
@@ -363,7 +363,7 @@ public enum BuildAndRunCmds {
     ),
     PLAINTEXT_PERFORMANCE_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "--batch-mode", "clean", "package", "-Pnative", "-Dquarkus.native.container-build=true",
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-DfinalName=jfr-plaintext" },
