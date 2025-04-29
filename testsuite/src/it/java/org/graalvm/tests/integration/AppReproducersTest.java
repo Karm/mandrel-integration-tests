@@ -35,6 +35,9 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -42,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,9 +56,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
@@ -62,14 +67,23 @@ import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMe
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.ARCH;
+import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
+import static org.graalvm.tests.integration.utils.Commands.DOCKER_GHA_BUILDX;
+import static org.graalvm.tests.integration.utils.Commands.DOCKER_GHA_SUMMARY_NAME;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
+import static org.graalvm.tests.integration.utils.Commands.cleanDirOrFile;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
 import static org.graalvm.tests.integration.utils.Commands.cleanup;
+import static org.graalvm.tests.integration.utils.Commands.compareArrays;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
+import static org.graalvm.tests.integration.utils.Commands.getSubstringFromSmallTextFile;
+import static org.graalvm.tests.integration.utils.Commands.isBuilderImageIncompatible;
 import static org.graalvm.tests.integration.utils.Commands.listStaticLibs;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
+import static org.graalvm.tests.integration.utils.Commands.replaceSwitchesInCmd;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.searchLogLines;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
@@ -96,6 +110,26 @@ public class AppReproducersTest {
     public static final String BASE_DIR = getBaseDir();
     public static final String LOCALEINCLUDES_TOKEN_1 = "<TZ_INCLUDE_TOKEN_1>";
     public static final String LOCALEINCLUDES_TOKEN_2 = "<TZ_INCLUDE_TOKEN_2>";
+
+    public static final String RUNTIME_IMAGE_BASE_TOKEN = "<RUNTIME_IMAGE_BASE>";
+    public static final String BUILDX_LOAD_TOKEN = "<BUILDX_PUSH>";
+    // Note Docfkerfile.<RUNTIME_IMAGE_BASE> in ./apps/imageio/ for AWT tests.
+    /*
+    amzn1 is not used. It's here to prove that the test works and that the image built with ubi8 really
+    fails on a too old glibc linux.
+
+    The only caveat is that such failure manifests not with a clear:
+            /work/target/imageio: /lib64/libc.so.6: version `GLIBC_2.34' not found (required by /work/target/imageio)
+
+    but with a completely misleading:
+            Exception in thread "main" java.io.IOException: Problem reading font data.
+                at java.desktop@21.0.6/java.awt.Font.createFont0(Font.java:1205)
+                at java.desktop@21.0.6/java.awt.Font.createFont(Font.java:1076)
+
+    This is caused by a purposefully vague error message in the JDK over here:
+    https://github.com/openjdk/jdk21u-dev/blob/jdk-21.0.6%2B7/src/java.desktop/share/classes/java/awt/Font.java#L1205
+     */
+    public static final String[] RUNTIME_IMAGE_BASE = new String[] { "ubi8", "ubi9", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404" };
 
     @Test
     @Tag("randomNumbers")
@@ -356,7 +390,6 @@ public class AppReproducersTest {
             return;
         }
         LOGGER.info("Testing app: " + app);
-        final Map<String, String> controlData = new HashMap<>(12);
         Process process = null;
         File processLog = null;
         final StringBuilder report = new StringBuilder();
@@ -364,99 +397,132 @@ public class AppReproducersTest {
         final File metaINF = Path.of(BASE_DIR, app.dir, "src", "main", "resources", "META-INF", "native-image").toFile();
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
+        final List<String> pictures = List.of(
+                "mytest.bmp",
+                "mytest.gif",
+                "mytest.jpg",
+                "mytest.png",
+                "mytest.svg",
+                "mytest.tiff",
+                "mytest_toC.png",
+                "mytest_toG.png",
+                "mytest_toL.png",
+                "mytest_toP.png",
+                "mytest_toS.png",
+                "mytest.wbmp",
+                "mytest_Resized_Grace_M._Hopper.png"
+        );
+        // Control data, records RGBA pixel values at XY coordinates to compare across images
+        // generated by HotSpot and native-image.
+        final Map<String, Map<Integer[], Integer[]>> imageNamePixelXYValueRGBA = new HashMap<>(pictures.size());
+        final Map<String, String> imageNameSha256 = new HashMap<>(pictures.size());
+        final Pattern svgWrapperPattern = Pattern.compile("data:image/png;base64,(.*?)\"");
+
         try {
-            // Cleanup
+            // Pre-run cleanup, just in case.
+            pictures.forEach(f -> new File(appDir, f).delete());
             cleanTarget(app);
             if (metaINF.exists()) {
                 FileUtils.cleanDirectory(metaINF);
             }
+            if (inContainer) {
+                for (String base : RUNTIME_IMAGE_BASE) {
+                    removeContainer(app.runtimeContainer.name + "_" + base);
+                }
+            }
+
+            // Logs dir
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-
             builderRoutine(app, report, cn, mn, appDir, processLog, null, getSwitches(app));
 
-            // Record images' hashsums as created by a Java process
-            final List<String> errors = new ArrayList<>(12);
-            List<String> pictures = List.of(
-                    "mytest.bmp",
-                    "mytest.gif",
-                    "mytest.jpg",
-                    "mytest.png",
-                    "mytest.svg",
-                    "mytest.tiff",
-                    "mytest_toC.png",
-                    "mytest_toG.png",
-                    "mytest_toL.png",
-                    "mytest_toP.png",
-                    "mytest_toS.png",
-                    "mytest.wbmp",
-                    "mytest_Resized_Grace_M._Hopper.png"
-            );
-
-            pictures.forEach(f -> {
-                try {
-                    controlData.put(f, DigestUtils.sha256Hex(FileUtils.readFileToByteArray(new File(appDir, f))));
-                } catch (IOException e) {
-                    errors.add(f + " cannot be loaded.");
-                    e.printStackTrace();
-                }
-            });
-
-            assertEquals(pictures.size(), controlData.size(), "There was supposed to be " + pictures.size() + " pictures generated.");
+            // Record images' pixels as created by a Java process, HotSpot mode
+            final List<String> errors;
+            // In container, we record pixel values at some predefined interesting points in the images.
+            // We don't compare hashsums as different fontconfig for each runtime image could affect
+            // antialiasing and thus the hashsums.
+            if (inContainer) {
+                errors = recordImagePixelXYValueRGBA(pictures, imageNamePixelXYValueRGBA, appDir, svgWrapperPattern);
+            } else {
+                errors = recordImageSha256(pictures, imageNameSha256, appDir);
+            }
+            assertTrue(errors.isEmpty(),
+                    "There were errors checking the generated image files, see:\n" + String.join("\n", errors));
+            assertEquals(pictures.size(), Math.max(imageNamePixelXYValueRGBA.size(), imageNameSha256.size()),
+                    "There was supposed to be " + pictures.size() + " pictures generated.");
 
             // Remove files generated by java run to prevent false negatives
-            controlData.keySet().forEach(f -> new File(appDir, f).delete());
-
-            LOGGER.info("Running...");
+            pictures.forEach(f -> new File(appDir, f).delete());
 
             // Fontconfig might look for fonts here, see similar thing in Quarkus:
             // https://github.com/quarkusio/quarkus/blob/main/extensions/awt/runtime/src/main/java/io/quarkus/awt/runtime/JDKSubstitutions.java#L53
             // Details: https://github.com/Karm/mandrel-integration-tests/issues/151#issuecomment-1516802244
-            Files.createDirectories(Path.of(appDir.toString(), "lib")).toFile().deleteOnExit();
+            Files.createDirectories(Path.of(appDir.toString(), "conf", "fonts"));
+            Files.createDirectories(Path.of(appDir.toString(), "lib"));
 
-            final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
-            process = runCommand(cmd, appDir, processLog, app);
-            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
-            process.waitFor(15, TimeUnit.SECONDS);
-            Logs.appendln(report, appDir.getAbsolutePath());
-            Logs.appendlnSection(report, String.join(" ", cmd));
-
-            // Test output
-            controlData.forEach((fileName, hash) -> {
-                final File picture = new File(appDir, fileName);
-                if (picture.exists() && picture.isFile()) {
-                    try {
-                        // Depending on the way the builder image is produced, it might use
-                        // a different version e.g. of fontconfig in HotSpot mode (.so system shared) and
-                        // in native-image mode (.a static built-in from JDK),
-                        // so especially font render could affect hashsum, despite being indistinguishable to the naked eye.
-
-                        // Sanity check size
-                        if (inContainer && UsedVersion.jdkUsesSysLibs(true)) {
-                            final long expected = 5500;
-                            final long actual = FileUtils.sizeOf(picture);
-                            if (actual < expected) {
-                                errors.add(fileName + "'s length was " + actual + ", expected was at least: " + expected + "bytes");
-                            }
-                            // Verify actual hashsums
-                        } else {
-                            final String sha256hex = DigestUtils.sha256Hex(FileUtils.readFileToByteArray(picture));
-                            if (!hash.equals(sha256hex)) {
-                                errors.add(fileName + "'s sha256 hash was " + sha256hex + ", expected hash: " + hash);
-                            }
-                        }
-                    } catch (IOException e) {
-                        errors.add(fileName + " cannot be loaded.");
-                        e.printStackTrace();
-                    }
-                } else {
-                    errors.add(fileName + " was not generated.");
+            if (inContainer) {
+                if (DOCKER_GHA_SUMMARY_NAME != null) {
+                    final String summary = "│   ├─ Testing builder image " + BUILDER_IMAGE + " begins:\n";
+                    Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
                 }
-            });
-            assertTrue(errors.isEmpty(),
-                    "There were errors checking the generated image files, see:\n" + String.join("\n", errors));
+                for (String base : RUNTIME_IMAGE_BASE) {
+                    if (isBuilderImageIncompatible(base)) {
+                        if (DOCKER_GHA_SUMMARY_NAME != null) {
+                            final String summary = "│   │   ⬛ " + base + " based runtime image test SKIPPED (glibc too old)\n";
+                            Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
+                        } else {
+                            LOGGER.info("Skipping " + base + " based runtime image test (glibc too old)");
+                        }
+                        continue;
+                    }
+                    LOGGER.info("Running with " + base + " runtime image...");
+                    final List<String> cmdBuildImage = replaceSwitchesInCmd(getRunCommand(app.buildAndRunCmds.runCommands[0]),
+                            Map.of(RUNTIME_IMAGE_BASE_TOKEN, base,
+                                    BUILDX_LOAD_TOKEN, DOCKER_GHA_BUILDX ? "--load" : ""));
+                    process = runCommand(cmdBuildImage, appDir, processLog, app);
+                    assertNotNull(process, base + ": Runtime container build failed. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+                    process.waitFor(10, TimeUnit.MINUTES); // We are potentially downloading base image, packages etc.
+                    Logs.appendln(report, appDir.getAbsolutePath());
+                    Logs.appendlnSection(report, String.join(" ", cmdBuildImage));
+
+                    // Remove any files generated by java run to prevent false negatives
+                    pictures.forEach(f -> new File(appDir, f).delete());
+
+                    final List<String> cmdRunImage = replaceSwitchesInCmd(getRunCommand(app.buildAndRunCmds.runCommands[1]),
+                            Map.of(RUNTIME_IMAGE_BASE_TOKEN, base));
+                    process = runCommand(cmdRunImage, appDir, processLog, app);
+                    assertNotNull(process, base + ": Runtime container run failed. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+                    process.waitFor(15, TimeUnit.SECONDS);
+                    Logs.appendln(report, appDir.getAbsolutePath());
+                    Logs.appendlnSection(report, String.join(" ", cmdRunImage));
+
+                    // Test output
+                    final List<String> interimErrs = verifyGeneratedImages(imageNamePixelXYValueRGBA, appDir, svgWrapperPattern, base);
+                    if (DOCKER_GHA_SUMMARY_NAME != null) {
+                        final boolean success = interimErrs.isEmpty();
+                        final String summary = (success ? "│   │   ✅ " : "│   │   ❌ ") + base + " based runtime image test " + (success ? "succeeded" : "failed") + "\n";
+                        Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
+                    }
+                    errors.addAll(interimErrs);
+                }
+                assertTrue(errors.isEmpty(),
+                        "There were errors checking the generated image files, see:\n" + String.join("\n", errors));
+            } else {
+                LOGGER.info("Running...");
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
+                process = runCommand(cmd, appDir, processLog, app);
+                assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+                process.waitFor(15, TimeUnit.SECONDS);
+                Logs.appendln(report, appDir.getAbsolutePath());
+                Logs.appendlnSection(report, String.join(" ", cmd));
+
+                // Test output
+                errors.addAll(verifyGeneratedImages(imageNameSha256, appDir));
+                assertTrue(errors.isEmpty(),
+                        "There were errors checking the generated image files, see:\n" + String.join("\n", errors));
+            }
 
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
@@ -498,38 +564,138 @@ public class AppReproducersTest {
 
             final Set<String> actual = listStaticLibs(executable);
 
-            assertTrue(expected.equals(actual), "A different set of static libraries was expected. \n" +
-                    "Expected: " + expected.stream().sorted().collect(Collectors.toList()) + "\n" +
-                    "Actual:   " + actual.stream().sorted().collect(Collectors.toList()));
+            assertEquals(expected, actual, "A different set of static libraries was expected. \n" +
+                    "Expected: " + expected.stream().sorted().toList() + "\n" +
+                    "Actual:   " + actual.stream().sorted().toList());
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
+            if (DOCKER_GHA_SUMMARY_NAME != null) {
+                final String summary = "│   └─ Completed: " + BUILDER_IMAGE + "\n";
+                Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
+            }
+        } catch (Throwable e) {
+            if (DOCKER_GHA_SUMMARY_NAME != null) {
+                final String summary = "│   └─ Completed with errors: " + BUILDER_IMAGE + "\n";
+                Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
+            }
+            throw e;
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
+            if (inContainer) {
+                for (String base : RUNTIME_IMAGE_BASE) {
+                    removeContainer(app.runtimeContainer.name + "_" + base);
+                }
+            }
             if (metaINF.exists()) {
                 FileUtils.cleanDirectory(metaINF);
             }
-            Stream.of(
-                    new File(appDir, "?"),
-                    new File(appDir, ".cache"),
-                    new File(appDir, ".java"),
-                    new File(appDir, "dependency-reduced-pom.xml")
-            ).forEach(f -> {
+            cleanDirOrFile(
+                    new File(appDir, "conf").getAbsolutePath(),
+                    new File(appDir, "lib").getAbsolutePath(),
+                    new File(appDir, "?").getAbsolutePath(),
+                    new File(appDir, ".cache").getAbsolutePath(),
+                    new File(appDir, ".java").getAbsolutePath(),
+                    new File(appDir, "dependency-reduced-pom.xml").getAbsolutePath()
+            );
+            pictures.forEach(f -> new File(appDir, f).delete());
+        }
+    }
+
+    public List<String> recordImageSha256(List<String> pictures, Map<String, String> imageNameSha256, File appDir) {
+        final List<String> errors = new ArrayList<>(pictures.size());
+        pictures.forEach(f -> {
+            try {
+                imageNameSha256.put(f, DigestUtils.sha256Hex(FileUtils.readFileToByteArray(new File(appDir, f))));
+            } catch (IOException e) {
+                errors.add(f + " cannot be loaded.");
+                e.printStackTrace();
+            }
+        });
+        return errors;
+    }
+
+    public List<String> verifyGeneratedImages(Map<String, String> imageNameSha256, File appDir) {
+        final List<String> errors = new ArrayList<>(imageNameSha256.size());
+        imageNameSha256.forEach((fileName, hash) -> {
+            final File picture = new File(appDir, fileName);
+            if (picture.exists() && picture.isFile()) {
                 try {
-                    if (f.exists()) {
-                        if (f.isDirectory()) {
-                            FileUtils.deleteDirectory(f);
-                        } else {
-                            f.delete();
-                        }
+                    final String sha256hex = DigestUtils.sha256Hex(FileUtils.readFileToByteArray(picture));
+                    if (!hash.equals(sha256hex)) {
+                        errors.add(fileName + "'s sha256 hash was " + sha256hex + ", expected hash: " + hash);
                     }
                 } catch (IOException e) {
-                    // We ignore it...
+                    errors.add(fileName + " cannot be loaded.");
                     e.printStackTrace();
                 }
-            });
-            controlData.keySet().forEach(f -> new File(appDir, f).delete());
-        }
+            } else {
+                errors.add(fileName + " was not generated.");
+            }
+        });
+        return errors;
+    }
+
+    public List<String> recordImagePixelXYValueRGBA(List<String> pictures, Map<String, Map<Integer[], Integer[]>> imageNamePixelXYValueRGBA, File appDir, Pattern svgWrapperPattern) {
+        final List<String> errors = new ArrayList<>(pictures.size());
+        pictures.forEach(f -> {
+            final File picture = new File(appDir, f);
+            try {
+                final BufferedImage image = f.endsWith("svg") ? ImageIO.read(new ByteArrayInputStream(
+                        Base64.getDecoder().decode(getSubstringFromSmallTextFile(svgWrapperPattern, picture.toPath(), UTF_8)))) :
+                        ImageIO.read(picture);
+                final Map<Integer[], Integer[]> pixelXYValueRGBA = new HashMap<>();
+                for (Integer[] xy : new Integer[][] {
+                        { 30, 51 },
+                        { 250, 250 },
+                        { 374, 374 } }) {
+                    final int[] rgba = new int[4]; //4BYTE RGBA, A optional
+                    image.getData().getPixel(xy[0], xy[1], rgba);
+                    pixelXYValueRGBA.put(xy, new Integer[] { rgba[0], rgba[1], rgba[2], rgba[3] });
+                }
+                imageNamePixelXYValueRGBA.put(f, pixelXYValueRGBA);
+            } catch (Exception e) {
+                errors.add(picture.getAbsolutePath() + " cannot be loaded.");
+                e.printStackTrace();
+            }
+        });
+        return errors;
+    }
+
+    public List<String> verifyGeneratedImages(Map<String, Map<Integer[], Integer[]>> imageNamePixelXYValueRGBA,
+            File appDir, Pattern svgWrapperPattern, String base) {
+        // When comparing pixel colour values, how much difference from the expected value is allowed.
+        // 0 means no difference is tolerated.
+        // The tolerance outlined here means we allow for a tiny drift between HotSpot generated imagery
+        // and native-image generated imagery, mostly due to different antialiasing of fontconfig/harfbuzz.
+        final int[] PIXEL_DIFFERENCE_THRESHOLD_RGBA_VEC = new int[] { 7, 7, 7, 0 };
+        final List<String> errors = new ArrayList<>(imageNamePixelXYValueRGBA.size());
+        imageNamePixelXYValueRGBA.forEach((fileName, xyRGBA) -> {
+            final File picture = new File(appDir, fileName);
+            if (picture.exists() && picture.isFile() && picture.length() > 5500) {
+                try {
+                    final BufferedImage image = fileName.endsWith("svg") ? ImageIO.read(new ByteArrayInputStream(
+                            Base64.getDecoder().decode(getSubstringFromSmallTextFile(svgWrapperPattern, picture.toPath(), UTF_8)))) :
+                            ImageIO.read(picture);
+                    for (Integer[] xy : xyRGBA.keySet()) {
+                        final int[] actual = new int[4]; //4BYTE RGBA, A optional
+                        image.getData().getPixel(xy[0], xy[1], actual);
+                        final int[] expected = new int[] { xyRGBA.get(xy)[0], xyRGBA.get(xy)[1], xyRGBA.get(xy)[2], xyRGBA.get(xy)[3] };
+                        assertTrue(compareArrays(expected, actual, PIXEL_DIFFERENCE_THRESHOLD_RGBA_VEC),
+                                String.format("%s %s: Wrong pixel at [%d,%d]. Expected: [%d,%d,%d,%d] Actual: [%d,%d,%d,%d]", base, fileName,
+                                        xy[0], xy[1],
+                                        expected[0], expected[1], expected[2], expected[3],
+                                        actual[0], actual[1], actual[2], actual[3]));
+                    }
+                } catch (IOException e) {
+                    errors.add(base + ": " + fileName + " cannot be loaded.");
+                    e.printStackTrace();
+                }
+            } else {
+                errors.add(base + ": " + fileName + " was not generated or is an empty file.");
+            }
+        });
+        return errors;
     }
 
     @Test
@@ -557,10 +723,10 @@ public class AppReproducersTest {
                 // Locale inclusion for Mandrel 24.2 ignores -Duser.language and -Duser.country settings
                 // at build time.
                 switches = Map.of(LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_POST_24_2_0,
-                                  LOCALEINCLUDES_TOKEN_2, LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_POST_24_2_0);
+                        LOCALEINCLUDES_TOKEN_2, LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_POST_24_2_0);
             } else {
                 switches = Map.of(LOCALEINCLUDES_TOKEN_1, LOCALEINCLUDES_SWITCH_REPLACEMENT_1_MANDREL_PRE_24_2_0,
-                                  LOCALEINCLUDES_TOKEN_2, LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_PRE_24_2_0);
+                        LOCALEINCLUDES_TOKEN_2, LOCALEINCLUDES_SWITCH_REPLACEMENT_2_MANDREL_PRE_24_2_0);
             }
             builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
 

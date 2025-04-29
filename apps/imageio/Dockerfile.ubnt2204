@@ -1,0 +1,5 @@
+FROM quay.io/karmkarm/ubuntu:22.04
+RUN apt-get update && apt-get install -y fontconfig libfreetype6
+WORKDIR /work/
+RUN chmod "g+rwX" /work \
+    && chown 1000:root /work

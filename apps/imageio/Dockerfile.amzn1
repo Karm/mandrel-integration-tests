@@ -1,0 +1,5 @@
+FROM public.ecr.aws/amazonlinux/amazonlinux:1
+RUN yum install freetype fontconfig -y
+WORKDIR /work/
+RUN chmod "g+rwX" /work \
+    && chown 1000:root /work
