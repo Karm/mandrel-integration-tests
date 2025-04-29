@@ -1310,4 +1310,16 @@ public class Commands {
         }
         return true;
     }
+
+    /**
+     * Some runtime images aren't capable of running executables built
+     * with certain builder images. The reason is typically the GLIBC
+     * version being too old.
+     *
+     * @param base
+     * @return
+     */
+    public static boolean isBuilderImageIncompatible(String base) {
+        return BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base));
+    }
 }

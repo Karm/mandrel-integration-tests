@@ -78,6 +78,7 @@ import static org.graalvm.tests.integration.utils.Commands.compareArrays;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.getSubstringFromSmallTextFile;
+import static org.graalvm.tests.integration.utils.Commands.isBuilderImageIncompatible;
 import static org.graalvm.tests.integration.utils.Commands.listStaticLibs;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;
@@ -112,7 +113,7 @@ public class AppReproducersTest {
 
     public static final String RUNTIME_IMAGE_BASE_TOKEN = "<RUNTIME_IMAGE_BASE>";
     public static final String BUILDX_LOAD_TOKEN = "<BUILDX_PUSH>";
-    // Note Docfkerfile.RUNTIME_IMAGE_BASE in ./apps/imageio/ for AWT tests.
+    // Note Docfkerfile.<RUNTIME_IMAGE_BASE> in ./apps/imageio/ for AWT tests.
     /*
     amzn1 is not used. It's here to prove that the test works and that the image built with ubi8 really
     fails on a too old glibc linux.
@@ -467,7 +468,7 @@ public class AppReproducersTest {
                     Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
                 }
                 for (String base : RUNTIME_IMAGE_BASE) {
-                    if (BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base))) {
+                    if (isBuilderImageIncompatible(base)) {
                         if (DOCKER_GHA_SUMMARY_NAME != null) {
                             final String summary = "│   │   ⬛ " + base + " based runtime image test SKIPPED (glibc too old)\n";
                             Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
@@ -563,9 +564,9 @@ public class AppReproducersTest {
 
             final Set<String> actual = listStaticLibs(executable);
 
-            assertTrue(expected.equals(actual), "A different set of static libraries was expected. \n" +
-                    "Expected: " + expected.stream().sorted().collect(Collectors.toList()) + "\n" +
-                    "Actual:   " + actual.stream().sorted().collect(Collectors.toList()));
+            assertEquals(expected, actual, "A different set of static libraries was expected. \n" +
+                    "Expected: " + expected.stream().sorted().toList() + "\n" +
+                    "Actual:   " + actual.stream().sorted().toList());
 
             processStopper(process, false);
             Logs.checkLog(cn, mn, app, processLog);
