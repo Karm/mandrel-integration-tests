@@ -1320,6 +1320,7 @@ public class Commands {
      * @return
      */
     public static boolean isBuilderImageIncompatible(String base) {
-        return BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base));
+        // The fact that "devel-latest" is UBI9 is established here: https://github.com/quarkusio/quarkus-images/blob/main/quarkus-mandrel-builder-image/pom.xml
+        return (BUILDER_IMAGE.contains("ubi9") || BUILDER_IMAGE.contains("devel-latest")) && ("ubi8".equals(base) || "amzn2".equals(base));
     }
 }
