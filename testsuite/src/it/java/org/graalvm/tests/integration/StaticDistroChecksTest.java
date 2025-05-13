@@ -77,11 +77,11 @@ public class StaticDistroChecksTest {
             assertTrue(Files.exists(graalHomeSpaceBin.toPath()), graalHomeSpaceBin + " does not exist");
             final String result = runCommand(IS_THIS_WINDOWS ?
                             List.of("cmd", "/C", "native-image", "--version") :
-                            List.of("bash", "native-image", "--version")
+                            List.of("native-image", "--version")
                     , graalHomeSpaceBin,
                     Map.of("GRAALVM_HOME", graalHomeSpace.toString(),
                             "PATH", graalHomeSpaceBin.getAbsolutePath() + File.pathSeparator + System.getenv("PATH")));
-            final Pattern p = Pattern.compile("(?:GraalVM|native-image).*(?:Java Version|OpenJDK Runtime).*", Pattern.DOTALL);
+            final Pattern p = Pattern.compile("(?:GraalVM|native-image).*(?:Java Version|OpenJDK Runtime|GraalVM Runtime).*", Pattern.DOTALL);
             assertTrue(p.matcher(result).matches(), "Correct --version output expected. Got: `" + result + "', " +
                     "possibly https://github.com/oracle/graal/pull/4635");
         } finally {
