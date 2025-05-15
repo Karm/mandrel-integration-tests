@@ -129,7 +129,7 @@ public class AppReproducersTest {
     This is caused by a purposefully vague error message in the JDK over here:
     https://github.com/openjdk/jdk21u-dev/blob/jdk-21.0.6%2B7/src/java.desktop/share/classes/java/awt/Font.java#L1205
      */
-    public static final String[] RUNTIME_IMAGE_BASE = new String[] { "ubi8", "ubi9", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404" };
+    public static final String[] RUNTIME_IMAGE_BASE = new String[] { "ubi8", "ubi9", "ubi10", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404" };
 
     @Test
     @Tag("randomNumbers")
