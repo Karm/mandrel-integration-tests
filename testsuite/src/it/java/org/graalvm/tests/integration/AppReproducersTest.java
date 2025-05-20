@@ -927,14 +927,27 @@ public class AppReproducersTest {
 
     @Test
     @Tag("builder-image")
-    @IfMandrelVersion(min = "23.1.8", inContainer = true)
-    public void vthreadsPropsContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+    @IfMandrelVersion(min = "23.1.8", max = "23.1.999", inContainer = true)
+    public void vthreadsPropsContainer23_1Test(TestInfo testInfo) throws IOException, InterruptedException {
         vthreadsProps(testInfo, Apps.VTHREADS_PROPS_BUILDER_IMAGE);
     }
 
     @Test
-    @IfMandrelVersion(min = "23.1.8")
-    public void vthreadsPropsTest(TestInfo testInfo) throws IOException, InterruptedException {
+    @IfMandrelVersion(min = "23.1.8", max = "23.1.999")
+    public void vthreadsProps23_1Test(TestInfo testInfo) throws IOException, InterruptedException {
+        vthreadsProps(testInfo, Apps.VTHREADS_PROPS);
+    }
+
+    @Test
+    @Tag("builder-image")
+    @IfMandrelVersion(min = "24.2.0", inContainer = true)
+    public void vthreadsPropsContainer24_2Test(TestInfo testInfo) throws IOException, InterruptedException {
+        vthreadsProps(testInfo, Apps.VTHREADS_PROPS_BUILDER_IMAGE);
+    }
+
+    @Test
+    @IfMandrelVersion(min = "24.2.0")
+    public void vthreadsProps24_2Test(TestInfo testInfo) throws IOException, InterruptedException {
         vthreadsProps(testInfo, Apps.VTHREADS_PROPS);
     }
 
