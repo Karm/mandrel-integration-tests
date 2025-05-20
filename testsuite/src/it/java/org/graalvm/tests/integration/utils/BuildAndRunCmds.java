@@ -544,12 +544,16 @@ public enum BuildAndRunCmds {
     ),
     VTHREADS_PROPS_BUILDER_IMAGE(
             new String[][] {
-                    { "mvn", "--batch-mode", "package" },
+                    { "mkdir", "-p", "target" },
+                    // VThreads (JEP 444) code wouldn't work in JDK 17 javac. We use javac from the builder image.
+                    { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                            "-t", "--entrypoint", "javac", "-v", BASE_DIR + File.separator + "apps" + File.separator + "vthread_props:/project:z",
+                            BUILDER_IMAGE, "-d", "target", "src/main/java/vthread_props/Main.java" },
                     // Native image build
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "vthread_props:/project:z",
                             BUILDER_IMAGE, "-ea", "-march=native", "--no-fallback", "--link-at-build-time",
-                            "-jar", "target/vthread_props.jar", "target/vthread_props" } },
+                            "-cp", "target", "vthread_props.Main", "-o", "target" + File.separator + "vthread_props.bin" } },
             new String[][] {
                     // We build runtime images, different bases
                     { CONTAINER_RUNTIME, "build", "--network=host", "-f", "Dockerfile." + RUNTIME_IMAGE_BASE_TOKEN,
@@ -557,7 +561,7 @@ public enum BuildAndRunCmds {
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "vthread_props:/work:z",
                             ContainerNames.IMAGEIO_BUILDER_IMAGE.name + "_" + RUNTIME_IMAGE_BASE_TOKEN,
-                            "/work/target/vthread_props" }
+                            "/work/target/vthread_props.bin" }
             }
     );
 
