@@ -36,6 +36,7 @@ public enum ContainerNames {
     FOR_SERIALIZATION_BUILDER_IMAGE("my-for-serialization-runner"),
     JDK_REFLECTIONS_BUILDER_IMAGE("my-jdkreflections-runner"),
     QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT("my-quarkus-mp-orm-dbs-awt-container"),
+    VTHREADS_PROPS_BUILDER_IMAGE("my-vthreads-props-runner"),
     NONE("NO_CONTAINER");
 
     public final String name;

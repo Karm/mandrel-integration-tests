@@ -1,0 +1,4 @@
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023
+WORKDIR /work/
+RUN chmod "g+rwX" /work \
+    && chown 1000:root /work

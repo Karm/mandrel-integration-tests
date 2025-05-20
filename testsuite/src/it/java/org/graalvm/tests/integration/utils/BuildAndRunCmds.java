@@ -534,6 +534,31 @@ public enum BuildAndRunCmds {
                             "16686:16686", "-p", "14268:14268", "--name", "quarkus_jaeger", "quay.io/jaegertracing/all-in-one:latest"
                     }
             }
+    ),
+    VTHREADS_PROPS(
+            new String[][] {
+                    { "mvn", "--batch-mode", "package" },
+                    { "native-image", "-ea", "-march=native", "--no-fallback", "--link-at-build-time", "-jar", "target/vthread_props.jar", "target/vthread_props" } },
+            new String[][] {
+                    { IS_THIS_WINDOWS ? "target\\vthread_props.exe" : "./target/vthread_props" } }
+    ),
+    VTHREADS_PROPS_BUILDER_IMAGE(
+            new String[][] {
+                    { "mvn", "--batch-mode", "package" },
+                    // Native image build
+                    { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                            "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "vthread_props:/project:z",
+                            BUILDER_IMAGE, "-ea", "-march=native", "--no-fallback", "--link-at-build-time",
+                            "-jar", "target/vthread_props.jar", "target/vthread_props" } },
+            new String[][] {
+                    // We build runtime images, different bases
+                    { CONTAINER_RUNTIME, "build", "--network=host", "-f", "Dockerfile." + RUNTIME_IMAGE_BASE_TOKEN,
+                            "-t", ContainerNames.IMAGEIO_BUILDER_IMAGE.name + "_" + RUNTIME_IMAGE_BASE_TOKEN, "." },
+                    { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
+                            "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "vthread_props:/work:z",
+                            ContainerNames.IMAGEIO_BUILDER_IMAGE.name + "_" + RUNTIME_IMAGE_BASE_TOKEN,
+                            "/work/target/vthread_props" }
+            }
     );
 
     private static String[] hyperfoil() {
