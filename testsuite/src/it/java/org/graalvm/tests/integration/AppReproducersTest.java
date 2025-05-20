@@ -45,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -921,6 +922,100 @@ public class AppReproducersTest {
                             ". The method getNextThreadIdOffset is deleted from native-image intentionally.");
         } finally {
             cleanup(process, cn, mn, report, app, buildLog, runLog);
+        }
+    }
+
+    @Test
+    @Tag("builder-image")
+    @IfMandrelVersion(min = "23.1.8", inContainer = true)
+    public void vthreadsPropsContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
+        vthreadsProps(testInfo, Apps.VTHREADS_PROPS_BUILDER_IMAGE);
+    }
+
+    @Test
+    @IfMandrelVersion(min = "23.1.8")
+    public void vthreadsPropsTest(TestInfo testInfo) throws IOException, InterruptedException {
+        vthreadsProps(testInfo, Apps.VTHREADS_PROPS);
+    }
+
+    /**
+     * https://github.com/oracle/graal/issues/9939
+     * System.getProperties() fails when called from a virtual thread
+     */
+    public void vthreadsProps(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
+        Process process = null;
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+        final Pattern p = Pattern.compile(".*=== RESULT: true true true true true true ===.*");
+        try {
+            // Cleanup
+            cleanTarget(app);
+            if (inContainer) {
+                for (String base : RUNTIME_IMAGE_BASE) {
+                    removeContainer(app.runtimeContainer.name + "_" + base);
+                }
+            }
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+            builderRoutine(app, report, cn, mn, appDir, processLog, null, getSwitches(app));
+            if (inContainer) {
+                final Map<String, String> errors = new HashMap<>();
+                for (String base : RUNTIME_IMAGE_BASE) {
+                    if (isBuilderImageIncompatible(base)) {
+                        LOGGER.info("Skipping " + base + " based runtime image test (glibc too old)");
+                        continue;
+                    }
+                    LOGGER.info("Running with " + base + " runtime image...");
+                    final File baseProcessLog = Path.of(appDir.getAbsolutePath(), "logs", base + "-run.log").toFile();
+                    for (int i = 0; i < app.buildAndRunCmds.runCommands.length; i++) {
+                        final List<String> cmdBuildImage = replaceSwitchesInCmd(getRunCommand(app.buildAndRunCmds.runCommands[i]),
+                                Map.of(RUNTIME_IMAGE_BASE_TOKEN, base));
+                        process = runCommand(cmdBuildImage, appDir, baseProcessLog, app);
+                        assertNotNull(process, base + ": Container failed. Check " + getLogsDir(cn, mn) + File.separator + baseProcessLog.getName());
+                        process.waitFor(10, TimeUnit.MINUTES); // We are potentially downloading base image
+                        Logs.appendln(report, appDir.getAbsolutePath());
+                        Logs.appendlnSection(report, String.join(" ", cmdBuildImage));
+                    }
+                    if (!searchLogLines(p, baseProcessLog, Charset.defaultCharset())) {
+                        errors.put(base, "Expected pattern " + p + " was not found in the log. Check " + getLogsDir(cn, mn) + File.separator + baseProcessLog.getName());
+                    }
+                }
+                assertTrue(errors.isEmpty(), "There were errors checking the runtime logs, see:\n" + String.join("\n", errors.values()));
+            } else {
+                LOGGER.info("Running...");
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
+                process = runCommand(cmd, appDir, processLog, app);
+                assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+                process.waitFor(1, TimeUnit.SECONDS);
+                Logs.appendln(report, appDir.getAbsolutePath());
+                Logs.appendlnSection(report, String.join(" ", cmd));
+                assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()),
+                        "Expected pattern " + p + " was not found in the log. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            }
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            if (inContainer) {
+                Arrays.stream(RUNTIME_IMAGE_BASE)
+                        .filter(base -> !isBuilderImageIncompatible(base))
+                        .map(base -> Path.of(appDir.getAbsolutePath(), "logs", base + "-run.log").toFile()).forEach(f -> {
+                            try {
+                                Logs.archiveLog(cn, mn, f);
+                            } catch (IOException e) {
+                                LOGGER.error("Failed to archive " + f.getName(), e);
+                            }
+                        });
+            }
+            cleanup(process, cn, mn, report, app, processLog);
+            if (inContainer) {
+                for (String base : RUNTIME_IMAGE_BASE) {
+                    removeContainer(app.runtimeContainer.name + "_" + base);
+                }
+            }
         }
     }
 

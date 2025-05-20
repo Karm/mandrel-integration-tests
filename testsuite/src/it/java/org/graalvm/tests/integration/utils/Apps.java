@@ -208,7 +208,17 @@ public enum Apps {
             URLContent.NONE,
             WhitelistLogLines.JDK_REFLECTIONS,
             BuildAndRunCmds.JDK_REFLECTIONS_BUILDER_IMAGE,
-            ContainerNames.JDK_REFLECTIONS_BUILDER_IMAGE);
+            ContainerNames.JDK_REFLECTIONS_BUILDER_IMAGE),
+    VTHREADS_PROPS("apps" + File.separator + "vthread_props",
+            URLContent.NONE,
+            WhitelistLogLines.NONE,
+            BuildAndRunCmds.VTHREADS_PROPS,
+            ContainerNames.NONE),
+    VTHREADS_PROPS_BUILDER_IMAGE("apps" + File.separator + "vthread_props",
+            URLContent.NONE,
+            WhitelistLogLines.NONE,
+            BuildAndRunCmds.VTHREADS_PROPS_BUILDER_IMAGE,
+            ContainerNames.VTHREADS_PROPS_BUILDER_IMAGE);
 
     public final String dir;
     public final URLContent urlContent;

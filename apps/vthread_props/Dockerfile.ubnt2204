@@ -1,0 +1,4 @@
+FROM quay.io/karmkarm/ubuntu:22.04
+WORKDIR /work/
+RUN chmod "g+rwX" /work \
+    && chown 1000:root /work

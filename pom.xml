@@ -101,6 +101,7 @@
                 <module>apps/reslocations</module>
                 <module>apps/timezones</module>
                 <module>apps/versions</module>
+                <module>apps/vthread-props</module>
                 <module>apps/monitor-field-offset</module>
                 <module>apps/for-serialization</module>
                 <module>testsuite</module>
