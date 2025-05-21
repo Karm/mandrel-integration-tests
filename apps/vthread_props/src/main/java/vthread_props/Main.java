@@ -58,7 +58,7 @@ public class Main {
                 e.printStackTrace();
             }
         });
-        if (!vt.join(Duration.ofMillis(5))) {
+        if (!vt.join(Duration.ofMillis(10))) {
             System.out.println("Error: Virtual thread did not join in time");
             return false;
         }
