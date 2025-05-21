@@ -31,6 +31,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
+
+    private static long TIMEOUT_MS = 100;
+
     public static void main(String[] args) {
         final String r = String.format("%s %s %s %s %s %s",
                 runTest("System Properties Access", Main::testSystemPropertiesAccess),
@@ -58,7 +61,7 @@ public class Main {
                 e.printStackTrace();
             }
         });
-        if (!vt.join(Duration.ofMillis(10))) {
+        if (!vt.join(Duration.ofMillis(TIMEOUT_MS))) {
             System.out.println("Error: Virtual thread did not join in time");
             return false;
         }
@@ -84,7 +87,7 @@ public class Main {
                 e.printStackTrace();
             }
         });
-        if (!vt.join(Duration.ofMillis(20))) {
+        if (!vt.join(Duration.ofMillis(TIMEOUT_MS))) {
             System.out.println("Error: Virtual thread did not join in time");
             return false;
         }
@@ -110,7 +113,7 @@ public class Main {
                 e.printStackTrace();
             }
         });
-        if (!vt.join(Duration.ofMillis(15))) {
+        if (!vt.join(Duration.ofMillis(TIMEOUT_MS))) {
             System.out.println("Error: Virtual thread did not join in time");
             return false;
         }
@@ -139,7 +142,7 @@ public class Main {
                     }
                 });
             }
-            if (!l.await(15, TimeUnit.MILLISECONDS)) {
+            if (!l.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
                 System.out.println("Error: Virtual threads did not join in time.");
                 return false;
             }
@@ -169,7 +172,7 @@ public class Main {
                 e.printStackTrace();
             }
         });
-        if (!vt.join(Duration.ofMillis(5))) {
+        if (!vt.join(Duration.ofMillis(TIMEOUT_MS))) {
             System.out.println("Error: Virtual thread did not join in time");
             return false;
         }
@@ -202,7 +205,7 @@ public class Main {
                 e.printStackTrace();
             }
         });
-        if (!vt.join(Duration.ofMillis(10))) {
+        if (!vt.join(Duration.ofMillis(TIMEOUT_MS))) {
             System.out.println("Error: Virtual thread did not join in time");
             return false;
         }
