@@ -68,6 +68,8 @@ public enum WhitelistLogLines {
             // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
             p.add(Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"));
             p.add(Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"));
+            // Podman noise
+            p.add(Pattern.compile(".*archive: skipping.*since it is a socket.*"));
             // Podman -> registry network/comm issue?
             p.add(Pattern.compile(".*time=.*level=warning.*msg=.*Failed, retrying in.*pull&service=quay\\.io.*: net/http: TLS handshake timeout.*"));
             // Testcontainers, depends on local setup. Not our test issue.
