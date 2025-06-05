@@ -19,45 +19,6 @@
  */
 package org.graalvm.tests.integration;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FileUtils;
-import org.graalvm.home.Version;
-import org.graalvm.tests.integration.utils.Apps;
-import org.graalvm.tests.integration.utils.ContainerNames;
-import org.graalvm.tests.integration.utils.LogBuilder;
-import org.graalvm.tests.integration.utils.Logs;
-import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
-import org.graalvm.tests.integration.utils.versions.UsedVersion;
-import org.jboss.logging.Logger;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -92,6 +53,49 @@ import static org.graalvm.tests.integration.utils.versions.UsedVersion.getVersio
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
+import org.graalvm.home.Version;
+import org.graalvm.tests.integration.utils.Apps;
+import org.graalvm.tests.integration.utils.Commands;
+import org.graalvm.tests.integration.utils.ContainerNames;
+import org.graalvm.tests.integration.utils.LogBuilder;
+import org.graalvm.tests.integration.utils.Logs;
+import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
+import org.jboss.logging.Logger;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 /**
  * Tests for build and start of applications with some real source code.
@@ -970,6 +974,23 @@ public class AppReproducersTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+        Map<String, String> env = null;
+        // Linux/Mac only for now when not run in a container and on a JDK < 21 (e.g. 17)
+        Runtime.Version version = Runtime.version();
+        if (version.feature() < 21 && !inContainer) {
+            if (Commands.IS_THIS_WINDOWS) {
+                // FIXME: Unknown how to determine the path to native-image
+                //        from the PATH. Skip the test for now.
+                LOGGER.info("Running on JDK version " + version.feature() + " but need at least 21 to compile. Skipped.");
+                return;
+            } else {
+                LOGGER.info("Running with JDK version " + version.feature() + ". Compiling using GraalVM/Mandrel instead.");
+                env = new HashMap<>();
+                String javaHome = getJavaHomeFromNativeImage();
+                LOGGER.info("Running maven build with JAVA_HOME = " + javaHome);
+                env.put("JAVA_HOME", javaHome);
+            }
+        }
         final Pattern p = Pattern.compile(".*=== RESULT: true true true true true true ===.*");
         try {
             // Cleanup
@@ -981,7 +1002,7 @@ public class AppReproducersTest {
             }
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, getSwitches(app));
+            builderRoutine(app, report, cn, mn, appDir, processLog, env, getSwitches(app));
             if (inContainer) {
                 final Map<String, String> errors = new HashMap<>();
                 for (String base : RUNTIME_IMAGE_BASE) {
@@ -1283,6 +1304,30 @@ public class AppReproducersTest {
             Logs.checkThreshold(app, Logs.Mode.NATIVE, Logs.SKIP, Logs.SKIP, Logs.SKIP, nativeRunTookMs);
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
+        }
+    }
+
+    /*
+     * Returns the directory where native-image resides - minus the 'bin' path. Linux only.
+     */
+    private static String getJavaHomeFromNativeImage() {
+        List<String> typeCmd = List.of("type", "-P" /* use PATH */, "native-image");
+        ProcessBuilder builder = new ProcessBuilder(typeCmd);
+        try {
+            Process p = builder.start();
+            int exitStatus = p.waitFor();
+            if (exitStatus != 0) {
+                throw new RuntimeException("native-image not found in PATH when trying to set JAVA_HOME");
+            }
+            try (BufferedInputStream bin = new BufferedInputStream(p.getInputStream())) {
+                String value = new String(bin.readAllBytes(), StandardCharsets.UTF_8);
+                Path nativeImage = Path.of(value);
+                // /foo/bar/bin/native-image => /foo/bar
+                Path javaHome = nativeImage.getParent().getParent();
+                return javaHome.toString();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
