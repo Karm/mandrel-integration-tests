@@ -211,12 +211,12 @@ public enum Apps {
             ContainerNames.JDK_REFLECTIONS_BUILDER_IMAGE),
     VTHREADS_PROPS("apps" + File.separator + "vthread_props",
             URLContent.NONE,
-            WhitelistLogLines.NONE,
+            WhitelistLogLines.VTHREADS,
             BuildAndRunCmds.VTHREADS_PROPS,
             ContainerNames.NONE),
     VTHREADS_PROPS_BUILDER_IMAGE("apps" + File.separator + "vthread_props",
             URLContent.NONE,
-            WhitelistLogLines.NONE,
+            WhitelistLogLines.VTHREADS,
             BuildAndRunCmds.VTHREADS_PROPS_BUILDER_IMAGE,
             ContainerNames.VTHREADS_PROPS_BUILDER_IMAGE);
 

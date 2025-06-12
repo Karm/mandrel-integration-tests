@@ -468,6 +468,18 @@ public enum WhitelistLogLines {
                 return new Pattern[] {};
             }
         }
+    },
+    VTHREADS {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            return new Pattern[] {
+                    // Maven 3.9.10 has a dependency - guice - which uses sun.misc.Unsafe::staticFieldBase
+                    // and produces a warning on JDK 25+. See https://github.com/Karm/mandrel-integration-tests/issues/341
+                    Pattern.compile(".*WARNING:.*sun.misc.Unsafe::staticFieldBase has been called by com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"),
+                    Pattern.compile(".*WARNING:.*Please consider reporting this to the maintainers of class com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"),
+                    Pattern.compile(".*WARNING:.*sun\\.misc\\.Unsafe::staticFieldBase will be removed in a future release.*")
+            };
+        }
     };
 
     public abstract Pattern[] get(boolean inContainer);
