@@ -108,8 +108,8 @@ public class UsedVersion {
         //@formatter:off
         private static final Map<Integer, String> GRAAL_MAPPING = Map.of(22, "24.0",
                                                                          23, "24.1",
-                                                                         24, "25.0",
-                                                                         25, "25.1");
+                                                                         24, "24.2",
+                                                                         25, "25.0");
         //@formatter:on
         private static final String JVMCI_BUILD_PREFIX = "jvmci-";
         private static final String MANDREL_VERS_PREFIX = "Mandrel-";
@@ -159,7 +159,7 @@ public class UsedVersion {
                 final String vendorVersion = secondMatcher.group(VENDOR_VERSION_GROUP);
 
                 final String buildInfo = secondMatcher.group(BUILD_INFO_GROUP);
-                final String graalVersion = graalVersion(buildInfo, v.feature());
+                final String graalVersion = graalVersion(buildInfo, v.feature(), v.interim(), v.update());
                 final String mandrelVersion = mandrelVersion(vendorVersion);
                 final String versNum = (isMandrel(vendorVersion) ? mandrelVersion : graalVersion);
                 final Version vers = versionParse(versNum);
@@ -205,10 +205,10 @@ public class UsedVersion {
             return null;
         }
 
-        private static String graalVersion(String buildInfo, int jdkFeatureVers) {
+        private static String graalVersion(String buildInfo, int jdkFeatureVers, int jdkInterim, int jdkUpdate) {
             if (jdkFeatureVers >= 22) {
                 // short-circuit new version scheme with a mapping
-                return GRAAL_MAPPING.get(jdkFeatureVers);
+                return graaVersionJDKLaterThan22(jdkFeatureVers, jdkInterim, jdkUpdate);
             }
             if (buildInfo == null) {
                 return null;
@@ -219,6 +219,14 @@ public class UsedVersion {
             }
             final String version = buildInfo.substring(idx + JVMCI_BUILD_PREFIX.length());
             return matchVersion(version);
+        }
+
+        private static String graaVersionJDKLaterThan22(int jdkFeature, int jdkInterim, int jdkUpdate) {
+            if (jdkFeature < 22) {
+                throw new IllegalStateException("Should only be called with JDK >= 22. Got: " + jdkFeature);
+            }
+            String fullVersion = String.format("%d.%d.%d", jdkFeature, jdkInterim, jdkUpdate); // for JDK 25+
+            return GRAAL_MAPPING.getOrDefault(jdkFeature, fullVersion);
         }
 
         static Version versionParse(String version) {
