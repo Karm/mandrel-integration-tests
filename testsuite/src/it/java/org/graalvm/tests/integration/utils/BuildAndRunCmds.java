@@ -233,6 +233,14 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\jdkreflections.exe" : "./target/jdkreflections" } }
     ),
+    CACERTS(
+            new String[][] {
+                    { "mvn", "--batch-mode", "package" },
+                    { "native-image", "--link-at-build-time=", "--no-fallback", "-jar", "target/cacerts.jar", "target/cacerts" }
+            },
+            new String[][] {
+                    { IS_THIS_WINDOWS ? "target\\cacerts.exe" : "./target/cacerts" } }
+    ),
     JDK_REFLECTIONS_BUILDER_IMAGE(
             new String[][] {
                     { "mvn", "--batch-mode", "package" },

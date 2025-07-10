@@ -926,6 +926,53 @@ public class AppReproducersTest {
         }
     }
 
+    @Test
+    @IfMandrelVersion(min = "23.1.7")
+    public void cacertsTest(TestInfo testInfo) throws IOException, InterruptedException {
+        cacerts(testInfo, Apps.CACERTS);
+    }
+
+    public void cacerts(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
+        LOGGER.info("Testing app: " + app);
+        Process process = null;
+        File buildLog = null;
+        File runLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
+        try {
+            // Cleanup
+            cleanTarget(app);
+            if (inContainer) {
+                removeContainers(app.runtimeContainer.name);
+            }
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+            buildLog = Path.of(appDir.getAbsolutePath(), "logs", "build.log").toFile();
+            runLog = Path.of(appDir.getAbsolutePath(), "logs", "run.log").toFile();
+            builderRoutine(app, report, cn, mn, appDir, buildLog);
+            LOGGER.info("Running...");
+            final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
+            process = runCommand(cmd, appDir, runLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + buildLog.getName());
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            Logs.checkLog(cn, mn, app, buildLog);
+            Logs.checkLog(cn, mn, app, runLog);
+            processStopper(process, true);
+            final Pattern p = Pattern.compile(".*Checked .* certificates. PASS!*");
+            assertTrue(searchLogLines(p, runLog, Charset.defaultCharset()),
+                    "Expected pattern " + p + " was not found in the log. Check " + getLogsDir(cn, mn) + File.separator + runLog.getName());
+            final Pattern p2 = Pattern.compile(".*Blocked certificates test PASSES\\..*");
+            assertTrue(searchLogLines(p, runLog, Charset.defaultCharset()),
+                    "Expected pattern " + p2 + " was not found in the log. Check " + getLogsDir(cn, mn) + File.separator + runLog.getName());
+        } finally {
+            cleanup(process, cn, mn, report, app, buildLog, runLog);
+        }
+    }
+
     /*
     TODO: Uncomment when Mandrel 23.1.8 is released and the issue is backported:
     "Fixed System.getProperties() when called from virtual thread."
