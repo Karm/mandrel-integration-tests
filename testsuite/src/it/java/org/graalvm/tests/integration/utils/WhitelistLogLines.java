@@ -104,6 +104,15 @@ public enum WhitelistLogLines {
             return new Pattern[] {};
         }
     },
+    CACERTS {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            return new Pattern[] {
+                    // Test uses JDK internal API: sun.security.util.UntrustedCertificates is internal proprietary API and may be removed in a future release
+                    Pattern.compile(".*sun\\.security\\.util\\.UntrustedCertificates is internal proprietary API and may be removed in a future release.*"),
+            };
+        }
+    },
     IMAGEIO {
         @Override
         public Pattern[] get(boolean inContainer) {

@@ -85,6 +85,7 @@
                 <excludeTags>none</excludeTags>
             </properties>
             <modules>
+                <module>apps/cacerts</module>
                 <module>apps/calendars</module>
                 <module>apps/debug-symbols-smoke</module>
                 <module>apps/helidon-quickstart-se</module>
