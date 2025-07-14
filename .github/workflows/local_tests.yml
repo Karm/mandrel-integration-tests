@@ -35,7 +35,7 @@ jobs:
             - quarkus-version: '2.13.9.Final'
               mandrel-version: '22.3.5.0-Final'
               java-version: '17'
-              os: 'windows-2019'
+              os: 'windows-2022'
               timeout-minutes: 80
             - quarkus-version: '2.13.9.Final'
               mandrel-version: '22.3.5.0-Final'
@@ -218,7 +218,6 @@ jobs:
         env:
           MAVEN_OPTS: -Xmx1g
         run: |
-          set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\;%PATH%
           set PATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\;%PATH%
           call vcvars64 || exit 1
           set "GRAALVM_HOME=${{ github.workspace }}\${{ matrix.java-version }}-${{ matrix.mandrel-version }}"
