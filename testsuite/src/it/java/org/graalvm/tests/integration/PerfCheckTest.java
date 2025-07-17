@@ -271,6 +271,7 @@ public class PerfCheckTest {
             Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target",
                     "quarkus-json_+ParseOnce-native-image-source-jar", "quarkus-json_plus-ParseOnce.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus.log").toFile());
             cleanTarget(app);
             if (patch != null) {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
@@ -404,6 +405,7 @@ public class PerfCheckTest {
             }
             Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target",
                     "quarkus-json-native-image-source-jar", "quarkus-json.json").toFile());
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus.log").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
             if (patch != null) {
@@ -541,6 +543,7 @@ public class PerfCheckTest {
             Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(),
                     "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
             Logs.archiveLog(cn, mn, processLog);
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus.log").toFile());
             cleanTarget(app);
             removeContainer("quarkus_jaeger");
             if (patch != null) {
@@ -666,6 +669,7 @@ public class PerfCheckTest {
                 Logs.archiveLog(cn, mn, jsonPayload.toFile());
             }
             Logs.archiveLog(cn, mn, processLog);
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus.log").toFile());
             cleanTarget(app);
             if (patch != null) {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
