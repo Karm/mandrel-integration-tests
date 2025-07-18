@@ -41,6 +41,13 @@ public enum URLContent {
             new String[]{"http://localhost:8080/data/client/test/parameterValue=xxx", "Processed parameter value 'parameterValue=xxx'"}
     }),
 
+    QUARKUS_FULL_MICROPROFILE_GC(new String[][]{
+            new String[]{"http://localhost:8080/q/health", "\"UP\""},
+            new String[]{"http://localhost:8090/openapi", "openapi: 3.0.0"},
+            new String[]{"http://localhost:8090/benchmark"},
+            new String[]{"http://localhost:8090/benchmark/microprofile-hyperfoil/start"}
+    }),
+
     QUARKUS_JSON_PERF(new String[][]{
             // apps/quarkus-json/src/main/resources/application.properties
             new String[]{"http://localhost:8887/ready", "Yes."},
