@@ -510,7 +510,9 @@ public class AppReproducersTest {
                     errors.addAll(interimErrs);
                 }
                 assertTrue(errors.isEmpty(),
-                        "There were errors checking the generated image files, see:\n" + String.join("\n", errors));
+                        "There were errors checking the generated image files. " +
+                                "Check " + getLogsDir(cn, mn) + File.separator + processLog.getName()+" for e.g. GLIBC, missing libs etc. " +
+                                "See:\n" + String.join("\n", errors));
             } else {
                 LOGGER.info("Running...");
                 final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
