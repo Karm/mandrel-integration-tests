@@ -14,9 +14,9 @@ scenario:
             - "data/config/injected"
             - "q/metrics"
             - "q/health"
-            - !concat ["data/client/test/", "/helloThere"]
-            - !concat ["data/client/test/", "/gutenTag"]
-            - !concat ["data/client/test/", "/bonjour"]
+            - !concat ["data/client/test/", "helloThere"]
+            - !concat ["data/client/test/", "gutenTag"]
+            - !concat ["data/client/test/", "bonjour"]
           # ... and stores it in users's session under key `my-random-path`
           toVar: my-random-path
       - httpRequest:
