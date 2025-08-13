@@ -144,8 +144,6 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
-                                    "-H:Log=registerResource:," +
-                                    "--trace-object-instantiation=java.util.Random," +
                                     "-R:MaxHeapSize=" + GC_HEAP_MB + "m" +
                                     GRAALVM_BUILD_OUTPUT_JSON_FILE
                     },
