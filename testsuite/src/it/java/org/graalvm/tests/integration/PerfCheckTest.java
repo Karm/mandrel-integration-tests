@@ -24,6 +24,7 @@ import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.Commands;
 import org.graalvm.tests.integration.utils.ContainerNames;
+import org.graalvm.tests.integration.utils.HyperfoilHelper;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
@@ -682,15 +683,8 @@ public class PerfCheckTest {
             WebpageTester.testWeb(app.urlContent.urlContent[1][0], 15, app.urlContent.urlContent[1][1], false);
 
             // upload the benchmark
-            final HttpClient hhc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-            final HttpRequest uploadRequest = HttpRequest.newBuilder()
-                    .uri(new URI(app.urlContent.urlContent[2][0]))
-                    .header("Content-Type", "text/vnd.yaml")
-                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/benchmark.hf.yaml")))
-                    .build();
-            final HttpResponse<String> releaseResponse = hhc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
-            assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
-            LOGGER.info("Hyperfoil upload response code " + releaseResponse.statusCode());
+            final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+            HyperfoilHelper.uploadBenchmark(app, appDir, app.urlContent.urlContent[2][0], hc);
 
             // run the benchmark
             disableTurbo();
@@ -698,7 +692,7 @@ public class PerfCheckTest {
                     .uri(new URI(app.urlContent.urlContent[3][0]))
                     .GET()
                     .build();
-            final HttpResponse<String> benchmarkResponse = hhc.send(benchmarkRequest, HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> benchmarkResponse = hc.send(benchmarkRequest, HttpResponse.BodyHandlers.ofString());
             final JSONObject benchmarkResponseJson = new JSONObject(benchmarkResponse.body());
             final String id = benchmarkResponseJson.getString("id");
 
@@ -715,7 +709,7 @@ public class PerfCheckTest {
                     .GET()
                     .timeout(Duration.ofSeconds(3)) // set timeout to allow for cleanup, otherwise will stall at first request above
                     .build();
-            final HttpResponse<String> resultsResponse = hhc.send(resultsRequest, HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> resultsResponse = hc.send(resultsRequest, HttpResponse.BodyHandlers.ofString());
             LOGGER.info("Hyperfoil results response code " + resultsResponse.statusCode());
             final JSONObject resultsResponseJson = new JSONObject(resultsResponse.body());
             System.out.println(resultsResponseJson);
