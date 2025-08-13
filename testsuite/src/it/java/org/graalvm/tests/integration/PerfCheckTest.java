@@ -67,8 +67,31 @@ import java.util.stream.Collectors;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.graalvm.tests.integration.AppReproducersTest.BASE_DIR;
-import static org.graalvm.tests.integration.utils.Commands.*;
-import static org.graalvm.tests.integration.utils.Commands.pidKiller;
+import static org.graalvm.tests.integration.utils.Commands.ARCH;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE_SWITCH;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_BEGIN;
+import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_END;
+import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
+import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
+import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
+import static org.graalvm.tests.integration.utils.Commands.disableTurbo;
+import static org.graalvm.tests.integration.utils.Commands.enableTurbo;
+import static org.graalvm.tests.integration.utils.Commands.findExecutable;
+import static org.graalvm.tests.integration.utils.Commands.findFiles;
+import static org.graalvm.tests.integration.utils.Commands.getProperty;
+import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
+import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
+import static org.graalvm.tests.integration.utils.Commands.mapToJSON;
+import static org.graalvm.tests.integration.utils.Commands.parsePerfRecord;
+import static org.graalvm.tests.integration.utils.Commands.parsePort;
+import static org.graalvm.tests.integration.utils.Commands.parseSerialGCLog;
+import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.removeContainer;
+import static org.graalvm.tests.integration.utils.Commands.runCommand;
+import static org.graalvm.tests.integration.utils.Commands.runJaegerContainer;
+import static org.graalvm.tests.integration.utils.Commands.waitForFileToMatch;
+import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
 import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
 import static org.graalvm.tests.integration.utils.Uploader.PERF_APP_REPORT;
 import static org.graalvm.tests.integration.utils.Uploader.postBuildtimePayload;
@@ -77,8 +100,9 @@ import static org.graalvm.tests.integration.utils.versions.UsedVersion.getVersio
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_ACCEPTED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_CREATED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_OK;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Michal Karm Babacek <karm@redhat.com>
