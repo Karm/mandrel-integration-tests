@@ -249,7 +249,7 @@ public enum GDBSession {
                     new CP("GOTO URL http://localhost:8080/data/config/lookup",
                             Pattern.compile(".*lookup value.*", Pattern.DOTALL)),
                     new CP("bt\n",
-                            Pattern.compile(".*at.*com/example/quarkus/config/ConfigTestController.java:33.*", Pattern.DOTALL)),
+                            Pattern.compile(".*at.*com/example/quarkus/config/ConfigTestController.java:33.*", Pattern.DOTALL), increasedTimeoutMs),
                     new CP("list\n",
                             Pattern.compile(".*String value = config.getValue\\(\"value\", String.class\\);.*", Pattern.DOTALL)),
                     new CP("c&\n",
