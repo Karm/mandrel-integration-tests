@@ -23,6 +23,7 @@ import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.Commands;
 import org.graalvm.tests.integration.utils.ContainerNames;
+import org.graalvm.tests.integration.utils.HyperfoilHelper;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
@@ -404,14 +405,7 @@ public class JFRTest {
 
             // Upload the benchmark
             final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-            final HttpRequest uploadRequest = HttpRequest.newBuilder()
-                    .uri(new URI(app.urlContent.urlContent[1][0]))
-                    .header("Content-Type", "text/vnd.yaml")
-                    .POST(HttpRequest.BodyPublishers.ofFile(Path.of(appDir.getAbsolutePath() + "/benchmark.hf.yaml")))
-                    .build();
-            final HttpResponse<String> releaseResponse = hc.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
-            assertEquals(204, releaseResponse.statusCode(), "App returned a non HTTP 204 response. The perf report is invalid.");
-            LOGGER.info("Hyperfoil upload response code " + releaseResponse.statusCode());
+            HyperfoilHelper.uploadBenchmark(app, appDir, app.urlContent.urlContent[1][0], hc);
 
             // Run the benchmark
             disableTurbo();
