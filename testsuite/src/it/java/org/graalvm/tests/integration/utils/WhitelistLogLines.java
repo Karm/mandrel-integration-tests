@@ -218,6 +218,9 @@ public enum WhitelistLogLines {
             if (IS_THIS_MACOS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
                 p.add(Pattern.compile(".*Netty DefaultChannelId initialization \\(with io\\.netty\\.machineId.*\\) took more than a second.*"));
             }
+            // Sometimes, this appears when using Hyperfoil to benchmark the app. The acceptor wants to handle a connection, but no event loop is registered.
+            // https://groups.google.com/g/vertx/c/ekzl1sagkVU
+            p.add(Pattern.compile(".*Failed to register an accepted channel:.*"));
             return p.toArray(new Pattern[0]);
         }
     },
