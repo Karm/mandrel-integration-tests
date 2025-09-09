@@ -27,6 +27,7 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.HyperfoilHelper;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.thresholds.Thresholds;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
 import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
@@ -61,6 +62,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -102,6 +104,8 @@ import static org.jboss.resteasy.spi.HttpResponseCodes.SC_ACCEPTED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_CREATED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -652,7 +656,22 @@ public class PerfCheckTest {
                     "Main is still open.");
             Logs.checkLog(cn, mn, app, processLog);
 
-            // TODO, need to implement some asserting here once the timeSpentInGCs value is not 0
+            // sanity check
+            assertNotEquals("0.0", reports.get(0).get("timeSpentInGCs"), "Time spent in GCs is zero (JVM).");
+            assertNotEquals("0.0", reports.get(1).get("timeSpentInGCs"), "Time spent in GCs is zero (native).");
+
+            // saving time spent in GCs values
+            double jvmGCTime = Double.parseDouble(reports.get(1).get("timeSpentInGCs"));
+            double nativeGCTime = Double.parseDouble(reports.get(1).get("timeSpentInGCs"));
+
+            // get threshold value
+            final Path gcThresholds = appDir.toPath().resolve("gc_threshold.conf");
+            Map<String, Long> thresholds = Thresholds.parseProperties(gcThresholds);
+
+            // assert that time spent in GCs in native is inside the threshold (ideally faster)
+            double percentageDiff = getPercentageDifference(nativeGCTime, jvmGCTime);
+            assertTrue(nativeGCTime < jvmGCTime || percentageDiff <= (double) thresholds.get("timeInGCs"),
+                    "Time spent in GCs is " + percentageDiff + "% slower in native than in JVM (threshold is " + thresholds.get("timeInGCs") + "%).");
         } finally {
             // final cleanup after the test is over
             if (process != null) {
@@ -718,6 +737,10 @@ public class PerfCheckTest {
             removeContainer("hyperfoil-container");
         }
 
+    }
+
+    private double getPercentageDifference(double firstNumber, double secondNumber) {
+        return Math.abs(firstNumber - secondNumber) * 100.0 / secondNumber;
     }
 
     /**
