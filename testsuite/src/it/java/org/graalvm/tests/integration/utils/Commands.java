@@ -947,10 +947,10 @@ public class Commands {
 
         final Pattern begin = Pattern.compile(".*\\s+\\Q" + statsFor + "\\E$");
         final Pattern incremental = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Young \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
-                (newLogFormat ? Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\sIncremental\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$") :
+                (newLogFormat ? Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\s(?:Pause\\s)?Incremental\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$") :
                         Pattern.compile("^\\[Incremental\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$"));
         final Pattern full = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Full \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
-                (newLogFormat ? Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\sFull\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$") :
+                (newLogFormat ? Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\s(?:Pause\\s)?Full\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$") :
                         Pattern.compile("^\\[Full\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$"));
         final Pattern end = Pattern.compile(".*quarkus.*stopped.*");
         try (Scanner sc = new Scanner(path, UTF_8)) {
@@ -981,6 +981,7 @@ public class Commands {
 
     /**
      * Open an ssh tunnel.
+     *
      * @return pid - caller is responsible for closing the tunnel
      */
     public static long openSSHTunnel(String identity, String sshPort, String user, String host, String port, boolean local) {
