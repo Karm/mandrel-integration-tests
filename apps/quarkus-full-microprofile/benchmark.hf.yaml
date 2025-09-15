@@ -1,44 +1,98 @@
 name: microprofile-hyperfoil
 http:
   host: http://localhost:8080
-  sharedConnections: 25
-usersPerSec: 50
+  sharedConnections: 200
+usersPerSec: 15
 duration: 5s
 scenario:
-  - test:
-      # Step `randomItem` randomly picks one item from the list below...
-      - randomItem:
-          list:
-            - "data/hello"
-            - "data/secured/test"
-            - "data/config/injected"
-            - "q/metrics"
-            - "q/health"
-            - "data/client/test/helloThere"
-            - "data/client/test/gutenTag"
-            - "data/client/test/bonjour"
-          # ... and stores it in users's session under key `my-random-path`
-          toVar: my-random-path
+  - first:
       - httpRequest:
-          # HTTP request will read the variable from the session and format
-          # the path for the GET request
-          GET: /${my-random-path}
-          # We'll use different statistics metric for webpages and images
+          # create the HTTP GET request
+          GET: /data/hello
+          # use different metric for webpages and other
           metric:
             - .*\.html -> pages
             - -> other
-          # Handler processes the response
+          # handler processes the response
           handler:
-            # We'll check that the response was successful (status 200-299)
+            # check that the response was successful
             status:
               range: 2xx
-            # When the response is fully processed we'll set variable `completed`
-            # in the session.
+            # when completed, set the variable
             onCompletion:
-              set: completed <- yes
-          # For demonstration purposes we will set `sync: false`.
-          # Next step is executed immediately after we fire the request, not
-          # waiting for the response.
-          sync: false
-      # We'll wait for the `completed` var to be set in this step, though.
-      - awaitVar: completed
+              set: firstDone <- yes
+          # wait for it to sync
+          sync: true
+      # wait for the variable to be set
+      - awaitVar: firstDone
+
+  # repeat the same scenario for other endpoints...
+  - second:
+      - httpRequest:
+          GET: /data/secured/test
+          metric:
+            - .*\.html -> pages
+            - -> other
+          handler:
+            status:
+              range: 2xx
+            onCompletion:
+              set: secondDone <- yes
+          sync: true
+      - awaitVar: secondDone
+
+  - third:
+      - httpRequest:
+          GET: /q/metrics
+          metric:
+            - .*\.html -> pages
+            - -> other
+          handler:
+            status:
+              range: 2xx
+            onCompletion:
+              set: thirdDone <- yes
+          sync: true
+      - awaitVar: thirdDone
+
+  - fourth:
+      - httpRequest:
+          GET: /q/health
+          metric:
+            - .*\.html -> pages
+            - -> other
+          handler:
+            status:
+              range: 2xx
+            onCompletion:
+              set: fourthDone <- yes
+          sync: true
+      - awaitVar: fourthDone
+
+  - fifth:
+      - httpRequest:
+          GET: /data/config/injected
+          metric:
+            - .*\.html -> pages
+            - -> other
+          handler:
+            status:
+              range: 2xx
+            onCompletion:
+              set: fifthDone <- yes
+          sync: true
+      - awaitVar: fifthDone
+
+  - sixth:
+      - httpRequest:
+          GET: /data/client/test/bonjour
+          metric:
+            - .*\.html -> pages
+            - -> other
+          handler:
+            status:
+              range: 2xx
+            onCompletion:
+              set: sixthDone <- yes
+          sync: true
+      - awaitVar: sixthDone

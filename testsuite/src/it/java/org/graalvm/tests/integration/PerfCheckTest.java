@@ -620,7 +620,7 @@ public class PerfCheckTest {
                 report.put("timeToFirstOKRequestMs", String.valueOf(timeToFirstOKRequestMs));
 
                 // generate some requests to the app with Hyperfoil
-                generateRequestsWithHyperfoil(app, appDir, processLog, cn, mn);
+                generateRequestsWithHyperfoil(app, appDir, processLog, cn, mn, false);
 
                 // stop the app
                 processStopper(process, false, true);
@@ -687,7 +687,7 @@ public class PerfCheckTest {
         }
     }
 
-    private void generateRequestsWithHyperfoil(Apps app, File appDir, File processLog, String cn, String mn)
+    private void generateRequestsWithHyperfoil(Apps app, File appDir, File processLog, String cn, String mn, boolean printResults)
             throws IOException, InterruptedException, URISyntaxException {
         try {
             removeContainer("hyperfoil-container");
@@ -722,16 +722,18 @@ public class PerfCheckTest {
                     Pattern.compile(".*Successfully persisted run.*", Pattern.DOTALL), 30, 2, TimeUnit.SECONDS);
             enableTurbo();
 
-            // get the benchmark results
-            final HttpRequest resultsRequest = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:8090/run/" + id + "/stats/all/json"))
-                    .GET()
-                    .timeout(Duration.ofSeconds(3)) // set timeout to allow for cleanup, otherwise will stall at first request above
-                    .build();
-            final HttpResponse<String> resultsResponse = hc.send(resultsRequest, HttpResponse.BodyHandlers.ofString());
-            LOGGER.info("Hyperfoil results response code " + resultsResponse.statusCode());
-            final JSONObject resultsResponseJson = new JSONObject(resultsResponse.body());
-            System.out.println(resultsResponseJson);
+            // get and print the benchmark results (if needed)
+            if (printResults) {
+                final HttpRequest resultsRequest = HttpRequest.newBuilder()
+                        .uri(new URI("http://localhost:8090/run/" + id + "/stats/all/json"))
+                        .GET()
+                        .timeout(Duration.ofSeconds(3)) // set timeout to allow for cleanup, otherwise will stall at first request above
+                        .build();
+                final HttpResponse<String> resultsResponse = hc.send(resultsRequest, HttpResponse.BodyHandlers.ofString());
+                LOGGER.info("Hyperfoil results response code " + resultsResponse.statusCode());
+                final JSONObject resultsResponseJson = new JSONObject(resultsResponse.body());
+                System.out.println(resultsResponseJson); // uses normal system print, because it's often very long
+            }
         } finally {
             // cleanup
             removeContainer("hyperfoil-container");
