@@ -2,7 +2,7 @@ name: microprofile-hyperfoil
 http:
   host: http://localhost:8080
   sharedConnections: 200
-usersPerSec: 15
+usersPerSec: 10
 duration: 5s
 scenario:
   - first:
