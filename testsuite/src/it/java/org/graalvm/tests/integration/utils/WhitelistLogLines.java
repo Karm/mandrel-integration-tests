@@ -350,18 +350,22 @@ public enum WhitelistLogLines {
     HELIDON_QUICKSTART_SE {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    // Experimental options not being unlocked, produces warnings, yet it's driven by the helidon-maven-plugin
-                    Pattern.compile(".*The option '.*' is experimental and must be enabled via.*"),
-                    // Unused argument on new Graal
-                    Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"),
-                    // --allow-incomplete-classpath not available in new GraalVM https://github.com/Karm/mandrel-integration-tests/issues/76
-                    Pattern.compile(".*Using a deprecated option --allow-incomplete-classpath from.*helidon-webserver-2.2.2.jar.*"),
-                    // Ignore JDK 24+ warning till https://github.com/classgraph/classgraph/issues/899 gets fixed
-                    Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner has been called by .*nonapi.io.github.classgraph.utils.FileUtils.*"),
-                    Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*nonapi.io.github.classgraph.utils.FileUtils"),
-                    Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner will be removed in a future release"),
-            };
+            List<Pattern> p = new ArrayList<>();
+            // Experimental options not being unlocked, produces warnings, yet it's driven by the helidon-maven-plugin
+            p.add(Pattern.compile(".*The option '.*' is experimental and must be enabled via.*"));
+            // Unused argument on new Graal
+            p.add(Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"));
+            // --allow-incomplete-classpath not available in new GraalVM https://github.com/Karm/mandrel-integration-tests/issues/76
+            p.add(Pattern.compile(".*Using a deprecated option --allow-incomplete-classpath from.*helidon-webserver-2.2.2.jar.*"));
+            // Ignore JDK 24+ warning till https://github.com/classgraph/classgraph/issues/899 gets fixed
+            p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner has been called by .*nonapi.io.github.classgraph.utils.FileUtils.*"));
+            p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*nonapi.io.github.classgraph.utils.FileUtils"));
+            p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner will be removed in a future release"));
+            // GraalVM 26 adds a warning count at the end of the build output. See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(26, 0, 0)) >= 0) {
+                p.add(Pattern.compile(".*The build process encountered 9 warnings\\..*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     QUARKUS_BUILDER_IMAGE_ENCODING {
@@ -436,6 +440,10 @@ public enum WhitelistLogLines {
                     p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
                     p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
                 }
+            }
+            // GraalVM 26 adds a warning count at the end of the build output. See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(26, 0, 0)) >= 0) {
+                p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
             }
             return p.toArray(new Pattern[0]);
         }
