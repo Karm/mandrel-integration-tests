@@ -194,7 +194,7 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
             // Dependency sources plugin may produce this warning on some systems. See https://issues.apache.org/jira/browse/MNG-7706
             p.add(Pattern.compile(".*\\[WARNING\\] Parameter 'local' is deprecated core expression; Avoid use of ArtifactRepository type\\..*"));
-            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0) {
                 // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
                 p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
                 // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
@@ -217,6 +217,11 @@ public enum WhitelistLogLines {
             }
             if (IS_THIS_MACOS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
                 p.add(Pattern.compile(".*Netty DefaultChannelId initialization \\(with io\\.netty\\.machineId.*\\) took more than a second.*"));
+            }
+            // GraalVM 26 adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(26, 0, 0)) >= 0) {
+                p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
             }
             // Sometimes, this appears when using Hyperfoil to benchmark the app. The acceptor wants to handle a connection, but no event loop is registered.
             // https://groups.google.com/g/vertx/c/ekzl1sagkVU
