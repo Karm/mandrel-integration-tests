@@ -221,6 +221,8 @@ public enum WhitelistLogLines {
             // Sometimes, this appears when using Hyperfoil to benchmark the app. The acceptor wants to handle a connection, but no event loop is registered.
             // https://groups.google.com/g/vertx/c/ekzl1sagkVU
             p.add(Pattern.compile(".*Failed to register an accepted channel:.*"));
+            // Hyperfoil warning message, because there are sometimes too many requests. Shouldn't influence the app's GC times too much.
+            p.add(Pattern.compile(".*Pool depleted, throttling execution! Enable trace logging to see subsequent pool depletion messages\\..*"));
             return p.toArray(new Pattern[0]);
         }
     },
