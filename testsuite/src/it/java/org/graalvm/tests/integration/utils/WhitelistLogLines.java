@@ -218,8 +218,9 @@ public enum WhitelistLogLines {
             if (IS_THIS_MACOS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
                 p.add(Pattern.compile(".*Netty DefaultChannelId initialization \\(with io\\.netty\\.machineId.*\\) took more than a second.*"));
             }
-            // GraalVM 26 adds a warning count at the end of the build output. See https://github.com/oracle/graal/pull/12162
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(26, 0, 0)) >= 0) {
+            // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
                 p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
             }
             return p.toArray(new Pattern[0]);
@@ -355,8 +356,9 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner has been called by .*nonapi.io.github.classgraph.utils.FileUtils.*"));
             p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*nonapi.io.github.classgraph.utils.FileUtils"));
             p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::invokeCleaner will be removed in a future release"));
-            // GraalVM 26 adds a warning count at the end of the build output. See https://github.com/oracle/graal/pull/12162
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(26, 0, 0)) >= 0) {
+            // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
                 p.add(Pattern.compile(".*The build process encountered 9 warnings\\..*"));
             }
             return p.toArray(new Pattern[0]);
@@ -435,8 +437,9 @@ public enum WhitelistLogLines {
                     p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
                 }
             }
-            // GraalVM 26 adds a warning count at the end of the build output. See https://github.com/oracle/graal/pull/12162
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(26, 0, 0)) >= 0) {
+            // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
                 p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
             }
             return p.toArray(new Pattern[0]);
