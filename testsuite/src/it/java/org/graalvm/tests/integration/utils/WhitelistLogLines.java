@@ -51,7 +51,6 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*com.google.errorprone.*"));
             // JDK:
             p.add(Pattern.compile(".*location of system modules is not set in conjunction with -source 11.*"));
-            p.add(Pattern.compile("WARNING.* reflective access.*"));
             p.add(Pattern.compile("WARNING: All illegal access operations.*"));
             p.add(Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.*"));
             p.add(Pattern.compile("WARNING: Please consider reporting this to the maintainers of com.fasterxml.jackson.databind.util.*"));
@@ -84,14 +83,11 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Isolation level: <unknown>.*"));
             p.add(Pattern.compile(".*Maximum pool size: undefined/unknown.*"));
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
-                p.add(Pattern.compile(".*A restricted method in java.lang.System has been called.*"));
                 p.add(Pattern.compile(".*A terminally deprecated method in sun.misc.Unsafe has been called.*"));
                 p.add(Pattern.compile(".*java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module.*jansi-.*.jar.*"));
                 p.add(Pattern.compile(".*Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*"));
-                p.add(Pattern.compile(".*Restricted methods will be blocked in a future release unless native access is enabled.*"));
                 p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*guava-.*.jar.*"));
                 p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset will be removed in a future release.*"));
-                p.add(Pattern.compile(".*Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"));
             }
             // TODO: Revisit when we leave JDK 17...
             p.add(Pattern.compile(".*location of system modules is not set in conjunction with -source 17.*"));
@@ -305,13 +301,18 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
                 p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
-                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.21.3")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.21.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
                     p.add(Pattern.compile(".*consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0.*"));
                     p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory will be removed in a future release.*"));
                     p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0.*"));
                     p.add(Pattern.compile(".*consider reporting this to the maintainers of class org.jboss.threads.JBossExecutors.*"));
                     p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
                     p.add(Pattern.compile(".*java.lang.System::load has been called by com.sun.jna.Native in.*net/java/dev/jna.*"));
+                }
+                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.1")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                    p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
+                    p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
+                    p.add(Pattern.compile(".*catalog/schema: unknown/unknown.*"));
                 }
             }
             return p.toArray(new Pattern[0]);
