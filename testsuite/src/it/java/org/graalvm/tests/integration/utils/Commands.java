@@ -1320,6 +1320,11 @@ public class Commands {
      * @return
      */
     public static boolean isBuilderImageIncompatible(String base) {
-        return BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base));
+        return
+                // UBI9 builder creates dependency on way too new GLIBC for UBI8 or amzn2 to run.
+                (BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base))) ||
+                        // Our dev image, the latest master, latest JDK, requires gcc toolchain-10 that
+                        // creates a dependency on GLIBC_2.28. O.K. for UBI8, too new for Amzn2
+                        (BUILDER_IMAGE.contains("dev") && "amzn2".equals(base));
     }
 }
