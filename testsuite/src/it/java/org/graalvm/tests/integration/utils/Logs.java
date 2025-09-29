@@ -115,7 +115,6 @@ public class Logs {
 
         if (executableSize != SKIP) {
             final String key = propPrefix + ".executable.size.threshold";
-
             if (app.thresholdProperties.containsKey(key + KB_prefix)) {
                 long executableSizeThreshold = app.thresholdProperties.get(key + KB_prefix);
                 assertThreshold(failures, executableSize <= executableSizeThreshold,
@@ -123,56 +122,53 @@ public class Logs {
                                 ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "overhead is" : "is ") +
                                 executableSize + " kB, which is over " +
                                 executableSizeThreshold + " kB threshold by " + percentageValOverTh(executableSize, executableSizeThreshold) + "%.", false);
-            } else if (app.thresholdProperties.containsKey(key + PERCENT_prefix)){
+            } else if (app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
                 long executableSizeThreshold = app.thresholdProperties.get(key + PERCENT_prefix);
                 assertThreshold(failures, executableSize <= executableSizeThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " executable size " +
                                 executableSize + " % more than the control, which is over the " +
                                 executableSizeThreshold + " % threshold", false);
             } else {
-                LOGGER.error("executableSize was to be checked, but there is no " + key + KB_prefix+ " or"+ key + PERCENT_prefix +" in " + properties);
+                LOGGER.error("executableSize was to be checked, but there is no " + key + KB_prefix+ " or " + key + PERCENT_prefix + " in " + properties);
             }
         }
 
         if (timeToFirstOKRequest != SKIP) {
             final String key = propPrefix + ".time.to.first.ok.request.threshold";
-
             if (app.thresholdProperties.containsKey(key + MS_prefix)) {
                 long timeToFirstOKRequestThreshold = app.thresholdProperties.get(key + MS_prefix);
-
                 assertThreshold(failures, timeToFirstOKRequest <= timeToFirstOKRequestThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " took " + timeToFirstOKRequest + " ms " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") +
                                 "to get the first OK request, which is over " +
                                 timeToFirstOKRequestThreshold + " ms threshold by " + percentageValOverTh(timeToFirstOKRequest, timeToFirstOKRequestThreshold) + "%.", true);
-            } else if(app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
+            } else if (app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
                 long timeToFirstOKRequestThreshold = app.thresholdProperties.get(key + PERCENT_prefix);
                 assertThreshold(failures, timeToFirstOKRequest <= timeToFirstOKRequestThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " took " + timeToFirstOKRequest + " % longer than the control to get the first OK request, which is over " +
                                 timeToFirstOKRequestThreshold + " % threshold", true);
             } else {
-                LOGGER.error("timeToFirstOKRequest was to be checked, but there is no " + key + MS_prefix + " or" + key + PERCENT_prefix + " in " + properties);
+                LOGGER.error("timeToFirstOKRequest was to be checked, but there is no " + key + MS_prefix + " or " + key + PERCENT_prefix + " in " + properties);
             }
         }
 
         if (rss != SKIP) {
             final String key = propPrefix + ".RSS.threshold";
-
-            if (app.thresholdProperties.containsKey(key + KB_prefix)){
+            if (app.thresholdProperties.containsKey(key + KB_prefix)) {
                 long rssThreshold = app.thresholdProperties.get(key + KB_prefix);
                 assertThreshold(failures, rss <= rssThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " consumed " + rss + " kB of RSS memory " + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? "more " : "") + ", which is over " +
                                 rssThreshold + " kB threshold by " + percentageValOverTh(rss, rssThreshold) + "%.", false);
-            } else if (app.thresholdProperties.containsKey(key + PERCENT_prefix)){
+            } else if (app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
                 long rssThreshold = app.thresholdProperties.get(key + PERCENT_prefix);
                 assertThreshold(failures, rss <= rssThreshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") +
                                 " consumed " + rss + " % more RSS memory than the control, which is over the " +
                                 rssThreshold + " % threshold", false);
             }else {
-                LOGGER.error("rss was to be checked, but there is no " + key + KB_prefix + " or" + key + PERCENT_prefix + " in " + properties);
+                LOGGER.error("rss was to be checked, but there is no " + key + KB_prefix + " or " + key + PERCENT_prefix + " in " + properties);
             }
         }
 
@@ -204,7 +200,7 @@ public class Logs {
                                 mean + "% more than the control, which is over " +
                                 meanThreshold + " % threshold.", true);
             } else {
-                LOGGER.error("mean was to be checked, but there is no " + key + " or" + key + PERCENT_prefix +" in " + properties);
+                LOGGER.error("mean was to be checked, but there is no " + key + " or " + key + PERCENT_prefix + " in " + properties);
             }
         }
 
@@ -216,14 +212,14 @@ public class Logs {
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p50 response latency " +
                                 p50 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
                                 p50Threshold + "  threshold by " + percentageValOverTh(p50, p50Threshold) + "%.", true);
-            } else if(app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
+            } else if (app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
                 long p50Threshold = app.thresholdProperties.get(key + PERCENT_prefix);
                 assertThreshold(failures, p50 <= p50Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p50 response latency " +
                                 p50 + "% more than the control, which is over " +
                                 p50Threshold + " % threshold", true);
             } else {
-                LOGGER.error("p99 was to be checked, but there is no " + key + " or" + key + PERCENT_prefix + " in " + properties);
+                LOGGER.error("p99 was to be checked, but there is no " + key + " or " + key + PERCENT_prefix + " in " + properties);
             }
         }
 
@@ -235,14 +231,14 @@ public class Logs {
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p90 response latency " +
                                 p90 + ((mode == Mode.DIFF_JVM || mode == Mode.DIFF_NATIVE) ? " more" : "") + ", which is over " +
                                 p90Threshold + "  threshold by " + percentageValOverTh(p90, p90Threshold) + "%.", true);
-            } else if(app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
+            } else if (app.thresholdProperties.containsKey(key + PERCENT_prefix)) {
                 long p90Threshold = app.thresholdProperties.get(key + PERCENT_prefix);
                 assertThreshold(failures, p90 <= p90Threshold,
                         "Application " + app + (mode != null ? " in mode " + mode : "") + " has p90 response latency " +
                                 p90 + " % more than the control, which is over " +
                                 p90Threshold + " % threshold", true);
             } else {
-                LOGGER.error("p90 was to be checked, but there is no " + key + " or" + key + PERCENT_prefix + "in " + properties);
+                LOGGER.error("p90 was to be checked, but there is no " + key + " or " + key + PERCENT_prefix + "in " + properties);
             }
         }
 
