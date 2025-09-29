@@ -23,13 +23,17 @@ import com.sun.management.OperatingSystemMXBean;
 import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.Apps;
 import org.graalvm.tests.integration.utils.Commands;
+import org.graalvm.tests.integration.utils.ContainerNames;
+import org.graalvm.tests.integration.utils.HyperfoilHelper;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.WebpageTester;
+import org.graalvm.tests.integration.utils.thresholds.Thresholds;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
 import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.QuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -52,11 +56,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -72,6 +78,8 @@ import static org.graalvm.tests.integration.utils.Commands.GRAALVM_EXPERIMENTAL_
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
+import static org.graalvm.tests.integration.utils.Commands.disableTurbo;
+import static org.graalvm.tests.integration.utils.Commands.enableTurbo;
 import static org.graalvm.tests.integration.utils.Commands.findExecutable;
 import static org.graalvm.tests.integration.utils.Commands.findFiles;
 import static org.graalvm.tests.integration.utils.Commands.getProperty;
@@ -87,6 +95,7 @@ import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.runJaegerContainer;
 import static org.graalvm.tests.integration.utils.Commands.waitForFileToMatch;
 import static org.graalvm.tests.integration.utils.Commands.waitForTcpClosed;
+import static org.graalvm.tests.integration.utils.Logs.getLogsDir;
 import static org.graalvm.tests.integration.utils.Uploader.PERF_APP_REPORT;
 import static org.graalvm.tests.integration.utils.Uploader.postBuildtimePayload;
 import static org.graalvm.tests.integration.utils.Uploader.postRuntimePayload;
@@ -95,6 +104,9 @@ import static org.jboss.resteasy.spi.HttpResponseCodes.SC_ACCEPTED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_CREATED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -111,6 +123,10 @@ public class PerfCheckTest {
     public static final int LIGHT_REQUESTS = Integer.parseInt(getProperty("PERFCHECK_TEST_LIGHT_REQUESTS", "100"));
     public static final int HEAVY_REQUESTS = Integer.parseInt(getProperty("PERFCHECK_TEST_HEAVY_REQUESTS", "2"));
     public static final int MX_HEAP_MB = Integer.parseInt(getProperty("PERFCHECK_TEST_REQUESTS_MX_HEAP_MB", "2560"));
+
+    // Making the heap smaller for GC tests
+    public static final int GC_HEAP_MB = Integer.parseInt(getProperty("GC_TEST_HEAP_MB", "64"));
+
     // Build time constraint
     public static final int NATIVE_IMAGE_XMX_GB = Integer.parseInt(getProperty("PERFCHECK_TEST_NATIVE_IMAGE_XMX_GB", "8"));
 
@@ -550,6 +566,183 @@ public class PerfCheckTest {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
+    }
+
+    @Test
+    @IfMandrelVersion(min = "21.3")
+    public void compareNativeAndJVMSerialGCTime(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
+        final Apps app = Apps.QUARKUS_FULL_MICROPROFILE_GC;
+        LOGGER.info("Testing app: " + app);
+        LOGGER.info("Comparing native and JVM SerialGC times.");
+
+        Process process = null;
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final File processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        final List<Map<String, String>> reports = new ArrayList<>(2);
+
+        // apply patches, when necessary
+        String patch = null;
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+            patch = "quarkus_3.9.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
+            patch = "quarkus_3.8.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
+            patch = "quarkus_3.2.x.patch";
+        }
+
+        try {
+            // cleanup before start
+            cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
+
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", patch), appDir);
+            }
+
+            // build executables for testing
+            builderRoutine(app, null, null, null, appDir, processLog, null, getSwitches3());
+
+            for (int i = 0; i < app.buildAndRunCmds.runCommands.length - 1; i++) {
+                final Map<String, String> report = populateHeader(new TreeMap<>());
+                report.replace("testApp", "https://github.com/Karm/mandrel-integration-tests/apps/quarkus-full-microprofile/");
+
+                // run the app
+                final List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[i]);
+                Files.writeString(processLog.toPath(), String.join(" ", cmd) + '\n', StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+                process = runCommand(cmd, appDir, processLog, app);
+                LOGGER.info("Running app with pid " + process.pid());
+
+                // create a request to teh app and measure the time
+                final long timeToFirstOKRequestMs = WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
+                waitForFileToMatch(Pattern.compile(".*Events enabled.*"), processLog.toPath(), 0, 20, 1, TimeUnit.SECONDS);
+                report.put("timeToFirstOKRequestMs", String.valueOf(timeToFirstOKRequestMs));
+
+                // generate some requests to the app with Hyperfoil
+                generateRequestsWithHyperfoil(app, appDir, processLog, cn, mn, false);
+
+                // stop the app
+                processStopper(process, false, true);
+                assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+                        "Main port is still open.");
+
+                // parse the GC log (taken from testQuarkusFullMicroprofile)
+                final String statsFor = Arrays.stream(app.buildAndRunCmds.runCommands[i]).collect(Collectors.joining(" ")).trim();
+                final Commands.SerialGCLog l;
+                if (!statsFor.contains("-jar")) {
+                    long executableSizeKb = Files.size(Path.of(appDir.getAbsolutePath(), statsFor.split(" ")[0])) / 1024L;
+                    report.put("executableSizeKb", String.valueOf(executableSizeKb));
+                    l = parseSerialGCLog(processLog.toPath(), statsFor, false);
+                    report.put("incrementalGCevents", String.valueOf(l.incrementalGCevents));
+                    report.put("fullGCevents", String.valueOf(l.fullGCevents));
+                } else {
+                    l = parseSerialGCLog(processLog.toPath(), statsFor, true);
+                    report.put("incrementalGCevents", "-1");
+                    report.put("fullGCevents", "-1");
+                    report.put("executableSizeKb", "-1");
+                }
+                report.put("timeSpentInGCs", String.valueOf(l.timeSpentInGCs));
+                report.put("testMethod", cn + "#" + mn);
+                reports.add(report);
+            }
+
+            // log the report
+            final String reportPayload = mapToJSON(reports);
+            LOGGER.info(reportPayload);
+
+            LOGGER.info("Wait till the ports close...");
+            assertTrue(waitForTcpClosed("localhost", parsePort(app.urlContent.urlContent[0][0]), 60),
+                    "Main is still open.");
+            Logs.checkLog(cn, mn, app, processLog);
+
+            // sanity check
+            assertNotEquals("0.0", reports.get(0).get("timeSpentInGCs"), "Time spent in GCs is zero (JVM).");
+            assertNotEquals("0.0", reports.get(1).get("timeSpentInGCs"), "Time spent in GCs is zero (native).");
+
+            // saving time spent in GCs values
+            double jvmGCTime = Double.parseDouble(reports.get(1).get("timeSpentInGCs"));
+            double nativeGCTime = Double.parseDouble(reports.get(1).get("timeSpentInGCs"));
+
+            // get threshold value
+            final Path gcThresholds = appDir.toPath().resolve("gc_threshold.conf");
+            Map<String, Long> thresholds = Thresholds.parseProperties(gcThresholds);
+
+            // assert that time spent in GCs in native is inside the threshold (ideally faster)
+            double percentageDiff = getPercentageDifference(nativeGCTime, jvmGCTime);
+            assertTrue(nativeGCTime < jvmGCTime || percentageDiff <= (double) thresholds.get("timeInGCs"),
+                    "Time spent in GCs is " + percentageDiff + "% slower in native than in JVM (threshold is " + thresholds.get("timeInGCs") + "%).");
+        } finally {
+            // final cleanup after the test is over
+            if (process != null) {
+                processStopper(process, true);
+            }
+            Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(),
+                    "target", "quarkus-native-image-source-jar", "quarkus-json.json").toFile());
+            Logs.archiveLog(cn, mn, processLog);
+            cleanTarget(app);
+            if (patch != null) {
+                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
+            }
+        }
+    }
+
+    private void generateRequestsWithHyperfoil(Apps app, File appDir, File processLog, String cn, String mn, boolean printResults)
+            throws IOException, InterruptedException, URISyntaxException {
+        try {
+            removeContainer("hyperfoil-container");
+
+            // start Hyperfoil
+            final List<String> getAndStartHyperfoil = getRunCommand(app.buildAndRunCmds.runCommands[2]);
+            Process hyperfoilProcess = runCommand(getAndStartHyperfoil, appDir, processLog, app);
+            assertNotNull(hyperfoilProcess, "Hyperfoil failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            LOGGER.info("Hyperfoil process started with pid " + hyperfoilProcess.pid());
+            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name,
+                    Pattern.compile(".*Hyperfoil controller listening.*", Pattern.DOTALL), 600, 5, TimeUnit.SECONDS);
+            WebpageTester.testWeb(app.urlContent.urlContent[1][0], 15, app.urlContent.urlContent[1][1], false);
+
+            // upload the benchmark
+            final HttpClient hc = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+            HyperfoilHelper.uploadBenchmark(app, appDir, app.urlContent.urlContent[2][0], hc);
+
+            // run the benchmark
+            disableTurbo();
+            final HttpRequest benchmarkRequest = HttpRequest.newBuilder()
+                    .uri(new URI(app.urlContent.urlContent[3][0]))
+                    .GET()
+                    .build();
+            final HttpResponse<String> benchmarkResponse = hc.send(benchmarkRequest, HttpResponse.BodyHandlers.ofString());
+            final JSONObject benchmarkResponseJson = new JSONObject(benchmarkResponse.body());
+            final String id = benchmarkResponseJson.getString("id");
+
+            LOGGER.info("Running Hyperfoil benchmark with id " + id);
+
+            // wait for benchmark to complete
+            Commands.waitForContainerLogToMatch(ContainerNames.HYPERFOIL.name,
+                    Pattern.compile(".*Successfully persisted run.*", Pattern.DOTALL), 30, 2, TimeUnit.SECONDS);
+            enableTurbo();
+
+            // get and print the benchmark results (if needed)
+            if (printResults) {
+                final HttpRequest resultsRequest = HttpRequest.newBuilder()
+                        .uri(new URI("http://localhost:8090/run/" + id + "/stats/all/json"))
+                        .GET()
+                        .timeout(Duration.ofSeconds(3)) // set timeout to allow for cleanup, otherwise will stall at first request above
+                        .build();
+                final HttpResponse<String> resultsResponse = hc.send(resultsRequest, HttpResponse.BodyHandlers.ofString());
+                LOGGER.info("Hyperfoil results response code " + resultsResponse.statusCode());
+                final JSONObject resultsResponseJson = new JSONObject(resultsResponse.body());
+                System.out.println(resultsResponseJson); // uses normal system print, because it's often very long
+            }
+        } finally {
+            // cleanup
+            removeContainer("hyperfoil-container");
+        }
+
+    }
+
+    private double getPercentageDifference(double firstNumber, double secondNumber) {
+        return Math.abs(firstNumber - secondNumber) * 100.0 / secondNumber;
     }
 
     /**
