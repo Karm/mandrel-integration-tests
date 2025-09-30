@@ -138,6 +138,12 @@ e.g.
 linux.jvm.time.to.finish.threshold.ms=6924
 linux.native.time.to.finish.threshold.ms=14525
 ```
+Most thresholds are defined as absolute values. However, there are some thresholds that are percentages. These types of thresholds are used for tests where two versions are compared against eachother. This means the % difference between the versions must not exceed the defined threshold. Such cases look like the example below.
+
+```
+linux.diff_native.RSS.threshold.percent=35
+linux.diff_native.executable.size.threshold.percent=20
+```
 
 The current `.conf` format enhances `.properties` format with the power of using the
 annotation strings, see:
