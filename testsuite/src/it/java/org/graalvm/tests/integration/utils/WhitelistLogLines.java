@@ -223,6 +223,13 @@ public enum WhitelistLogLines {
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
                 p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
             }
+            // Perf error likely due to missing Kernel support for CPU's 'topdown-retiring' Performance Monitoring Unit.
+            // Not likely to be Mandrel related.
+            // Similar issues:
+            // https://github.com/microsoft/WSL/issues/8480
+            // https://stackoverflow.com/questions/75680105/why-dose-perf-stat-a-topdown-not-support-on-my-system
+            p.add(Pattern.compile(".*event syntax error: 'topdown-retiring/metric-id=topdown!1retiring/,TOPDOWN\\.SL\\.\\.'.*"));
+            p.add(Pattern.compile(".*Initial error:.*"));
             return p.toArray(new Pattern[0]);
         }
     },
