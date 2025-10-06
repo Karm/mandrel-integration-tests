@@ -30,6 +30,7 @@ import static org.graalvm.tests.integration.JFRTest.JFR_FLIGHT_RECORDER_HOTSPOT_
 import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.FINAL_NAME_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.MX_HEAP_MB;
+import static org.graalvm.tests.integration.PerfCheckTest.GC_HEAP_MB;
 import static org.graalvm.tests.integration.PerfCheckTest.NATIVE_IMAGE_XMX_GB;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
@@ -138,6 +139,19 @@ public enum BuildAndRunCmds {
                     // No "--delay", "2000",  for perf o capture startup too...
                     { "perf", "stat", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
                     { "perf", "stat", "./target/quarkus-runner", "-XX:+PrintGC" } }
+    ),
+    QUARKUS_FULL_MICROPROFILE_GC(
+            new String[][] {
+                    { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                            "-Dquarkus.native.additional-build-args=" +
+                                    "-R:MaxHeapSize=" + GC_HEAP_MB + "m" +
+                                    GRAALVM_BUILD_OUTPUT_JSON_FILE
+                    },
+                    { "mvn", "--batch-mode", "package", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
+            new String[][] {
+                    { "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + GC_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
+                    { "./target/quarkus-runner", "-XX:+PrintGC" },
+                    hyperfoil() }
     ),
     QUARKUS_JSON_PERF_PARSEONCE(
             new String[][] {
