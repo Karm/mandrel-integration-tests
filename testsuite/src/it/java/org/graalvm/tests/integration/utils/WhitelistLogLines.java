@@ -313,6 +313,16 @@ public enum WhitelistLogLines {
                     p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
                     p.add(Pattern.compile(".*java.lang.System::load has been called by com.sun.jna.Native in.*net/java/dev/jna.*"));
                 }
+                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.1")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
+                    p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
+                    p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
+                    p.add(Pattern.compile(".*catalog/schema: unknown/unknown.*"));
+                }
+            }
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
+                // https://github.com/quarkusio/quarkus/issues/47769
+                p.add(Pattern.compile(".*to use the thread-local-reset capability on Java 24 or later.*"));
+                p.add(Pattern.compile(".*Could not initialize class org.jboss.threads.JDKSpecific.*"));
             }
             return p.toArray(new Pattern[0]);
         }
