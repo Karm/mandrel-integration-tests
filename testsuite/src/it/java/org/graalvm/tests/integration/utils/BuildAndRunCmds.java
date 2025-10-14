@@ -152,6 +152,8 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
                             "-Dquarkus.native.additional-build-args=" +
+                                    "-J--add-opens=java.base/java.lang=ALL-UNNAMED," +
+                                    "-J--enable-native-access=ALL-UNNAMED," +
                                     "-R:MaxHeapSize=" + GC_HEAP_MB + "m" +
                                     GRAALVM_BUILD_OUTPUT_JSON_FILE
                     },
@@ -380,7 +382,7 @@ public enum BuildAndRunCmds {
     PLAINTEXT_PERFORMANCE(
             new String[][] {
                     { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
-                            "-Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAME",
+                            "-Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAMED",
                             "-DfinalName=jfr-plaintext" } },
             new String[][] {
                     { "./target/jfr-plaintext-runner" },
@@ -410,7 +412,7 @@ public enum BuildAndRunCmds {
                     { "mvn", "--batch-mode", "package", "-Pnative", "-Dquarkus.native.container-build=true",
                             "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
                             "-Dquarkus.native.builder-image=" + BUILDER_IMAGE, "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
-                            "-Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAME",
+                            "-Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAMED",
                             "-DfinalName=jfr-plaintext" },
                     { CONTAINER_RUNTIME, "build", "-f", "src/main/docker/Dockerfile.native", "-t", "jfr-plaintext-app", "." } },
             new String[][] {
