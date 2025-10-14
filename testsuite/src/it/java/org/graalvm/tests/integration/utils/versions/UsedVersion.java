@@ -113,6 +113,7 @@ public class UsedVersion {
         //@formatter:on
         private static final String JVMCI_BUILD_PREFIX = "jvmci-";
         private static final String MANDREL_VERS_PREFIX = "Mandrel-";
+        private static final String GRAALVM_CE_VERS_PREFIX = "GraalVM CE ";
 
         // Java version info (suitable for Runtime.Version.parse()). See java.lang.VersionProps
         private static final String VNUM = "(?<VNUM>[1-9][0-9]*(?:(?:\\.0)*\\.[1-9][0-9]*)*)";
@@ -159,7 +160,7 @@ public class UsedVersion {
                 final String vendorVersion = secondMatcher.group(VENDOR_VERSION_GROUP);
 
                 final String buildInfo = secondMatcher.group(BUILD_INFO_GROUP);
-                final String graalVersion = graalVersion(buildInfo, v.feature(), v.interim(), v.update());
+                final String graalVersion = graalVersion(buildInfo, v.feature(), v.interim(), v.update(), vendorVersion);
                 final String mandrelVersion = mandrelVersion(vendorVersion);
                 final String versNum = (isMandrel(vendorVersion) ? mandrelVersion : graalVersion);
                 final Version vers = versionParse(versNum);
@@ -205,10 +206,29 @@ public class UsedVersion {
             return null;
         }
 
-        private static String graalVersion(String buildInfo, int jdkFeatureVers, int jdkInterim, int jdkUpdate) {
-            if (jdkFeatureVers >= 22) {
+        private static String graalVersion(String buildInfo,
+                                           int jdkFeatureVers,
+                                           int jdkInterim,
+                                           int jdkUpdate,
+                                           String vendorVersion) {
+            if (jdkFeatureVers >= 22 && jdkFeatureVers < 25) {
                 // short-circuit new version scheme with a mapping
                 return graaVersionJDKLaterThan22(jdkFeatureVers, jdkInterim, jdkUpdate);
+            }
+            // GraalVM/Mandrel 25+
+            if (jdkFeatureVers >= 25) {
+                if (vendorVersion != null && !vendorVersion.isBlank()) {
+                    // 'GraalVM CE 25.1.0-dev+37.1'-style vendor versions
+                    if (vendorVersion.startsWith(GRAALVM_CE_VERS_PREFIX)) {
+                        String vers = vendorVersion.substring(GRAALVM_CE_VERS_PREFIX.length());
+                        vers = vers.substring(0, vers.indexOf("+"));
+                        if (String.valueOf(jdkFeatureVers).equals(vers)) {
+                            // GA version
+                            vers = String.format("%d.0.0", jdkFeatureVers);
+                        }
+                        return matchVersion(vers);
+                    }
+                }
             }
             if (buildInfo == null) {
                 return null;
