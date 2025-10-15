@@ -313,6 +313,8 @@ public enum WhitelistLogLines {
                     p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
                     p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
                     p.add(Pattern.compile(".*catalog/schema: unknown/unknown.*"));
+                    // https://github.com/quarkusio/quarkus/issues/50568
+                    p.add(Pattern.compile(".*smallrye.common.process.*SRCOM05000: Command.*completed but logged errors.*"));
                 }
             }
             return p.toArray(new Pattern[0]);
