@@ -15,6 +15,7 @@
     <artifactId>mp-orm-dbs-awt</artifactId>
 
     <properties>
+        <jvm.args>--enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED</jvm.args>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -166,6 +167,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.version}</version>
                 <configuration>
+                    <argLine>${jvm.args}</argLine>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
@@ -182,12 +184,17 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <argLine>${jvm.args}</argLine>
                             <systemPropertyVariables>
+                                <jvm.args>${jvm.args}</jvm.args>
                                 <native.image.path>${project.build.directory}/${project.build.finalName}-runner
                                 </native.image.path>
                                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                                 <maven.home>${maven.home}</maven.home>
                             </systemPropertyVariables>
+                            <environmentVariables>
+                                <JAVA_OPTS>${jvm.args}</JAVA_OPTS>
+                            </environmentVariables>
                         </configuration>
                     </execution>
                 </executions>
@@ -213,7 +220,9 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
+                                    <argLine>${jvm.args}</argLine>
                                     <systemPropertyVariables>
+                                        <jvm.args>${jvm.args}</jvm.args>
                                         <native.image.path>
                                             ${project.build.directory}/${project.build.finalName}-runner
                                         </native.image.path>
@@ -221,6 +230,9 @@
                                         </java.util.logging.manager>
                                         <maven.home>${maven.home}</maven.home>
                                     </systemPropertyVariables>
+                                    <environmentVariables>
+                                        <JAVA_OPTS>${jvm.args}</JAVA_OPTS>
+                                    </environmentVariables>
                                 </configuration>
                             </execution>
                         </executions>
