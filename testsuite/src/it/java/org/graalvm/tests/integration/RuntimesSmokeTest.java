@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import static org.graalvm.tests.integration.utils.BuildAndRunCmds.RUN_JAEGER;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
 import static org.graalvm.tests.integration.utils.Commands.builderRoutine;
 import static org.graalvm.tests.integration.utils.Commands.cleanTarget;
@@ -57,6 +56,7 @@ import static org.graalvm.tests.integration.utils.Commands.getRSSkB;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.parsePort;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.quarkusEnv;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.runJaegerContainer;
@@ -78,10 +78,10 @@ public class RuntimesSmokeTest {
     public static final String BASE_DIR = getBaseDir();
 
     public void testRuntime(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
-        testRuntime(testInfo, app, null);
+        testRuntime(testInfo, app, null, null);
     }
 
-    public void testRuntime(TestInfo testInfo, Apps app, Map<String, String> switchReplacements) throws IOException, InterruptedException {
+    public void testRuntime(TestInfo testInfo, Apps app, Map<String, String> env, Map<String, String> switchReplacements) throws IOException, InterruptedException {
         LOGGER.info("Testing app: " + app);
         Process process = null;
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
@@ -99,7 +99,7 @@ public class RuntimesSmokeTest {
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
             long buildStarts = System.currentTimeMillis();
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, switchReplacements);
+            builderRoutine(app, report, cn, mn, appDir, processLog, env, switchReplacements);
             long buildEnds = System.currentTimeMillis();
             findExecutable(Path.of(appDir.getAbsolutePath(), "target"), Pattern.compile(".*"));
 
@@ -203,18 +203,19 @@ public class RuntimesSmokeTest {
             patch = "quarkus_3.2.x.patch";
         }
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        Map<String, String> environment = quarkusEnv();
         if (patch != null) {
             try {
                 runCommand(getRunCommand("git", "apply", patch), appDir);
                 removeContainer("quarkus_jaeger");
                 runJaegerContainer();
-                testRuntime(testInfo, app, switches);
+                testRuntime(testInfo, app, environment, switches);
                 removeContainer("quarkus_jaeger");
             } finally {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         } else {
-            testRuntime(testInfo, app, switches);
+            testRuntime(testInfo, app, environment, switches);
         }
     }
 
