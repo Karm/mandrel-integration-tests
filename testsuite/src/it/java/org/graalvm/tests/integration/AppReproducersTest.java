@@ -63,7 +63,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,23 +114,6 @@ public class AppReproducersTest {
 
     public static final String RUNTIME_IMAGE_BASE_TOKEN = "<RUNTIME_IMAGE_BASE>";
     public static final String BUILDX_LOAD_TOKEN = "<BUILDX_PUSH>";
-    // Note Docfkerfile.<RUNTIME_IMAGE_BASE> in ./apps/imageio/ for AWT tests.
-    /*
-    amzn1 is not used. It's here to prove that the test works and that the image built with ubi8 really
-    fails on a too old glibc linux.
-
-    The only caveat is that such failure manifests not with a clear:
-            /work/target/imageio: /lib64/libc.so.6: version `GLIBC_2.34' not found (required by /work/target/imageio)
-
-    but with a completely misleading:
-            Exception in thread "main" java.io.IOException: Problem reading font data.
-                at java.desktop@21.0.6/java.awt.Font.createFont0(Font.java:1205)
-                at java.desktop@21.0.6/java.awt.Font.createFont(Font.java:1076)
-
-    This is caused by a purposefully vague error message in the JDK over here:
-    https://github.com/openjdk/jdk21u-dev/blob/jdk-21.0.6%2B7/src/java.desktop/share/classes/java/awt/Font.java#L1205
-     */
-    public static final String[] RUNTIME_IMAGE_BASE = new String[] { "ubi8", "ubi9", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404" };
 
     @Test
     @Tag("randomNumbers")
@@ -428,7 +410,7 @@ public class AppReproducersTest {
                 FileUtils.cleanDirectory(metaINF);
             }
             if (inContainer) {
-                for (String base : RUNTIME_IMAGE_BASE) {
+                for (String base : getRuntimeImageBases(BUILDER_IMAGE)) {
                     removeContainer(app.runtimeContainer.name + "_" + base);
                 }
             }
@@ -469,16 +451,7 @@ public class AppReproducersTest {
                     final String summary = "│   ├─ Testing builder image " + BUILDER_IMAGE + " begins:\n";
                     Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
                 }
-                for (String base : RUNTIME_IMAGE_BASE) {
-                    if (isBuilderImageIncompatible(base)) {
-                        if (DOCKER_GHA_SUMMARY_NAME != null) {
-                            final String summary = "│   │   ⬛ " + base + " based runtime image test SKIPPED (glibc too old)\n";
-                            Files.writeString(Path.of(BASE_DIR, "..", DOCKER_GHA_SUMMARY_NAME), summary, UTF_8, CREATE, APPEND);
-                        } else {
-                            LOGGER.info("Skipping " + base + " based runtime image test (glibc too old)");
-                        }
-                        continue;
-                    }
+                for (String base : getRuntimeImageBases(BUILDER_IMAGE)) {
                     LOGGER.info("Running with " + base + " runtime image...");
                     final List<String> cmdBuildImage = replaceSwitchesInCmd(getRunCommand(app.buildAndRunCmds.runCommands[0]),
                             Map.of(RUNTIME_IMAGE_BASE_TOKEN, base,
@@ -587,7 +560,7 @@ public class AppReproducersTest {
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
             if (inContainer) {
-                for (String base : RUNTIME_IMAGE_BASE) {
+                for (String base : getRuntimeImageBases(BUILDER_IMAGE)) {
                     removeContainer(app.runtimeContainer.name + "_" + base);
                 }
             }
@@ -1035,7 +1008,7 @@ public class AppReproducersTest {
             // Cleanup
             cleanTarget(app);
             if (inContainer) {
-                for (String base : RUNTIME_IMAGE_BASE) {
+                for (String base : getRuntimeImageBases(BUILDER_IMAGE)) {
                     removeContainer(app.runtimeContainer.name + "_" + base);
                 }
             }
@@ -1044,11 +1017,7 @@ public class AppReproducersTest {
             builderRoutine(app, report, cn, mn, appDir, processLog, env, getSwitches(app));
             if (inContainer) {
                 final Map<String, String> errors = new HashMap<>();
-                for (String base : RUNTIME_IMAGE_BASE) {
-                    if (isBuilderImageIncompatible(base)) {
-                        LOGGER.info("Skipping " + base + " based runtime image test (glibc too old)");
-                        continue;
-                    }
+                for (String base : getRuntimeImageBases(BUILDER_IMAGE)) {
                     LOGGER.info("Running with " + base + " runtime image...");
                     final File baseProcessLog = Path.of(appDir.getAbsolutePath(), "logs", base + "-run.log").toFile();
                     for (int i = 0; i < app.buildAndRunCmds.runCommands.length; i++) {
@@ -1079,8 +1048,7 @@ public class AppReproducersTest {
             Logs.checkLog(cn, mn, app, processLog);
         } finally {
             if (inContainer) {
-                Arrays.stream(RUNTIME_IMAGE_BASE)
-                        .filter(base -> !isBuilderImageIncompatible(base))
+                getRuntimeImageBases(BUILDER_IMAGE).stream()
                         .map(base -> Path.of(appDir.getAbsolutePath(), "logs", base + "-run.log").toFile()).forEach(f -> {
                             try {
                                 Logs.archiveLog(cn, mn, f);
@@ -1091,7 +1059,7 @@ public class AppReproducersTest {
             }
             cleanup(process, cn, mn, report, app, processLog);
             if (inContainer) {
-                for (String base : RUNTIME_IMAGE_BASE) {
+                for (String base : getRuntimeImageBases(BUILDER_IMAGE)) {
                     removeContainer(app.runtimeContainer.name + "_" + base);
                 }
             }
@@ -1344,6 +1312,37 @@ public class AppReproducersTest {
         } finally {
             cleanup(process, cn, mn, report, app, processLog);
         }
+    }
+
+    // Note Dockerfile.<RUNTIME_IMAGE_BASE> in ./apps/imageio/ for AWT tests.
+    /*
+    amzn1 is not used. It's here to prove that the test works and that the image built with ubi8 really
+    fails on a too old glibc linux.
+
+    The only caveat is that such failure manifests not with a clear:
+            /work/target/imageio: /lib64/libc.so.6: version `GLIBC_2.34' not found (required by /work/target/imageio)
+
+    but with a completely misleading:
+            Exception in thread "main" java.io.IOException: Problem reading font data.
+                at java.desktop@21.0.6/java.awt.Font.createFont0(Font.java:1205)
+                at java.desktop@21.0.6/java.awt.Font.createFont(Font.java:1076)
+
+    This is caused by a purposefully vague error message in the JDK over here:
+    https://github.com/openjdk/jdk21u-dev/blob/jdk-21.0.6%2B7/src/java.desktop/share/classes/java/awt/Font.java#L1205
+     */
+    private static List<String> getRuntimeImageBases(String builderImage) {
+        // it's UBI 8
+        if (builderImage.contains("/ubi-")) {
+            return List.of("ubi8", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404");
+        }
+        if (builderImage.contains("/ubi9-")) {
+            return List.of("ubi9", "cnts10", "amzn2023", "ubnt2404");
+        }
+        if (builderImage.contains("/ubi10-")) {
+            return List.of("ubi10", "cnts10", "amzn2023", "ubnt2404");
+        }
+
+        throw new IllegalArgumentException("Builder image not supported yet: " + builderImage + ". Please add it to AppReproducersTest#getRuntimeImageBases().");
     }
 
     private static Map<String, String> getSwitches(Apps app) {

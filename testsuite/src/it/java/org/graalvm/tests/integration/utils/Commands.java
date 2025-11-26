@@ -1318,21 +1318,4 @@ public class Commands {
         }
         return true;
     }
-
-    /**
-     * Some runtime images aren't capable of running executables built
-     * with certain builder images. The reason is typically the GLIBC
-     * version being too old.
-     *
-     * @param base
-     * @return
-     */
-    public static boolean isBuilderImageIncompatible(String base) {
-        return
-                // UBI9 builder creates dependency on way too new GLIBC for UBI8 or amzn2 to run.
-                (BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base))) ||
-                        // Our dev image, the latest master, latest JDK, requires gcc toolchain-10 that
-                        // creates a dependency on GLIBC_2.28. O.K. for UBI8, too new for Amzn2
-                        (BUILDER_IMAGE.contains("dev") && "amzn2".equals(base));
-    }
 }
