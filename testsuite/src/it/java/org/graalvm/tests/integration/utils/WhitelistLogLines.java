@@ -82,6 +82,10 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Minimum pool size: undefined/unknown.*"));
             p.add(Pattern.compile(".*Isolation level: <unknown>.*"));
             p.add(Pattern.compile(".*Maximum pool size: undefined/unknown.*"));
+            p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
+            p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
+            p.add(Pattern.compile(".*Default catalog/schema: unknown/unknown.*"));
+            p.add(Pattern.compile(".*SRCOM05000.*"));
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
                 p.add(Pattern.compile(".*A terminally deprecated method in sun.misc.Unsafe has been called.*"));
                 p.add(Pattern.compile(".*java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module.*jansi-.*.jar.*"));
