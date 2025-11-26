@@ -29,7 +29,7 @@
         <!-- Quarkus apps -->
         <!-- Note that the TS switches Quarkus version at test run,
              see Commands.java, QUARKUS_VERSION -->
-        <global.quarkus.version>2.13.9.Final</global.quarkus.version>
+        <global.quarkus.version>3.20.4</global.quarkus.version>
 
         <!-- Helidon quickstart -->
         <version.helidon>2.2.2</version.helidon>
@@ -39,8 +39,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.version>3.14.0</maven.compiler.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
-        <maven.surefire.version>2.22.2</maven.surefire.version>
-        <maven.failsafe.version>2.22.2</maven.failsafe.version>
+        <maven.surefire.version>3.5.4</maven.surefire.version>
+        <maven.failsafe.version>3.5.4</maven.failsafe.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven.build.helper.version>3.6.0</maven.build.helper.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -2,8 +2,8 @@ package quarkus.awt;
 
 import io.quarkus.runtime.Startup;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import javax.imageio.ImageIO;
 import java.awt.Font;
 import java.awt.FontFormatException;

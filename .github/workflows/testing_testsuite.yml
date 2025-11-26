@@ -24,7 +24,7 @@ jobs:
       matrix:
         mandrel-version: [ '22.3.5.0-Final', '23.0.6.0-Final' ]
         java-version: [ '17' ]
-        os: [ ubuntu-22.04, windows-2022 ]
+        os: [ ubuntu-24.04, windows-2022 ]
     steps:
       - uses: actions/checkout@v4
         with:

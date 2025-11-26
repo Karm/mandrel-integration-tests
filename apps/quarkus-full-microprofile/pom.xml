@@ -15,7 +15,6 @@
 
     <properties>
         <quarkus.version>${global.quarkus.version}</quarkus.version>
-        <vertx.auth.jwt.version>4.0.3</vertx.auth.jwt.version>
     </properties>
 
     <dependencyManagement>
@@ -33,11 +32,10 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-auth-jwt</artifactId>
-            <version>${vertx.auth.jwt.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy</artifactId>
+            <artifactId>quarkus-rest</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -58,10 +56,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-openapi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-opentracing</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>

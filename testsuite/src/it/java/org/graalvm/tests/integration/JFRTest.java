@@ -218,10 +218,10 @@ public class JFRTest {
                 switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
             }
 
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-                patch = "quarkus_3.9.x.patch";
-                runCommand(getRunCommand("git", "apply", patch), appDir);
-            }
+            // if you need to apply a version-specific patch, follow this
+            //if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+            //    patch = "quarkus_3.9.x.patch";
+            //}
 
             // Container build requires an additional step: docker build...
             builderRoutine(appJfr, report, cn, mn, appDir, processLog, null, switches);

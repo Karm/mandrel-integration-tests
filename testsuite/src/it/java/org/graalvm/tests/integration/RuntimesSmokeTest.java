@@ -195,13 +195,10 @@ public class RuntimesSmokeTest {
         }
 
         String patch = null;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-            patch = "quarkus_3.9.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
-            patch = "quarkus_3.8.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
-            patch = "quarkus_3.2.x.patch";
-        }
+        // if you need to apply a version-specific patch, follow this
+        //if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+        //    patch = "quarkus_3.9.x.patch";
+        //}
         final File appDir = Path.of(BASE_DIR, app.dir).toFile();
         if (patch != null) {
             try {
@@ -223,18 +220,7 @@ public class RuntimesSmokeTest {
     @Tag("quarkus")
     public void quarkusEncodingIssues(TestInfo testInfo) throws IOException, InterruptedException {
         Apps apps = Apps.QUARKUS_BUILDER_IMAGE_ENCODING;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-            try {
-                runCommand(getRunCommand("git", "apply", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, apps.dir).toFile());
-                testRuntime(testInfo, apps);
-            } finally {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_3.x.patch"),
-                        Path.of(BASE_DIR, apps.dir).toFile());
-            }
-        } else {
-            testRuntime(testInfo, apps);
-        }
+        testRuntime(testInfo, apps);
     }
 
     @Test

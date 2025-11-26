@@ -40,7 +40,6 @@ import static org.graalvm.tests.integration.utils.Commands.compareArrays;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.getSubstringFromSmallTextFile;
-import static org.graalvm.tests.integration.utils.Commands.isBuilderImageIncompatible;
 import static org.graalvm.tests.integration.utils.Commands.listStaticLibs;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;

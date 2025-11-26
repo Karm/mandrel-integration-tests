@@ -206,13 +206,10 @@ public class DebugSymbolsTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         String patch = null;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-            patch = "quarkus_3.9.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
-            patch = "quarkus_3.8.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
-            patch = "quarkus_3.2.x.patch";
-        }
+        // if you need to apply a version-specific patch, follow this
+        //if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+        //    patch = "quarkus_3.9.x.patch";
+        //}
         try {
             // Cleanup
             cleanTarget(app);
@@ -329,11 +326,10 @@ public class DebugSymbolsTest {
                 runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), appDir);
             }
 
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-                patch = "quarkus_3.9.x.patch";
-            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                patch = "quarkus_3.x.patch";
-            }
+            // if you need to apply a version-specific patch, follow this
+            //if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+            //    patch = "quarkus_3.9.x.patch";
+            //}
 
             if (patch != null) {
                 runCommand(getRunCommand("git", "apply", patch), appDir);

@@ -15,7 +15,7 @@
  */
 package org.acme.vertx;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import io.quarkus.vertx.ConsumeEvent;
 

@@ -15,19 +15,17 @@
  */
 package org.acme.vertx;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
-import org.jboss.resteasy.annotations.jaxrs.PathParam;
-
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 @Path("/hello")
 public class GreetingResource {
@@ -38,7 +36,7 @@ public class GreetingResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     @Path("{name}")
-    public Uni<String> greeting(@PathParam String name) {
+    public Uni<String> greeting(@PathParam(value = "name") String name) {
         return Uni.createFrom().emitter(emitter -> {
             long start = System.nanoTime();
             vertx.setTimer(10, l -> {
