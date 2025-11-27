@@ -973,11 +973,6 @@ public class AppReproducersTest {
         }
     }
 
-    /*
-    TODO: Uncomment when Mandrel 23.1.8 is released and the issue is backported:
-    "Fixed System.getProperties() when called from virtual thread."
-    https://github.com/oracle/graal/commit/015a8f7fdd5
-
     @Test
     @Tag("builder-image")
     @IfMandrelVersion(min = "23.1.8", max = "23.1.999", inContainer = true)
@@ -990,7 +985,6 @@ public class AppReproducersTest {
     public void vthreadsProps23_1Test(TestInfo testInfo) throws IOException, InterruptedException {
         vthreadsProps(testInfo, Apps.VTHREADS_PROPS);
     }
-    */
 
     @Test
     @Tag("builder-image")
