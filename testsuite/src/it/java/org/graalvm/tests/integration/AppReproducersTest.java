@@ -1341,6 +1341,11 @@ public class AppReproducersTest {
         if (builderImage.contains("/ubi10-")) {
             return List.of("ubi10", "cnts10", "amzn2023", "ubnt2404");
         }
+        // Dev image, latest JDK, requires gcc toolchain-10 that
+        // creates a dependency on GLIBC_2.28. O.K. for UBI8, too new for Amzn2
+        if (builderImage.contains("dev")) {
+            return List.of("ubi8", "cnts10", "amzn2023", "ubnt2204", "ubnt2404");
+        }
 
         throw new IllegalArgumentException("Builder image not supported yet: " + builderImage + ". Please add it to AppReproducersTest#getRuntimeImageBases().");
     }
