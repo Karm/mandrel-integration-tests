@@ -40,7 +40,6 @@ import static org.graalvm.tests.integration.utils.Commands.compareArrays;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.getSubstringFromSmallTextFile;
-import static org.graalvm.tests.integration.utils.Commands.isBuilderImageIncompatible;
 import static org.graalvm.tests.integration.utils.Commands.listStaticLibs;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;
@@ -69,6 +68,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -131,7 +131,12 @@ public class AppReproducersTest {
     This is caused by a purposefully vague error message in the JDK over here:
     https://github.com/openjdk/jdk21u-dev/blob/jdk-21.0.6%2B7/src/java.desktop/share/classes/java/awt/Font.java#L1205
      */
-    public static final String[] RUNTIME_IMAGE_BASE = new String[] { "ubi8", "ubi9", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404" };
+    public static final String[] RUNTIME_IMAGE_BASE = new String[] { "ubi8", "ubi9", "ubi10", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404" };
+    public static final Map<String, Set<String>> BUILDER_RUNTIME_COMPATIBILITY = new TreeMap<>(){{
+        put("ubi8", Set.of("ubi8", "ubi9", "ubi10", "cnts10", "amzn2", "amzn2023", "ubnt2204", "ubnt2404"));
+        put("ubi9", Set.of("ubi9", "ubi10", "cnts10", "amzn2023", "ubnt2204", "ubnt2404"));
+        put("ubi10", Set.of("ubi10", "cnts10", "amzn2023", "ubnt2404"));
+    }};
 
     @Test
     @Tag("randomNumbers")
@@ -1363,5 +1368,32 @@ public class AppReproducersTest {
             switches.put(ForeignAPISupport_24_2.token, "");
         }
         return switches;
+    }
+
+    /**
+     * Some runtime images aren't capable of running executables built
+     * with certain builder images. The reason is typically the GLIBC
+     * version being too old.
+     *
+     * @param base
+     * @return
+     */
+    public static boolean isBuilderImageIncompatible(String base) {
+        // it's UBI 8
+        if (BUILDER_IMAGE.contains("/ubi-")) {
+            // Dev image, latest JDK, requires gcc toolchain-10 that
+            // creates a dependency on GLIBC_2.28. O.K. for UBI8, too new for Amzn2
+            if (BUILDER_IMAGE.contains("dev") && "amzn2".equals(base)) {
+                return true;
+            }
+            return !BUILDER_RUNTIME_COMPATIBILITY.get("ubi8").contains(base);
+        }
+        if (BUILDER_IMAGE.contains("/ubi9-")) {
+            return !BUILDER_RUNTIME_COMPATIBILITY.get("ubi9").contains(base);
+        }
+        if (BUILDER_IMAGE.contains("/ubi10-")) {
+            return !BUILDER_RUNTIME_COMPATIBILITY.get("ubi10").contains(base);
+        }
+        throw new IllegalArgumentException("Builder image not supported yet: " + BUILDER_IMAGE + ". Please add it to BUILDER_RUNTIME_COMPATIBILITY.");
     }
 }
