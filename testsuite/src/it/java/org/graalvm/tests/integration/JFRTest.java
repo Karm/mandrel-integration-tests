@@ -85,6 +85,7 @@ import static org.graalvm.tests.integration.utils.Commands.getUnixUIDGID;
 import static org.graalvm.tests.integration.utils.Commands.openSSHTunnel;
 import static org.graalvm.tests.integration.utils.Commands.pidKiller;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.quarkusEnv;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.replaceSwitchesInCmd;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
@@ -224,8 +225,9 @@ public class JFRTest {
             }
 
             // Container build requires an additional step: docker build...
-            builderRoutine(appJfr, report, cn, mn, appDir, processLog, null, switches);
-            builderRoutine(appNoJfr, report, cn, mn, appDir, processLog, null, switches);
+            Map<String, String> environment = quarkusEnv();
+            builderRoutine(appJfr, report, cn, mn, appDir, processLog, environment, switches);
+            builderRoutine(appNoJfr, report, cn, mn, appDir, processLog, environment, switches);
 
             startComparisonForBenchmark(Endpoint.REGULAR, true, processLog, cn, mn, report, measurementsLog, appDir, appJfr, appNoJfr, inContainer);
             LOGGER.info("REGULAR workload completed.");

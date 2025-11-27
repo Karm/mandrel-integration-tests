@@ -98,6 +98,7 @@ public class Commands {
     private static final Pattern NUM_PATTERN = Pattern.compile("[ \t]*[0-9]+[ \t]*");
     private static final Pattern ALPHANUMERIC_FIRST = Pattern.compile("([a-z0-9]+).*");
     private static final Pattern CONTAINER_STATS_MEMORY = Pattern.compile("(?:table)?[ \t]*([0-9\\.]+)([a-zA-Z]+).*");
+    private static final String QUARKUS_ADDITIONAL_BUILD_ARGS_APPEND_ENV = "QUARKUS_NATIVE_ADDITIONAL_BUILD_ARGS_APPEND";
 
     public static final String GRAALVM_EXPERIMENTAL_BEGIN = "<GRAALVM_EXPERIMENTAL_BEGIN>";
     public static final String GRAALVM_EXPERIMENTAL_END = "<GRAALVM_EXPERIMENTAL_END>";
@@ -588,6 +589,15 @@ public class Commands {
             p.waitFor();
         }
         return count;
+    }
+
+    public static Map<String, String> quarkusEnv() {
+        String value = System.getenv(QUARKUS_ADDITIONAL_BUILD_ARGS_APPEND_ENV);
+        if (value != null) {
+            return Map.of(QUARKUS_ADDITIONAL_BUILD_ARGS_APPEND_ENV, value);
+        } else {
+            return null;
+        }
     }
 
     public static void processStopper(Process p, boolean force) throws InterruptedException {

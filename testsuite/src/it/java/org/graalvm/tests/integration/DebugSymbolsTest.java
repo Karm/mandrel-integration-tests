@@ -73,6 +73,7 @@ import static org.graalvm.tests.integration.utils.Commands.cleanup;
 import static org.graalvm.tests.integration.utils.Commands.getBaseDir;
 import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.quarkusEnv;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.runCommand;
 import static org.graalvm.tests.integration.utils.Commands.stopAllRunningContainers;
@@ -231,7 +232,8 @@ public class DebugSymbolsTest {
             } else {
                 switches = null;
             }
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
+            Map<String, String> environment = quarkusEnv();
+            builderRoutine(app, report, cn, mn, appDir, processLog, environment, switches);
 
             assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "quarkus-runner")),
                     "Quarkus executable does not exist. Compilation failed. Check the logs.");
