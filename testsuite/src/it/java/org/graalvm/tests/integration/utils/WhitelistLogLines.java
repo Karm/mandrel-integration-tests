@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_MACOS;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
@@ -64,6 +65,10 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*microdnf.*Found 0 entitlement certificates.*"));
             // Podman, container image build
             p.add(Pattern.compile(".*microdnf.*lib.*WARNING.*"));
+            // Another microdnf thing, related to crypto policies on UBI 9.7, was not present on UBI 9.5
+            p.add(Pattern.compile(".*warning: Unsupported version of key: V6.*"));
+            // Appeared with update from UBI 9.5 to 9.7
+            p.add(Pattern.compile(".*useradd: Warning: missing or non-executable shell '/usr/sbin/nologin'.*"));
             // Podman with cgroupv2 on RHEL 9 intermittently spits out this message to no apparent effect on our tests
             p.add(Pattern.compile(".*level=error msg=\"Cannot get exit code: died not found: unable to find event\".*"));
             p.add(Pattern.compile(".*time=.*level=warning.*msg=.*S.gpg-agent.*since it is a socket.*"));
@@ -86,6 +91,10 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
                 p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
                 p.add(Pattern.compile(".*Default catalog/schema: unknown/unknown.*"));
+                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.5")) <= 0) {
+                    // https://github.com/quarkusio/quarkus/issues/50568
+                    p.add(Pattern.compile(".*io.smallrye.common.process.*Command " + CONTAINER_RUNTIME + ".*completed but logged errors:.*"));
+                }
             }
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
                 p.add(Pattern.compile(".*A terminally deprecated method in sun.misc.Unsafe has been called.*"));
@@ -93,6 +102,11 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*"));
                 p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*guava-.*.jar.*"));
                 p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset will be removed in a future release.*"));
+            }
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.15.7")) == 0 && IS_THIS_WINDOWS) {
+                // Q 3.15.7 is used due to https://code.quarkus.redhat.com/ compatibility but it does not have
+                // https://github.com/quarkusio/quarkus/issues/43895 fixed yet.
+                p.add(Pattern.compile(".*the option '--enable-monitoring' contains value.*that are not supported on Windows: heapdump.*"));
             }
             // TODO: Revisit when we leave JDK 17...
             p.add(Pattern.compile(".*location of system modules is not set in conjunction with -source 17.*"));
