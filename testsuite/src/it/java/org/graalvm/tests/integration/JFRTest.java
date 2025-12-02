@@ -362,6 +362,7 @@ public class JFRTest {
                     processStopper(process, true, true);
                     if (inContainer) {
                         stopAllRunningContainers();
+                        removeContainers(ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name);
                     }
                     assertTrue(waitForTcpClosed("localhost", 8080, 10),
                             "Quarkus app likely hanging on port 8080.");
@@ -495,7 +496,7 @@ public class JFRTest {
             if (process != null && process.isAlive()) {
                 processStopper(process, true);
             }
-            removeContainers(ContainerNames.HYPERFOIL.name);
+            removeContainers(ContainerNames.HYPERFOIL.name, ContainerNames.JFR_PERFORMANCE_BUILDER_IMAGE.name, ContainerNames.JFR_PLAINTEXT_BUILDER_IMAGE.name);
             if (hyperfoilProcess != null && hyperfoilProcess.isAlive()) {
                 processStopper(hyperfoilProcess, true);
             }
