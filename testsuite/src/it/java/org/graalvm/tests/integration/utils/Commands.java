@@ -109,7 +109,6 @@ public class Commands {
     // as that's used in CI which uses -Dquarkus.native.builder-image=<value> alternative. See
     // getProperty() function for details.
     public static final String BUILDER_IMAGE = getProperty("QUARKUS_NATIVE_BUILDER-IMAGE", "quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17");
-
     // Debug sessions, GDB commands related timeouts
     // How long to wait for a gdb command output to match a certain regexp:
     public static final long CMD_DEFAULT_TIMEOUT_MS = Long.parseLong(getProperty("CMD_DEFAULT_TIMEOUT_MS", "10000"));
@@ -1327,17 +1326,5 @@ public class Commands {
             }
         }
         return true;
-    }
-
-    /**
-     * Some runtime images aren't capable of running executables built
-     * with certain builder images. The reason is typically the GLIBC
-     * version being too old.
-     *
-     * @param base
-     * @return
-     */
-    public static boolean isBuilderImageIncompatible(String base) {
-        return BUILDER_IMAGE.contains("ubi9") && ("ubi8".equals(base) || "amzn2".equals(base));
     }
 }
