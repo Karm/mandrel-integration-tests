@@ -1380,7 +1380,7 @@ public class AppReproducersTest {
      */
     public static boolean isBuilderImageIncompatible(String base) {
         // it's UBI 8
-        if (BUILDER_IMAGE.contains("/ubi-")) {
+        if (BUILDER_IMAGE.contains("/ubi-") || BUILDER_IMAGE.contains("rhel8")) {
             // Dev image, latest JDK, requires gcc toolchain-10 that
             // creates a dependency on GLIBC_2.28. O.K. for UBI8, too new for Amzn2
             if (BUILDER_IMAGE.contains("dev") && "amzn2".equals(base)) {
