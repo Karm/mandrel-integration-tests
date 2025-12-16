@@ -338,6 +338,8 @@ public enum WhitelistLogLines {
             }
             // harmless Podman noise, does not affect the test outcome (https://github.com/containers/podman/discussions/19920)
             p.add(Pattern.compile(".*time=\".*\" level=warning msg=\"archive: skipping.*"));
+            // sometimes showing up, probably caused by Jaeger not running
+            p.add(Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Client is closed.*"));
             return p.toArray(new Pattern[0]);
         }
     },
