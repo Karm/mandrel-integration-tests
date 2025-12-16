@@ -1,0 +1,29 @@
+diff --git a/apps/jfr-native-image-performance/pom.xml b/apps/jfr-native-image-performance/pom.xml
+index 9238cbb..8f4a7ce 100644
+--- a/apps/jfr-native-image-performance/pom.xml
++++ b/apps/jfr-native-image-performance/pom.xml
+@@ -21,8 +21,8 @@
+     <dependencyManagement>
+         <dependencies>
+             <dependency>
+-                <groupId>${quarkus.platform.group-id}</groupId>
+-                <artifactId>${quarkus.platform.artifact-id}</artifactId>
++                <groupId>io.quarkus</groupId>
++                <artifactId>quarkus-bom</artifactId>
+                 <version>${quarkus.version}</version>
+                 <type>pom</type>
+                 <scope>import</scope>
+@@ -33,11 +33,11 @@
+     <dependencies>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-resteasy-reactive</artifactId>
++            <artifactId>quarkus-rest</artifactId>
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-junit5</artifactId>
++            <artifactId>quarkus-junit</artifactId>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
