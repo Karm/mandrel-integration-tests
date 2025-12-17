@@ -482,6 +482,8 @@ public enum WhitelistLogLines {
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
                 p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
             }
+            // On podman 5.7.0 F42 we sometimes get: level=error msg="forwarding signal 15 to container <id>: sending signal to container <id>: `/usr/bin/crun kill <id> 15` failed: signal: terminated"
+            p.add(Pattern.compile(".*level=error.*msg=\"forwarding signal 15 to container.*"));
             return p.toArray(new Pattern[0]);
         }
     },
