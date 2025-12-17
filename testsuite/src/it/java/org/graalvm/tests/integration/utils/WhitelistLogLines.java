@@ -336,6 +336,10 @@ public enum WhitelistLogLines {
                     p.add(Pattern.compile(".*smallrye.common.process.*SRCOM05000: Command.*completed but logged errors.*"));
                 }
             }
+            // harmless Podman noise, does not affect the test outcome (https://github.com/containers/podman/discussions/19920)
+            p.add(Pattern.compile(".*time=\".*\" level=warning msg=\"archive: skipping.*"));
+            // sometimes showing up, probably caused by Jaeger not running
+            p.add(Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Client is closed.*"));
             return p.toArray(new Pattern[0]);
         }
     },
@@ -420,6 +424,8 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
             }
+            // harmless Podman noise, does not affect the test outcome (https://github.com/containers/podman/issues/16217)
+            p.add(Pattern.compile(".*time=\".*\" level=error msg=\"Could not retrieve exit code from event: died not found: unable to find event\".*"));
             return p.toArray(new Pattern[0]);
         }
     },
