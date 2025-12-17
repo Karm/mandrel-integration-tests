@@ -207,7 +207,9 @@ public class DebugSymbolsTest {
         final String cn = testInfo.getTestClass().get().getCanonicalName();
         final String mn = testInfo.getTestMethod().get().getName();
         String patch = null;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+            patch = "quarkus_3.31.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
             patch = "quarkus_3.9.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
             patch = "quarkus_3.8.x.patch";

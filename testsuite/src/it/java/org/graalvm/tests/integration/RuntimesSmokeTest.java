@@ -118,6 +118,13 @@ public class RuntimesSmokeTest {
             final long timeToFirstOKRequest = WebpageTester.testWeb(app.urlContent.urlContent[0][0], 10, app.urlContent.urlContent[0][1], true);
             LOGGER.info("Testing web page content...");
             for (String[] urlContent : app.urlContent.urlContent) {
+                if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+                    // skip metrics testing removed with: https://github.com/quarkusio/quarkus/pull/49735
+                    if (urlContent[0].equals("http://localhost:8080/q/metrics") ||
+                        urlContent[0].equals("http://localhost:8080/data/metric/timed")) {
+                        continue;
+                    }
+                }
                 WebpageTester.testWeb(urlContent[0], 5, urlContent[1], false);
             }
 
@@ -195,7 +202,9 @@ public class RuntimesSmokeTest {
         }
 
         String patch = null;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+            patch = "quarkus_3.31.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
             patch = "quarkus_3.9.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
             patch = "quarkus_3.8.x.patch";
