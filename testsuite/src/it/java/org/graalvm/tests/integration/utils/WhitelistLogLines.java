@@ -122,23 +122,39 @@ public enum WhitelistLogLines {
     CACERTS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    // Test uses JDK internal API: sun.security.util.UntrustedCertificates is internal proprietary API and may be removed in a future release
-                    Pattern.compile(".*sun\\.security\\.util\\.UntrustedCertificates is internal proprietary API and may be removed in a future release.*"),
-            };
+            final List<Pattern> p = new ArrayList<>();
+            // Test uses JDK internal API: sun.security.util.UntrustedCertificates is internal proprietary API and may be removed in a future release
+            p.add(Pattern.compile(".*sun\\.security\\.util\\.UntrustedCertificates is internal proprietary API and may be removed in a future release.*"));
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
+                // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+                // See https://github.com/oracle/graal/pull/12162
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     IMAGEIO {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
-                    Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."),
-                    // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
-                    Pattern.compile("Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found."),
-                    // https://github.com/graalvm/mandrel/issues/760
-                    Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"),
-            };
+            final List<Pattern> p = new ArrayList<>();
+            // org.jfree.jfreesvg reflectively accesses com.orsoncharts.Chart3DHints which is not on the classpath
+            p.add(Pattern.compile("Warning: Could not resolve .*com.orsoncharts.Chart3DHints for reflection configuration. Reason: java.lang.ClassNotFoundException: com.orsoncharts.Chart3DHints."));
+            // The java agent erroneously produces a reflection config mentioning this constructor, which doesn't exist
+            p.add(Pattern.compile("Warning: Method sun\\.security\\.provider\\.NativePRNG\\.<init>\\(SecureRandomParameters\\) not found."));
+            // https://github.com/graalvm/mandrel/issues/760
+            p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+            // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     IMAGEIO_BUILDER_IMAGE {
@@ -236,7 +252,10 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
             }
             // Sometimes, this appears when using Hyperfoil to benchmark the app. The acceptor wants to handle a connection, but no event loop is registered.
             // https://groups.google.com/g/vertx/c/ekzl1sagkVU
@@ -397,7 +416,10 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered 9 warnings\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from 'META-INF/native-image/.*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
             }
             return p.toArray(new Pattern[0]);
         }
@@ -480,71 +502,123 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered 1 warning\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
             }
             // On podman 5.7.0 F42 we sometimes get: level=error msg="forwarding signal 15 to container <id>: sending signal to container <id>: `/usr/bin/crun kill <id> 15` failed: signal: terminated"
             p.add(Pattern.compile(".*level=error.*msg=\"forwarding signal 15 to container.*"));
             return p.toArray(new Pattern[0]);
         }
     },
+    RECORDANNOTATIONS {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            final List<Pattern> p = new ArrayList<>();
+            // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+            }
+            return p.toArray(new Pattern[0]);
+        }
+    },
     RESLOCATIONS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    Pattern.compile(".*com\\.sun\\.imageio\\.plugins\\.common.*is internal proprietary API and may be removed in a future release.*")
-            };
+            final List<Pattern> p = new ArrayList<>();
+            p.add(Pattern.compile(".*com\\.sun\\.imageio\\.plugins\\.common.*is internal proprietary API and may be removed in a future release.*"));
+            // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     MONITOR_OFFSET {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    Pattern.compile(".*Failed generating.*"),
-                    Pattern.compile(".*The build process encountered an unexpected error.*"),
-                    Pattern.compile(".*monitor_field_offset.Main480 has an invalid monitor field offset.*"),
-                    Pattern.compile(".*error report at:.*"),
-            };
+            final List<Pattern> p = new ArrayList<>();
+            p.add(Pattern.compile(".*Failed generating.*"));
+            p.add(Pattern.compile(".*The build process encountered an unexpected error.*"));
+            p.add(Pattern.compile(".*monitor_field_offset.Main480 has an invalid monitor field offset.*"));
+            p.add(Pattern.compile(".*error report at:.*"));
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
+                // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+                // See https://github.com/oracle/graal/pull/12162
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     },
     FOR_SERIALIZATION {
         @Override
         public Pattern[] get(boolean inContainer) {
-            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) && IS_THIS_WINDOWS) {
-                return new Pattern[] {
-                        Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*"),
-                        // See https://github.com/Karm/mandrel-integration-tests/issues/314
-                        Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"),
-                };
-            } else {
-                return new Pattern[] {
-                        Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*")
-                };
+            final List<Pattern> p = new ArrayList<>();
+            p.add(Pattern.compile(".*sun.reflect.ReflectionFactory is internal proprietary API.*"));
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
+                // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+                // See https://github.com/oracle/graal/pull/12162
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+                if (IS_THIS_WINDOWS) {
+                    // See https://github.com/Karm/mandrel-integration-tests/issues/314
+                    p.add(Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"));
+                }
             }
+            return p.toArray(new Pattern[0]);
         }
     },
     JDK_REFLECTIONS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) && IS_THIS_WINDOWS) {
-                return new Pattern[] {
-                        // See https://github.com/Karm/mandrel-integration-tests/issues/314
-                        Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"),
-                };
-            } else {
-                return new Pattern[] {};
+            final List<Pattern> p = new ArrayList<>();
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
+                // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+                // See https://github.com/oracle/graal/pull/12162
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+                if (IS_THIS_WINDOWS) {
+                    // See https://github.com/Karm/mandrel-integration-tests/issues/314
+                    p.add(Pattern.compile(".*Warning: Observed unexpected JNI call to GetStaticMethodID.*"));
+                }
             }
+            return p.toArray(new Pattern[0]);
         }
     },
     VTHREADS {
         @Override
         public Pattern[] get(boolean inContainer) {
-            return new Pattern[] {
-                    // Maven 3.9.10 has a dependency - guice - which uses sun.misc.Unsafe::staticFieldBase
-                    // and produces a warning on JDK 25+. See https://github.com/Karm/mandrel-integration-tests/issues/341
-                    Pattern.compile(".*WARNING:.*sun.misc.Unsafe::staticFieldBase has been called by com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"),
-                    Pattern.compile(".*WARNING:.*Please consider reporting this to the maintainers of class com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"),
-                    Pattern.compile(".*WARNING:.*sun\\.misc\\.Unsafe::staticFieldBase will be removed in a future release.*")
-            };
+            final List<Pattern> p = new ArrayList<>();
+            // Maven 3.9.10 has a dependency - guice - which uses sun.misc.Unsafe::staticFieldBase
+            // and produces a warning on JDK 25+. See https://github.com/Karm/mandrel-integration-tests/issues/341
+            p.add(Pattern.compile(".*WARNING:.*sun.misc.Unsafe::staticFieldBase has been called by com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
+            p.add(Pattern.compile(".*WARNING:.*Please consider reporting this to the maintainers of class com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
+            p.add(Pattern.compile(".*WARNING:.*sun\\.misc\\.Unsafe::staticFieldBase will be removed in a future release.*"));
+            // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
+            // See https://github.com/oracle/graal/pull/12162
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
+                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
+                p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
+            }
+            return p.toArray(new Pattern[0]);
         }
     };
 
