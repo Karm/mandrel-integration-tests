@@ -111,7 +111,7 @@ public enum Apps {
             ContainerNames.NONE),
     RECORDANNOTATIONS("apps" + File.separator + "recordannotations",
             URLContent.NONE,
-            WhitelistLogLines.NONE,
+            WhitelistLogLines.RECORDANNOTATIONS,
             BuildAndRunCmds.RECORDANNOTATIONS,
             ContainerNames.NONE),
     IMAGEIO("apps" + File.separator + "imageio",
