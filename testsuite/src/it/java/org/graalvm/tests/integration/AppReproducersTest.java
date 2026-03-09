@@ -1388,7 +1388,7 @@ public class AppReproducersTest {
             }
             return !BUILDER_RUNTIME_COMPATIBILITY.get("ubi8").contains(base);
         }
-        if (BUILDER_IMAGE.contains("/ubi9-")) {
+        if (BUILDER_IMAGE.contains("/ubi9-") || BUILDER_IMAGE.contains("rhel9")) {
             return !BUILDER_RUNTIME_COMPATIBILITY.get("ubi9").contains(base);
         }
         if (BUILDER_IMAGE.contains("/ubi10-")) {
