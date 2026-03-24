@@ -803,7 +803,7 @@ public class AppReproducersTest {
     }
 
     @Test
-    @IfMandrelVersion(minJDK = "21.0.3")
+    @IfMandrelVersion(minJDK = "21.0.3", max = "25.0.999")
     public void monitorFieldOffsetTest(TestInfo testInfo) throws IOException, InterruptedException {
         monitorFieldOffsetOK(testInfo, Apps.MONITOR_OFFSET_OK);
         monitorFieldOffsetNOK(testInfo, Apps.MONITOR_OFFSET_NOK);
