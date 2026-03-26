@@ -333,7 +333,9 @@ public class DebugSymbolsTest {
                 runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), appDir);
             }
 
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+                patch = "quarkus_3.31.x.patch";
+            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
                 patch = "quarkus_3.9.x.patch";
             } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
                 patch = "quarkus_3.x.patch";

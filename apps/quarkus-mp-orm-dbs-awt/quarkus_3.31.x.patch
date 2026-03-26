@@ -43,6 +43,15 @@ index bb38d46..b3b2a5a 100644
          </dependency>
          <dependency>
              <groupId>io.quarkus</groupId>
+@@ -103,7 +103,7 @@
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-smallrye-metrics</artifactId>
++            <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
 @@ -115,7 +117,7 @@
          </dependency>
          <dependency>
@@ -279,24 +288,88 @@ index 56d2a07..252ce0f 100644
  @Path("/protected")
  @RequestScoped
 diff --git a/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java b/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java
-index 9c4d7de..fb7840c 100644
+index 9c4d7de..f06f8cc 100644
 --- a/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java
 +++ b/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java
-@@ -6,10 +6,10 @@ import org.eclipse.microprofile.metrics.annotation.Gauge;
- import org.eclipse.microprofile.metrics.annotation.Metric;
- import org.eclipse.microprofile.metrics.annotation.Timed;
- 
+@@ -1,40 +1,45 @@
+ package quarkus.metric;
+
+-import org.eclipse.microprofile.metrics.Counter;
+-import org.eclipse.microprofile.metrics.MetricUnits;
+-import org.eclipse.microprofile.metrics.annotation.Gauge;
+-import org.eclipse.microprofile.metrics.annotation.Metric;
+-import org.eclipse.microprofile.metrics.annotation.Timed;
++import io.micrometer.core.instrument.Counter;
++import io.micrometer.core.instrument.MeterRegistry;
++import io.micrometer.core.instrument.Timer;
++import io.micrometer.core.instrument.Gauge;
+
 -import javax.enterprise.context.ApplicationScoped;
 -import javax.inject.Inject;
 -import javax.ws.rs.GET;
 -import javax.ws.rs.Path;
++import jakarta.annotation.PostConstruct;
 +import jakarta.enterprise.context.ApplicationScoped;
 +import jakarta.inject.Inject;
 +import jakarta.ws.rs.GET;
 +import jakarta.ws.rs.Path;
- 
+
  @Path("/metric")
  @ApplicationScoped
+ public class MetricController {
+
+     @Inject
+-    @Metric(name = "endpoint_counter")
+-    Counter counter;
++    MeterRegistry registry;
++
++    private Counter counter;
++
++    @PostConstruct
++    void init() {
++        counter = registry.counter("endpoint_counter");
++
++        Gauge.builder("counter_gauge", counter, Counter::count)
++                .description("Reports the current count of the endpoint_counter.")
++                .register(registry);
++    }
+
+     @Path("timed")
+-    @Timed(name = "timed-request")
+     @GET
+     public String timedRequest() {
+-        return "Request is used in statistics, check with the Metrics call.";
++        Timer timer = registry.timer("timed-request");
++        return timer.record(() -> "Request is used in statistics, check with the Metrics call.");
+     }
+
+     @Path("increment")
+     @GET
+     public long doIncrement() {
+-        counter.inc();
+-        return counter.getCount();
+-    }
+-
+-    @Gauge(name = "counter_gauge", unit = MetricUnits.NONE)
+-    long getCustomerCount() {
+-        return counter.getCount();
++        counter.increment();
++        return (long) counter.count();
+     }
+ }
+diff --git a/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java b/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java
+index 95b8ed8..0675512 100644
+--- a/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java
++++ b/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java
+@@ -21,6 +21,7 @@ public class MetricResourceTest {
+                 .when().get("q/metrics")
+                 .then()
+                 .statusCode(200)
+-                .body(containsStringIgnoringCase("MetricController_endpoint_counter_total 1.0"));
++                .body(containsStringIgnoringCase("endpoint_counter_total 1.0"))
++                .body(containsStringIgnoringCase("counter_gauge 1.0"));
+     }
+ }
 diff --git a/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/orm/EntityResource.java b/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/orm/EntityResource.java
 index 45c7190..fcf3094 100644
 --- a/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/orm/EntityResource.java
@@ -445,18 +518,3 @@ index b5f16ea..f0dcc9f 100644
  insert into db2entity (id, field) values(30, 'field-3');
  ALTER TABLE `db2entity` AUTO_INCREMENT = 40;
 -
-diff --git a/testsuite/src/it/java/org/graalvm/tests/integration/PerfCheckTest.java b/testsuite/src/it/java/org/graalvm/tests/integration/PerfCheckTest.java
-index e40a90a..b92b841 100644
---- a/testsuite/src/it/java/org/graalvm/tests/integration/PerfCheckTest.java
-+++ b/testsuite/src/it/java/org/graalvm/tests/integration/PerfCheckTest.java
-@@ -791,7 +791,9 @@ public class PerfCheckTest {
-         final String mn = testInfo.getTestMethod().get().getName();
-         String patch = null;
-         final List<Path> jsonPayloads = new ArrayList<>(2);
--        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_21_0) >= 0) {
-+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
-+            patch = "quarkus_3.31.x.patch";
-+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_21_0) >= 0) {
-             patch = "quarkus_3.21.x.patch";
-         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-             patch = "quarkus_3.9.x.patch";
