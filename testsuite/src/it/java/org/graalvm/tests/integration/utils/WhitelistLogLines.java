@@ -61,6 +61,8 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Warning: Please re-evaluate whether any experimental option is required, and either remove or unlock it\\..*"));
             // Quarkus main 2024-03-21 deprecates this maven plugin directive
             p.add(Pattern.compile(".*Configuration property 'quarkus.package.type' has been deprecated.*"));
+            // Allow the quarkus warning about older Mandrel/GraalVM versions
+            p.add(Pattern.compile(".*You are using an older version of GraalVM or Mandrel : 23\\.1.* Quarkus currently supports 25\\.0.* Please upgrade to this version\\..*"));
             // Microdnf complaining, benign
             p.add(Pattern.compile(".*microdnf.*Found 0 entitlement certificates.*"));
             // Podman, container image build
