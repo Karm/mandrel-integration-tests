@@ -271,6 +271,11 @@ public enum WhitelistLogLines {
             // https://stackoverflow.com/questions/75680105/why-dose-perf-stat-a-topdown-not-support-on-my-system
             p.add(Pattern.compile(".*event syntax error: 'topdown-retiring/metric-id=topdown!1retiring/,TOPDOWN\\.SL\\.\\.'.*"));
             p.add(Pattern.compile(".*Initial error:.*"));
+            // GraalVM 25.1 or graal/master that is Labs JDK 25 based deprecates `--enable-url-protocols`.
+            // See https://github.com/oracle/graal/pull/13689
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 1, 0)) >= 0) {
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --enable-url-protocols= from command line\\..*"));
+            }
             return p.toArray(new Pattern[0]);
         }
     },
@@ -523,6 +528,11 @@ public enum WhitelistLogLines {
             }
             // On podman 5.7.0 F42 we sometimes get: level=error msg="forwarding signal 15 to container <id>: sending signal to container <id>: `/usr/bin/crun kill <id> 15` failed: signal: terminated"
             p.add(Pattern.compile(".*level=error.*msg=\"forwarding signal 15 to container.*"));
+            // GraalVM 25.1 or graal/master that is Labs JDK 25 based deprecates `--enable-url-protocols`.
+            // See https://github.com/oracle/graal/pull/13689
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 1, 0)) >= 0) {
+                p.add(Pattern.compile(".*Warning: Using a deprecated option --enable-url-protocols= from command line\\..*"));
+            }
             return p.toArray(new Pattern[0]);
         }
     },
