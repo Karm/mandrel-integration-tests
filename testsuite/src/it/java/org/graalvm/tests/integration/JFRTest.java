@@ -219,7 +219,9 @@ public class JFRTest {
                 switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
             }
 
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_4_0_0) >= 0) {
+                patch = "quarkus_4.0.x.patch";
+            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
                 patch = "quarkus_3.31.x.patch";
             } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
                 patch = "quarkus_3.9.x.patch";

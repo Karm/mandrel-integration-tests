@@ -34,6 +34,7 @@ public class QuarkusVersion implements Comparable<QuarkusVersion> {
     public static final QuarkusVersion V_3_9_0 = new QuarkusVersion("3.9.0");
     public static final QuarkusVersion V_3_21_0 = new QuarkusVersion("3.21.0");
     public static final QuarkusVersion V_3_31_0 = new QuarkusVersion("3.31.0");
+    public static final QuarkusVersion V_4_0_0 = new QuarkusVersion("4.0.0");
 
     private final String version;
     private final int major;

@@ -62,7 +62,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -104,7 +103,6 @@ import static org.jboss.resteasy.spi.HttpResponseCodes.SC_ACCEPTED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_CREATED;
 import static org.jboss.resteasy.spi.HttpResponseCodes.SC_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -443,7 +441,9 @@ public class PerfCheckTest {
         final List<Map<String, String>> reports = new ArrayList<>(2);
 
         String patch = null;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_4_0_0) >= 0) {
+            patch = "quarkus_4.0.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
             patch = "quarkus_3.9.x.patch";
@@ -586,7 +586,9 @@ public class PerfCheckTest {
 
         // apply patches, when necessary
         String patch = null;
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_4_0_0) >= 0) {
+            patch = "quarkus_4.0.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
             patch = "quarkus_3.9.x.patch";
@@ -791,7 +793,9 @@ public class PerfCheckTest {
         final String mn = testInfo.getTestMethod().get().getName();
         String patch = null;
         final List<Path> jsonPayloads = new ArrayList<>(2);
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_4_0_0) >= 0) {
+            patch = "quarkus_4.0.x.patch";
+        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_21_0) >= 0) {
             patch = "quarkus_3.21.x.patch";
