@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Testing test suite...
  *
@@ -35,7 +33,9 @@ class QuarkusVersionTest
         Assertions.assertTrue(new QuarkusVersion("2.3.4-SNAPSHOT").compareTo(new QuarkusVersion("2.2.4-SNAPSHOT")) > 0);
         Assertions.assertTrue(new QuarkusVersion("2.3.4-SNAPSHOT").compareTo(new QuarkusVersion("3.2.4-SNAPSHOT")) < 0);
         Assertions.assertTrue(new QuarkusVersion("3.8.3").compareTo(new QuarkusVersion("3.8.999-SNAPSHOT")) < 0);
-        Assertions.assertTrue(new QuarkusVersion("999-SNAPSHOT").compareTo(new QuarkusVersion("3.9.2")) > 0);
+        Assertions.assertTrue(new QuarkusVersion("999-SNAPSHOT").compareTo(new QuarkusVersion("3.37.0")) > 0);
+        // As of June 29, 2026 quarkus main is 4.x
+        Assertions.assertTrue(new QuarkusVersion("999-SNAPSHOT").compareTo(new QuarkusVersion("4.0.0")) > 0);
     }
 
     @Test
