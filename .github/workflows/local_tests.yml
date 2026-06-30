@@ -32,50 +32,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-            - quarkus-version: '2.13.9.Final'
-              mandrel-version: '22.3.5.0-Final'
-              java-version: '17'
-              os: 'windows-2022'
-              timeout-minutes: 80
-            - quarkus-version: '2.13.9.Final'
-              mandrel-version: '22.3.5.0-Final'
-              java-version: '17'
-              os: 'ubuntu-22.04'
-              timeout-minutes: 80
-
-            - quarkus-version: '3.2.12.Final'
-              mandrel-version: '23.0.6.0-Final'
-              java-version: '17'
-              os: 'windows-2022'
-              timeout-minutes: 80
-            - quarkus-version: '3.2.12.Final'
-              mandrel-version: '23.0.6.0-Final'
-              java-version: '17'
-              os: 'ubuntu-22.04'
-              timeout-minutes: 130
-
-            - quarkus-version: '3.8.6.1'
-              mandrel-version: '23.1.6.0-Final'
-              java-version: '21'
-              os: 'windows-2022'
-              timeout-minutes: 80
-            - quarkus-version: '3.8.6.1'
-              mandrel-version: '23.1.6.0-Final'
-              java-version: '21'
-              os: 'ubuntu-22.04'
-              timeout-minutes: 130
-
-            - quarkus-version: '3.15.7'
-              mandrel-version: '23.1.9.0-Final'
-              java-version: '21'
-              os: 'windows-2022'
-              timeout-minutes: 80
-            - quarkus-version: '3.15.7'
-              mandrel-version: '23.1.9.0-Final'
-              java-version: '21'
-              os: 'ubuntu-22.04'
-              timeout-minutes: 130
-
             - quarkus-version: '3.27.1'
               mandrel-version: '23.1.9.0-Final'
               java-version: '21'
@@ -84,17 +40,6 @@ jobs:
             - quarkus-version: '3.27.1'
               mandrel-version: '23.1.9.0-Final'
               java-version: '21'
-              os: 'ubuntu-22.04'
-              timeout-minutes: 130
-
-            - quarkus-version: '3.8.6.1'
-              mandrel-version: '24.0.2.0-Final'
-              java-version: '22'
-              os: 'windows-2022'
-              timeout-minutes: 80
-            - quarkus-version: '3.8.6.1'
-              mandrel-version: '24.0.2.0-Final'
-              java-version: '22'
               os: 'ubuntu-22.04'
               timeout-minutes: 130
 
