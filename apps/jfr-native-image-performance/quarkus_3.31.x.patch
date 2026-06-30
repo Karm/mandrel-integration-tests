@@ -13,12 +13,7 @@ index 9238cbb..8f4a7ce 100644
                  <version>${quarkus.version}</version>
                  <type>pom</type>
                  <scope>import</scope>
-@@ -33,11 +33,11 @@
-     <dependencies>
-         <dependency>
-             <groupId>io.quarkus</groupId>
--            <artifactId>quarkus-resteasy-reactive</artifactId>
-+            <artifactId>quarkus-rest</artifactId>
+@@ -33,7 +33,7 @@
          </dependency>
          <dependency>
              <groupId>io.quarkus</groupId>
