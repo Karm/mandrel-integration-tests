@@ -417,12 +417,6 @@ public class PerfCheckTest {
             patch = "quarkus_4.0.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-            patch = "quarkus_3.9.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
-            patch = "quarkus_3.8.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
-            patch = "quarkus_3.2.x.patch";
         }
         try {
             // Cleanup
@@ -562,12 +556,6 @@ public class PerfCheckTest {
             patch = "quarkus_4.0.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-            patch = "quarkus_3.9.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
-            patch = "quarkus_3.8.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
-            patch = "quarkus_3.2.x.patch";
         }
 
         try {
