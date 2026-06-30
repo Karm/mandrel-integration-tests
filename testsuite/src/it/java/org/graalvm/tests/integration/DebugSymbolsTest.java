@@ -278,11 +278,7 @@ public class DebugSymbolsTest {
                 writer.write("set confirm off\n");
                 writer.flush();
 
-                if (applySourcesPatch()) {
-                    writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
-                } else {
-                    writer.write("set directories " + appDir.getAbsolutePath() + "/target/sources\n");
-                }
+                writer.write("set directories " + appDir.getAbsolutePath() + "/target/quarkus-native-image-source-jar/sources\n");
 
                 writer.flush();
 
@@ -300,12 +296,6 @@ public class DebugSymbolsTest {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
         }
-    }
-
-    // See https://github.com/quarkusio/quarkus/pull/20355
-    private boolean applySourcesPatch() {
-        return (QUARKUS_VERSION.compareTo(QuarkusVersion.V_2_2_4) >= 0 && QUARKUS_VERSION.compareTo(QuarkusVersion.V_2_3_0) < 0) ||
-            QUARKUS_VERSION.compareTo(QuarkusVersion.V_2_4_0) >= 0;
     }
 
     @Test
@@ -331,18 +321,8 @@ public class DebugSymbolsTest {
             removeContainers(app.runtimeContainer.name, "quarkus_test_db");
             Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
 
-            if (applySourcesPatch()) {
-                runCommand(getRunCommand("git", "apply", "quarkus_sources.patch"), appDir);
-            }
-
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_4_0_0) >= 0) {
-                patch = "quarkus_4.0.x.patch";
-            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
                 patch = "quarkus_3.31.x.patch";
-            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-                patch = "quarkus_3.9.x.patch";
-            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                patch = "quarkus_3.x.patch";
             }
 
             if (patch != null) {
@@ -436,9 +416,6 @@ public class DebugSymbolsTest {
             cleanup(null, cn, mn, report, app, processLog);
             stopAllRunningContainers();
             removeContainers(app.runtimeContainer.name, "quarkus_test_db");
-            if (applySourcesPatch()) {
-                runCommand(getRunCommand("git", "apply", "-R", "quarkus_sources.patch"), appDir);
-            }
             if (patch != null) {
                 runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
             }
