@@ -167,22 +167,11 @@ public class PerfCheckTest {
         final List<Map<String, String>> reports = new ArrayList<>(3);
         // Test data tmp storage
         final File json = Path.of(appDir.getAbsolutePath(), "logs", "record.json").toFile();
-        String patch = null;
 
         try {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
-
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-                patch = "quarkus_3.9.x.patch";
-            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                patch = "quarkus_3.x.patch";
-            }
-
-            if (patch != null) {
-                runCommand(getRunCommand("git", "apply", patch), appDir);
-            }
 
             // Build executables
             builderRoutine(app, null, null, null, appDir, processLog, null, getSwitches1());
@@ -287,9 +276,6 @@ public class PerfCheckTest {
             Logs.archiveLog(cn, mn, processLog);
             Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus.log").toFile());
             cleanTarget(app);
-            if (patch != null) {
-                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
-            }
         }
     }
 
@@ -306,22 +292,11 @@ public class PerfCheckTest {
         final List<Map<String, String>> reports = new ArrayList<>(2);
         // Test data tmp storage
         final File json = Path.of(appDir.getAbsolutePath(), "logs", "record.json").toFile();
-        String patch = null;
 
         try {
             // Cleanup
             cleanTarget(app);
             Files.createDirectories(Paths.get(appDir.getAbsolutePath(), "logs"));
-
-            if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-                patch = "quarkus_3.9.x.patch";
-            } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_0_0) >= 0) {
-                patch = "quarkus_3.x.patch";
-            }
-
-            if (patch != null) {
-                runCommand(getRunCommand("git", "apply", patch), appDir);
-            }
 
             // Build executables
             builderRoutine(app, null, null, null, appDir, processLog, null, getSwitches2());
@@ -422,9 +397,6 @@ public class PerfCheckTest {
             Logs.archiveLog(cn, mn, Path.of(appDir.getAbsolutePath(), "target", "quarkus.log").toFile());
             Logs.archiveLog(cn, mn, processLog);
             cleanTarget(app);
-            if (patch != null) {
-                runCommand(getRunCommand("git", "apply", "-R", patch), appDir);
-            }
         }
     }
 
@@ -445,12 +417,6 @@ public class PerfCheckTest {
             patch = "quarkus_4.0.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-            patch = "quarkus_3.9.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
-            patch = "quarkus_3.8.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
-            patch = "quarkus_3.2.x.patch";
         }
         try {
             // Cleanup
@@ -590,12 +556,6 @@ public class PerfCheckTest {
             patch = "quarkus_4.0.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-            patch = "quarkus_3.9.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_8_0) >= 0) {
-            patch = "quarkus_3.8.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
-            patch = "quarkus_3.2.x.patch";
         }
 
         try {
@@ -793,16 +753,10 @@ public class PerfCheckTest {
         final String mn = testInfo.getTestMethod().get().getName();
         String patch = null;
         final List<Path> jsonPayloads = new ArrayList<>(2);
-        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_4_0_0) >= 0) {
-            patch = "quarkus_4.0.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
+        if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
             patch = "quarkus_3.31.x.patch";
         } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_21_0) >= 0) {
             patch = "quarkus_3.21.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_9_0) >= 0) {
-            patch = "quarkus_3.9.x.patch";
-        } else if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_2_0) >= 0) {
-            patch = "quarkus_3.2.x.patch";
         }
         try {
             // Cleanup

@@ -18,22 +18,22 @@ package org.acme.vertx;
 
 import java.net.URI;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
@@ -44,27 +44,7 @@ import io.vertx.mutiny.pgclient.PgPool;
 public class FruitResource {
 
     @Inject
-    @ConfigProperty(name = "myapp.schema.create", defaultValue = "true")
-    boolean schemaCreate;
-
-    @Inject
     PgPool client;
-
-    @PostConstruct
-    void config() {
-        if (schemaCreate) {
-            initdb();
-        }
-    }
-
-    private void initdb() {
-        client.query("DROP TABLE IF EXISTS fruits").execute()
-                .flatMap(r -> client.query("CREATE TABLE fruits (id SERIAL PRIMARY KEY, name TEXT NOT NULL)").execute())
-                .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Orange')").execute())
-                .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Pear')").execute())
-                .flatMap(r -> client.query("INSERT INTO fruits (name) VALUES ('Apple')").execute())
-                .await().indefinitely();
-    }
 
     @GET
     public Uni<Response> get() {
@@ -75,7 +55,7 @@ public class FruitResource {
 
     @GET
     @Path("{id}")
-    public Uni<Response> getSingle(@PathParam Long id) {
+    public Uni<Response> getSingle(@PathParam(value = "id") Long id) {
         return Fruit.findById(client, id)
                 .onItem().transform(fruit -> fruit != null ? Response.ok(fruit) : Response.status(Status.NOT_FOUND))
                 .onItem().transform(ResponseBuilder::build);
@@ -90,7 +70,7 @@ public class FruitResource {
 
     @PUT
     @Path("{id}")
-    public Uni<Response> update(@PathParam Long id, Fruit fruit) {
+    public Uni<Response> update(@PathParam(value = "id") Long id, Fruit fruit) {
         return fruit.update(client)
                 .onItem().transform(updated -> updated ? Status.OK : Status.NOT_FOUND)
                 .onItem().transform(status -> Response.status(status).build());
@@ -98,7 +78,7 @@ public class FruitResource {
 
     @DELETE
     @Path("{id}")
-    public Uni<Response> delete(@PathParam Long id) {
+    public Uni<Response> delete(@PathParam(value = "id") Long id) {
         return Fruit.delete(client, id)
                 .onItem().transform(deleted -> deleted ? Status.NO_CONTENT : Status.NOT_FOUND)
                 .onItem().transform(status -> Response.status(status).build());
