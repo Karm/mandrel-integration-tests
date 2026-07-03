@@ -1,0 +1,587 @@
+mvn --batch-mode package -Pnative -Dquarkus.version=3.27.0 -Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAMED,-R:MaxHeapSize=2560m,-H:+UnlockExperimentalVMOptions,-H:-ParseOnce,-H:-UnlockExperimentalVMOptions,-H:+UnlockExperimentalVMOptions,-H:BuildOutputJSONFile=quarkus-json_minus-ParseOnce.json,-H:-UnlockExperimentalVMOptions -Dcustom.final.name=quarkus-json_-ParseOnce
+Command: mvn --batch-mode package -Pnative -Dquarkus.version=3.27.0 -Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAMED,-R:MaxHeapSize=2560m,-H:+UnlockExperimentalVMOptions,-H:-ParseOnce,-H:-UnlockExperimentalVMOptions,-H:+UnlockExperimentalVMOptions,-H:BuildOutputJSONFile=quarkus-json_minus-ParseOnce.json,-H:-UnlockExperimentalVMOptions -Dcustom.final.name=quarkus-json_-ParseOnce
+[INFO] Scanning for projects...
+[INFO]
+[INFO] -------------< org.graalvm.tests.integration:quarkus-json >-------------
+[INFO] Building quarkus-json 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- resources:3.3.1:resources (default-resources) @ quarkus-json ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO]
+[INFO] --- quarkus:3.27.0:generate-code (default) @ quarkus-json ---
+[INFO]
+[INFO] --- compiler:3.14.0:compile (default-compile) @ quarkus-json ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 2 source files with javac [debug target 17] to target/classes
+[WARNING] system modules path not set in conjunction with -source 17
+[INFO]
+[INFO] --- quarkus:3.27.0:generate-code-tests (default) @ quarkus-json ---
+[INFO]
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ quarkus-json ---
+[INFO] skip non existing resourceDirectory /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/src/test/resources
+[INFO]
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ quarkus-json ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- surefire:3.2.5:test (default-test) @ quarkus-json ---
+[INFO] No tests to run.
+[INFO]
+[INFO] --- jar:3.4.1:jar (default-jar) @ quarkus-json ---
+[INFO] Building jar: /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_-ParseOnce.jar
+[INFO]
+[INFO] --- quarkus:3.27.0:build (default) @ quarkus-json ---
+[WARNING] [io.quarkus.deployment.configuration] Configuration property 'quarkus.package.type' has been deprecated and replaced by: [quarkus.package.jar.enabled, quarkus.package.jar.type, quarkus.native.enabled, quarkus.native.sources-only]
+[WARNING] [io.quarkus.config] Unrecognized configuration key "quarkus.version" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+[INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building native image source jar: /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_-ParseOnce-native-image-source-jar/quarkus-json_-ParseOnce-runner.jar
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Building native image from /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_-ParseOnce-native-image-source-jar/quarkus-json_-ParseOnce-runner.jar
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Running Quarkus native-image plugin on MANDREL 23.1.11.0 JDK 21.0.11+10-LTS
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildRunner] /home/pcerbak/Downloads/mandrel-java21-linux-amd64-23.1.11.0-Final/mandrel-java21-23.1.11.0-Final/bin/native-image -J-Djava.util.logging.manager=org.jboss.logmanager.LogManager -J-Dsun.nio.ch.maxUpdateArraySize=100 -J-Dlogging.initial-configurator.min-level=500 -J-Duser.language=en -J-Duser.country=US -J-Dvertx.logger-delegate-factory-class-name=io.quarkus.vertx.core.runtime.VertxLogDelegateFactory -J-Dvertx.disableDnsResolver=true -J-Dio.netty.leakDetection.level=DISABLED -J-Dio.netty.allocator.maxOrder=3 -H:+UnlockExperimentalVMOptions -H:IncludeLocales=en-US -H:-UnlockExperimentalVMOptions -J-Dfile.encoding=UTF-8 -J--add-exports=org.graalvm.nativeimage.builder/com.oracle.svm.core.jdk=ALL-UNNAMED --features=io.quarkus.runner.Feature,io.quarkus.runtime.graal.DisableLoggingFeature,io.quarkus.runtime.graal.SkipConsoleServiceProvidersFeature -J--add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED -J--add-exports=java.security.jgss/sun.security.jgss=ALL-UNNAMED -J--add-opens=java.base/java.text=ALL-UNNAMED -J--add-opens=java.base/java.io=ALL-UNNAMED -J--add-opens=java.base/java.lang.invoke=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED -H:+UnlockExperimentalVMOptions -H:BuildOutputJSONFile=quarkus-json_-ParseOnce-runner-build-output-stats.json -H:-UnlockExperimentalVMOptions -H:+UnlockExperimentalVMOptions -H:+GenerateBuildArtifactsFile -H:-UnlockExperimentalVMOptions --strict-image-heap --install-exit-handlers -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--enable-native-access=ALL-UNNAMED -R:MaxHeapSize=2560m -H:+UnlockExperimentalVMOptions -H:-ParseOnce -H:-UnlockExperimentalVMOptions -H:+UnlockExperimentalVMOptions -H:BuildOutputJSONFile=quarkus-json_minus-ParseOnce.json -H:-UnlockExperimentalVMOptions -H:+UnlockExperimentalVMOptions -H:+AllowFoldMethods -H:-UnlockExperimentalVMOptions -J-Djava.awt.headless=true --no-fallback --link-at-build-time -H:+UnlockExperimentalVMOptions -H:+ReportExceptionStackTraces -H:-UnlockExperimentalVMOptions -H:-AddAllCharsets --enable-url-protocols=http -H:NativeLinkerOption=-no-pie --enable-monitoring=heapdump -H:+UnlockExperimentalVMOptions -H:-UseServiceLoaderFeature -H:-UnlockExperimentalVMOptions -J--add-exports=org.graalvm.nativeimage/org.graalvm.nativeimage.impl=ALL-UNNAMED --exclude-config io\.netty\.netty-codec /META-INF/native-image/io\.netty/netty-codec/generated/handlers/reflect-config\.json --exclude-config io\.netty\.netty-handler /META-INF/native-image/io\.netty/netty-handler/generated/handlers/reflect-config\.json quarkus-json_-ParseOnce-runner -jar quarkus-json_-ParseOnce-runner.jar
+========================================================================================================================
+GraalVM Native Image: Generating 'quarkus-json_-ParseOnce-runner' (executable)...
+========================================================================================================================
+For detailed information and explanations on the build output, visit:
+https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/BuildOutput.md
+------------------------------------------------------------------------------------------------------------------------
+[1/8] Initializing...                                                                                    (2.8s @ 0.26GB)
+ Java version: 21.0.11+10-LTS, vendor version: Mandrel-23.1.11.0-Final
+ Graal compiler: optimization level: 2, target machine: x86-64-v3
+ C compiler: gcc (redhat, x86_64, 15.2.1)
+ Garbage collector: Serial GC (max heap size: 2.50GB)
+ 4 user-specific feature(s):
+ - com.oracle.svm.thirdparty.gson.GsonFeature
+ - io.quarkus.runner.Feature: Auto-generated class by Quarkus from the existing extensions
+ - io.quarkus.runtime.graal.DisableLoggingFeature: Adapts logging during the analysis phase
+ - io.quarkus.runtime.graal.SkipConsoleServiceProvidersFeature: Skip unsupported console service providers when quarkus.native.auto-service-loader-registration is false
+------------------------------------------------------------------------------------------------------------------------
+ 6 experimental option(s) unlocked:
+ - '-H:+AllowFoldMethods' (origin(s): command line)
+ - '-H:-ParseOnce' (origin(s): command line)
+ - '-H:BuildOutputJSONFile' (origin(s): command line, command line)
+ - '-H:-UseServiceLoaderFeature' (origin(s): command line)
+ - '-H:+GenerateBuildArtifactsFile' (origin(s): command line)
+ - '-H:AddOpens' (alternative API option(s): --add-opens java.base/java.lang=ALL-UNNAMED; origin(s): command line)
+------------------------------------------------------------------------------------------------------------------------
+Build resources:
+ - 26.49GB of memory (42.6% of 62.23GB system memory, determined at start)
+ - 22 thread(s) (100.0% of 22 available processor(s), determined at start)
+[2/8] Performing analysis...  [*****]                                                                    (9.0s @ 0.99GB)
+   12,608 reachable types   (88.8% of   14,192 total)
+   18,292 reachable fields  (60.8% of   30,098 total)
+   65,094 reachable methods (57.7% of  112,730 total)
+    4,040 types,   185 fields, and 3,947 methods registered for reflection
+       62 types,    67 fields, and    55 methods registered for JNI access
+        4 native libraries: dl, pthread, rt, z
+[3/8] Building universe...                                                                               (1.8s @ 1.06GB)
+[4/8] Parsing methods...      [**]                                                                       (2.4s @ 0.74GB)
+[5/8] Inlining methods...     [****]                                                                     (1.2s @ 0.86GB)
+[6/8] Compiling methods...    [***]                                                                     (11.6s @ 1.24GB)
+[7/8] Laying out methods...   [**]                                                                       (3.3s @ 1.09GB)
+[8/8] Creating image...       [**]                                                                       (3.2s @ 1.35GB)
+  27.06MB (44.16%) for code area:    43,147 compilation units
+  29.60MB (48.30%) for image heap:  333,461 objects and 57 resources
+   4.62MB ( 7.54%) for other data
+  61.28MB in total
+------------------------------------------------------------------------------------------------------------------------
+Top 10 origins of code area:                                Top 10 object types in image heap:
+  13.43MB java.base                                            8.79MB byte[] for code metadata
+   2.01MB c.f.jackson.core.jackson-databind-2.19.2.jar         4.45MB byte[] for java.lang.String
+   1.39MB svm.jar (Native Image)                               3.13MB java.lang.Class
+   1.09MB quarkus-json_-ParseOnce-runner.jar                   3.03MB java.lang.String
+   1.02MB modified-io.vertx.vertx-core-4.5.21.jar              1.10MB byte[] for general heap data
+ 688.30kB io.netty.netty-buffer-4.1.127.Final.jar              1.06MB com.oracle.svm.core.hub.DynamicHubCompanion
+ 620.17kB com.fasterxml.jackson.core.jackson-core-2.19.2.jar 767.27kB byte[] for reflection metadata
+ 540.11kB io.netty.netty-common-4.1.127.Final.jar            594.88kB java.lang.String[]
+ 456.21kB io.netty.netty-codec-http-4.1.127.Final.jar        530.72kB java.util.HashMap$Node
+ 411.43kB io.netty.netty-codec-http2-4.1.127.Final.jar       468.89kB java.lang.Object[]
+   5.16MB for 91 more packages                                 5.75MB for 3224 more object types
+------------------------------------------------------------------------------------------------------------------------
+Recommendations:
+ CPU:  Enable more CPU features with '-march=native' for improved performance.
+------------------------------------------------------------------------------------------------------------------------
+                       3.3s (9.0% of total time) in 442 GCs | Peak RSS: 2.59GB | CPU load: 13.18
+------------------------------------------------------------------------------------------------------------------------
+Produced artifacts:
+ /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_-ParseOnce-native-image-source-jar/build-artifacts.json (build_info)
+ /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_-ParseOnce-native-image-source-jar/quarkus-json_-ParseOnce-runner (executable)
+ /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_-ParseOnce-native-image-source-jar/quarkus-json_minus-ParseOnce.json (build_info)
+========================================================================================================================
+Finished generating 'quarkus-json_-ParseOnce-runner' in 35.9s.
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildRunner] objcopy --strip-debug quarkus-json_-ParseOnce-runner
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 38700ms
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  41.008 s
+[INFO] Finished at: 2026-07-03T15:25:48+02:00
+[INFO] ------------------------------------------------------------------------
+mvn --batch-mode package -Pnative -Dquarkus.version=3.27.0 -Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAMED,-R:MaxHeapSize=2560m,-H:+UnlockExperimentalVMOptions,-H:+ParseOnce,-H:-UnlockExperimentalVMOptions,-H:+UnlockExperimentalVMOptions,-H:BuildOutputJSONFile=quarkus-json_plus-ParseOnce.json,-H:-UnlockExperimentalVMOptions -Dcustom.final.name=quarkus-json_+ParseOnce
+Command: mvn --batch-mode package -Pnative -Dquarkus.version=3.27.0 -Dquarkus.native.additional-build-args=-J--add-opens=java.base/java.lang=ALL-UNNAMED,-J--enable-native-access=ALL-UNNAMED,-R:MaxHeapSize=2560m,-H:+UnlockExperimentalVMOptions,-H:+ParseOnce,-H:-UnlockExperimentalVMOptions,-H:+UnlockExperimentalVMOptions,-H:BuildOutputJSONFile=quarkus-json_plus-ParseOnce.json,-H:-UnlockExperimentalVMOptions -Dcustom.final.name=quarkus-json_+ParseOnce
+[INFO] Scanning for projects...
+[INFO]
+[INFO] -------------< org.graalvm.tests.integration:quarkus-json >-------------
+[INFO] Building quarkus-json 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- resources:3.3.1:resources (default-resources) @ quarkus-json ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO]
+[INFO] --- quarkus:3.27.0:generate-code (default) @ quarkus-json ---
+[INFO]
+[INFO] --- compiler:3.14.0:compile (default-compile) @ quarkus-json ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO]
+[INFO] --- quarkus:3.27.0:generate-code-tests (default) @ quarkus-json ---
+[INFO]
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ quarkus-json ---
+[INFO] skip non existing resourceDirectory /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/src/test/resources
+[INFO]
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ quarkus-json ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- surefire:3.2.5:test (default-test) @ quarkus-json ---
+[INFO] No tests to run.
+[INFO]
+[INFO] --- jar:3.4.1:jar (default-jar) @ quarkus-json ---
+[INFO] Building jar: /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_+ParseOnce.jar
+[INFO]
+[INFO] --- quarkus:3.27.0:build (default) @ quarkus-json ---
+[WARNING] [io.quarkus.deployment.configuration] Configuration property 'quarkus.package.type' has been deprecated and replaced by: [quarkus.package.jar.enabled, quarkus.package.jar.type, quarkus.native.enabled, quarkus.native.sources-only]
+[WARNING] [io.quarkus.config] Unrecognized configuration key "quarkus.version" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+[INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building native image source jar: /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_+ParseOnce-native-image-source-jar/quarkus-json_+ParseOnce-runner.jar
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Building native image from /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_+ParseOnce-native-image-source-jar/quarkus-json_+ParseOnce-runner.jar
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildStep] Running Quarkus native-image plugin on MANDREL 23.1.11.0 JDK 21.0.11+10-LTS
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildRunner] /home/pcerbak/Downloads/mandrel-java21-linux-amd64-23.1.11.0-Final/mandrel-java21-23.1.11.0-Final/bin/native-image -J-Djava.util.logging.manager=org.jboss.logmanager.LogManager -J-Dlogging.initial-configurator.min-level=500 -J-Dsun.nio.ch.maxUpdateArraySize=100 -J-Duser.language=en -J-Duser.country=US -J-Dvertx.logger-delegate-factory-class-name=io.quarkus.vertx.core.runtime.VertxLogDelegateFactory -J-Dvertx.disableDnsResolver=true -J-Dio.netty.leakDetection.level=DISABLED -J-Dio.netty.allocator.maxOrder=3 -H:+UnlockExperimentalVMOptions -H:IncludeLocales=en-US -H:-UnlockExperimentalVMOptions -J-Dfile.encoding=UTF-8 -J--add-exports=org.graalvm.nativeimage.builder/com.oracle.svm.core.jdk=ALL-UNNAMED --features=io.quarkus.runner.Feature,io.quarkus.runtime.graal.DisableLoggingFeature,io.quarkus.runtime.graal.SkipConsoleServiceProvidersFeature -J--add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED -J--add-exports=java.security.jgss/sun.security.jgss=ALL-UNNAMED -J--add-opens=java.base/java.text=ALL-UNNAMED -J--add-opens=java.base/java.io=ALL-UNNAMED -J--add-opens=java.base/java.lang.invoke=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED -H:+UnlockExperimentalVMOptions -H:BuildOutputJSONFile=quarkus-json_+ParseOnce-runner-build-output-stats.json -H:-UnlockExperimentalVMOptions -H:+UnlockExperimentalVMOptions -H:+GenerateBuildArtifactsFile -H:-UnlockExperimentalVMOptions --strict-image-heap --install-exit-handlers -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--enable-native-access=ALL-UNNAMED -R:MaxHeapSize=2560m -H:+UnlockExperimentalVMOptions -H:+ParseOnce -H:-UnlockExperimentalVMOptions -H:+UnlockExperimentalVMOptions -H:BuildOutputJSONFile=quarkus-json_plus-ParseOnce.json -H:-UnlockExperimentalVMOptions -H:+UnlockExperimentalVMOptions -H:+AllowFoldMethods -H:-UnlockExperimentalVMOptions -J-Djava.awt.headless=true --no-fallback --link-at-build-time -H:+UnlockExperimentalVMOptions -H:+ReportExceptionStackTraces -H:-UnlockExperimentalVMOptions -H:-AddAllCharsets --enable-url-protocols=http -H:NativeLinkerOption=-no-pie --enable-monitoring=heapdump -H:+UnlockExperimentalVMOptions -H:-UseServiceLoaderFeature -H:-UnlockExperimentalVMOptions -J--add-exports=org.graalvm.nativeimage/org.graalvm.nativeimage.impl=ALL-UNNAMED --exclude-config io\.netty\.netty-codec /META-INF/native-image/io\.netty/netty-codec/generated/handlers/reflect-config\.json --exclude-config io\.netty\.netty-handler /META-INF/native-image/io\.netty/netty-handler/generated/handlers/reflect-config\.json quarkus-json_+ParseOnce-runner -jar quarkus-json_+ParseOnce-runner.jar
+========================================================================================================================
+GraalVM Native Image: Generating 'quarkus-json_+ParseOnce-runner' (executable)...
+========================================================================================================================
+For detailed information and explanations on the build output, visit:
+https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/BuildOutput.md
+------------------------------------------------------------------------------------------------------------------------
+[1/8] Initializing...                                                                                    (2.8s @ 0.26GB)
+ Java version: 21.0.11+10-LTS, vendor version: Mandrel-23.1.11.0-Final
+ Graal compiler: optimization level: 2, target machine: x86-64-v3
+ C compiler: gcc (redhat, x86_64, 15.2.1)
+ Garbage collector: Serial GC (max heap size: 2.50GB)
+ 4 user-specific feature(s):
+ - com.oracle.svm.thirdparty.gson.GsonFeature
+ - io.quarkus.runner.Feature: Auto-generated class by Quarkus from the existing extensions
+ - io.quarkus.runtime.graal.DisableLoggingFeature: Adapts logging during the analysis phase
+ - io.quarkus.runtime.graal.SkipConsoleServiceProvidersFeature: Skip unsupported console service providers when quarkus.native.auto-service-loader-registration is false
+------------------------------------------------------------------------------------------------------------------------
+ 6 experimental option(s) unlocked:
+ - '-H:+AllowFoldMethods' (origin(s): command line)
+ - '-H:BuildOutputJSONFile' (origin(s): command line, command line)
+ - '-H:-UseServiceLoaderFeature' (origin(s): command line)
+ - '-H:+ParseOnce' (origin(s): command line)
+ - '-H:+GenerateBuildArtifactsFile' (origin(s): command line)
+ - '-H:AddOpens' (alternative API option(s): --add-opens java.base/java.lang=ALL-UNNAMED; origin(s): command line)
+------------------------------------------------------------------------------------------------------------------------
+Build resources:
+ - 26.49GB of memory (42.6% of 62.23GB system memory, determined at start)
+ - 22 thread(s) (100.0% of 22 available processor(s), determined at start)
+[2/8] Performing analysis...  [*****]                                                                   (12.7s @ 1.10GB)
+   12,430 reachable types   (87.0% of   14,289 total)
+   17,864 reachable fields  (59.1% of   30,244 total)
+   65,003 reachable methods (57.8% of  112,394 total)
+    4,004 types,   183 fields, and 3,915 methods registered for reflection
+       62 types,    67 fields, and    55 methods registered for JNI access
+        4 native libraries: dl, pthread, rt, z
+[3/8] Building universe...                                                                               (2.4s @ 1.17GB)
+[4/8] Parsing methods...      [*]                                                                        (1.2s @ 1.30GB)
+[5/8] Inlining methods...     [***]                                                                      (0.7s @ 1.42GB)
+[6/8] Compiling methods...    [***]                                                                     (10.0s @ 1.04GB)
+[7/8] Laying out methods...   [**]                                                                       (3.3s @ 1.08GB)
+[8/8] Creating image...       [**]                                                                       (3.3s @ 1.25GB)
+  25.89MB (43.85%) for code area:    41,916 compilation units
+  28.64MB (48.52%) for image heap:  328,979 objects and 57 resources
+   4.50MB ( 7.63%) for other data
+  59.04MB in total
+------------------------------------------------------------------------------------------------------------------------
+Top 10 origins of code area:                                Top 10 object types in image heap:
+  12.80MB java.base                                            8.32MB byte[] for code metadata
+   1.93MB c.f.jackson.core.jackson-databind-2.19.2.jar         4.34MB byte[] for java.lang.String
+   1.36MB svm.jar (Native Image)                               3.09MB java.lang.Class
+   1.10MB quarkus-json_+ParseOnce-runner.jar                   2.99MB java.lang.String
+ 972.81kB modified-io.vertx.vertx-core-4.5.21.jar              1.05MB byte[] for general heap data
+ 668.85kB io.netty.netty-buffer-4.1.127.Final.jar              1.04MB com.oracle.svm.core.hub.DynamicHubCompanion
+ 601.71kB com.fasterxml.jackson.core.jackson-core-2.19.2.jar 760.65kB byte[] for reflection metadata
+ 517.69kB io.netty.netty-common-4.1.127.Final.jar            588.80kB java.lang.String[]
+ 426.35kB io.netty.netty-codec-http-4.1.127.Final.jar        531.38kB java.util.HashMap$Node
+ 389.35kB io.netty.netty-codec-http2-4.1.127.Final.jar       464.45kB java.lang.Object[]
+   4.89MB for 90 more packages                                 5.52MB for 3176 more object types
+------------------------------------------------------------------------------------------------------------------------
+Recommendations:
+ CPU:  Enable more CPU features with '-march=native' for improved performance.
+------------------------------------------------------------------------------------------------------------------------
+                       3.3s (9.0% of total time) in 352 GCs | Peak RSS: 2.36GB | CPU load: 13.34
+------------------------------------------------------------------------------------------------------------------------
+Produced artifacts:
+ /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_+ParseOnce-native-image-source-jar/build-artifacts.json (build_info)
+ /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_+ParseOnce-native-image-source-jar/quarkus-json_+ParseOnce-runner (executable)
+ /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json_+ParseOnce-native-image-source-jar/quarkus-json_plus-ParseOnce.json (build_info)
+========================================================================================================================
+Finished generating 'quarkus-json_+ParseOnce-runner' in 36.8s.
+[INFO] [io.quarkus.deployment.pkg.steps.NativeImageBuildRunner] objcopy --strip-debug quarkus-json_+ParseOnce-runner
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 39740ms
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  41.788 s
+[INFO] Finished at: 2026-07-03T15:26:31+02:00
+[INFO] ------------------------------------------------------------------------
+mvn --batch-mode package -Dcustom.final.name=quarkus-json -Dquarkus.version=3.27.0
+Command: mvn --batch-mode package -Dcustom.final.name=quarkus-json -Dquarkus.version=3.27.0
+[INFO] Scanning for projects...
+[INFO]
+[INFO] -------------< org.graalvm.tests.integration:quarkus-json >-------------
+[INFO] Building quarkus-json 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- resources:3.3.1:resources (default-resources) @ quarkus-json ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO]
+[INFO] --- quarkus:3.27.0:generate-code (default) @ quarkus-json ---
+[INFO]
+[INFO] --- compiler:3.14.0:compile (default-compile) @ quarkus-json ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO]
+[INFO] --- quarkus:3.27.0:generate-code-tests (default) @ quarkus-json ---
+[INFO]
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ quarkus-json ---
+[INFO] skip non existing resourceDirectory /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/src/test/resources
+[INFO]
+[INFO] --- compiler:3.14.0:testCompile (default-testCompile) @ quarkus-json ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- surefire:3.2.5:test (default-test) @ quarkus-json ---
+[INFO] No tests to run.
+[INFO]
+[INFO] --- jar:3.4.1:jar (default-jar) @ quarkus-json ---
+[INFO] Building jar: /home/pcerbak/Work/mandrel-integration-tests/apps/quarkus-json/target/quarkus-json.jar
+[INFO]
+[INFO] --- quarkus:3.27.0:build (default) @ quarkus-json ---
+[WARNING] [io.quarkus.config] Unrecognized configuration key "quarkus.version" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 1248ms
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.381 s
+[INFO] Finished at: 2026-07-03T15:26:35+02:00
+[INFO] ------------------------------------------------------------------------
+perf stat --delay 2000 java -Xlog:gc -XX:+UseSerialGC -Xmx2560m -jar target/quarkus-app/quarkus-run.jar
+Command: perf stat --delay 2000 java -Xlog:gc -XX:+UseSerialGC -Xmx2560m -jar target/quarkus-app/quarkus-run.jar
+Events disabled
+[0.003s][info][gc] Using Serial
+__  ____  __  _____   ___  __ ____  ______
+ --/ __ \/ / / / _ | / _ \/ //_/ / / / __/
+ -/ /_/ / /_/ / __ |/ , _/ ,< / /_/ /\ \
+--\___\_\____/_/ |_/_/|_/_/|_|\____/___/
+2026-07-03 15:26:37,155 INFO  [io.quarkus] (main) quarkus-json 1.0.0-SNAPSHOT on JVM (powered by Quarkus 3.27.0) started in 0.497s. Listening on: http://0.0.0.0:8887
+2026-07-03 15:26:37,158 INFO  [io.quarkus] (main) Profile prod activated.
+2026-07-03 15:26:37,158 INFO  [io.quarkus] (main) Installed features: [cdi, rest, rest-jackson, smallrye-context-propagation, vertx]
+Events enabled
+[3.165s][info][gc] GC(0) Pause Young (Allocation Failure) 266M->27M(962M) 41.396ms
+[3.495s][info][gc] GC(1) Pause Young (Allocation Failure) 292M->115M(962M) 173.138ms
+[3.779s][info][gc] GC(2) Pause Young (Allocation Failure) 381M->204M(962M) 164.723ms
+[4.051s][info][gc] GC(3) Pause Young (Allocation Failure) 470M->294M(962M) 160.638ms
+[4.322s][info][gc] GC(4) Pause Young (Allocation Failure) 559M->383M(962M) 165.250ms
+[4.719s][info][gc] GC(5) Pause Full (Metadata GC Threshold) 442M->401M(969M) 340.411ms
+[5.734s][info][gc] GC(6) Pause Young (Allocation Failure) 668M->528M(969M) 122.902ms
+[6.091s][info][gc] GC(7) Pause Young (Allocation Failure) 796M->720M(987M) 218.010ms
+[6.515s][info][gc] GC(8) Pause Full (Allocation Failure) 720M->325M(969M) 424.384ms
+[6.767s][info][gc] GC(9) Pause Young (Allocation Failure) 592M->522M(969M) 137.955ms
+[7.052s][info][gc] GC(10) Pause Young (Allocation Failure) 790M->719M(986M) 162.089ms
+[7.666s][info][gc] GC(11) Pause Full (Allocation Failure) 719M->719M(1657M) 613.383ms
+[8.400s][info][gc] GC(12) Pause Young (Allocation Failure) 1142M->1030M(1657M) 540.966ms
+[8.818s][info][gc] GC(13) Pause Young (Allocation Failure) 1488M->1206M(1664M) 142.528ms
+[10.051s][info][gc] GC(14) Pause Full (Allocation Failure) 1206M->1205M(2474M) 1233.081ms
+[10.734s][info][gc] GC(15) Pause Young (Allocation Failure) 1698M->1395M(2474M) 466.098ms
+[11.732s][info][gc] GC(16) Pause Young (Allocation Failure) 2078M->2474M(2474M) 544.042ms
+[12.579s][info][gc] GC(17) Pause Full (Allocation Failure) 2474M->495M(2474M) 847.338ms
+[13.215s][info][gc] GC(18) Pause Young (Allocation Failure) 1178M->998M(2474M) 367.908ms
+[13.721s][info][gc] GC(19) Pause Young (Allocation Failure) 1681M->1287M(2474M) 178.582ms
+[14.066s][info][gc] GC(20) Pause Young (Allocation Failure) 1970M->1288M(2474M) 53.713ms
+2026-07-03 15:26:50,696 INFO  [io.quarkus] (Shutdown thread) quarkus-json stopped in 0.080s
+
+ Performance counter stats for 'java -Xlog:gc -XX:+UseSerialGC -Xmx2560m -jar target/quarkus-app/quarkus-run.jar':
+
+            68,814      context-switches                 #   3909.9 cs/sec  cs_per_second
+               908      cpu-migrations                   #     51.6 migrations/sec  migrations_per_second
+           706,571      page-faults                      #  40146.7 faults/sec  page_faults_per_second
+         17,599.72 msec task-clock                       #      1.2 CPUs  CPUs_utilized
+       244,411,492      cpu_core/branch-misses/          #      0.7 %  branch_miss_rate         (86.59%)
+    33,063,188,306      cpu_core/branches/               #   1878.6 M/sec  branch_frequency     (86.59%)
+    70,555,212,678      cpu_core/cpu-cycles/             #      4.0 GHz  cycles_frequency       (86.59%)
+   172,565,395,767      cpu_core/instructions/           #      2.4 instructions  insn_per_cycle  (86.59%)
+       191,001,466      cpu_atom/branch-misses/          #      2.7 %  branch_miss_rate         (16.71%)
+     7,082,789,876      cpu_atom/branches/               #    402.4 M/sec  branch_frequency     (16.91%)
+    26,382,089,112      cpu_atom/cpu-cycles/             #      1.5 GHz  cycles_frequency       (16.91%)
+    34,782,653,135      cpu_atom/instructions/           #      1.3 instructions  insn_per_cycle  (16.84%)
+             TopdownL1 (cpu_core)                        #     10.8 %  tma_bad_speculation
+                                                         #     13.7 %  tma_frontend_bound       (86.59%)
+                                                         #     38.1 %  tma_backend_bound
+                                                         #     37.4 %  tma_retiring             (86.59%)
+             TopdownL1 (cpu_atom)                        #     19.0 %  tma_bad_speculation      (16.74%)
+                                                         #     31.7 %  tma_backend_bound        (19.12%)
+                                                         #     30.4 %  tma_frontend_bound       (18.92%)
+                                                         #     23.9 %  tma_retiring             (19.03%)
+
+      12.158624272 seconds time elapsed
+
+      16.981085000 seconds user
+       1.660135000 seconds sys
+
+
+perf stat --delay 1000 ./target/quarkus-json_-ParseOnce-runner -XX:+PrintGC
+Command: perf stat --delay 1000 ./target/quarkus-json_-ParseOnce-runner -XX:+PrintGC
+Events disabled
+__  ____  __  _____   ___  __ ____  ______
+ --/ __ \/ / / / _ | / _ \/ //_/ / / / __/
+ -/ /_/ / /_/ / __ |/ , _/ ,< / /_/ /\ \
+--\___\_\____/_/ |_/_/|_/_/|_|\____/___/
+2026-07-03 15:26:52,726 INFO  [io.quarkus] (main) quarkus-json 1.0.0-SNAPSHOT native (powered by Quarkus 3.27.0) started in 0.012s. Listening on: http://0.0.0.0:8887
+2026-07-03 15:26:52,726 INFO  [io.quarkus] (main) Profile prod activated.
+2026-07-03 15:26:52,726 INFO  [io.quarkus] (main) Installed features: [cdi, rest, rest-jackson, smallrye-context-propagation, vertx]
+Events enabled
+[2.006s] GC(0) Full GC (Collect on allocation) 48.00M->13.00M 24.088ms
+[2.080s] GC(1) Full GC (Collect on allocation) 61.00M->29.50M 41.477ms
+[2.151s] GC(2) Incremental GC (Collect on allocation) 86.00M->49.50M 32.289ms
+[2.271s] GC(3) Full GC (Collect on allocation) 110.00M->71.00M 80.493ms
+[2.357s] GC(4) Incremental GC (Collect on allocation) 140.50M->95.50M 41.449ms
+[2.526s] GC(5) Full GC (Collect on allocation) 169.50M->121.50M 119.935ms
+[2.603s] GC(6) Incremental GC (Collect on allocation) 192.50M->147.00M 31.027ms
+[2.704s] GC(7) Incremental GC (Collect on allocation) 217.00M->171.50M 56.683ms
+[2.934s] GC(8) Full GC (Collect on allocation) 240.50M->195.50M 185.305ms
+[3.007s] GC(9) Incremental GC (Collect on allocation) 262.50M->219.50M 29.794ms
+[3.096s] GC(10) Incremental GC (Collect on allocation) 285.50M->242.50M 46.037ms
+[3.166s] GC(11) Incremental GC (Collect on allocation) 307.50M->265.00M 27.769ms
+[3.456s] GC(12) Full GC (Collect on allocation) 329.00M->288.00M 248.626ms
+[3.523s] GC(13) Incremental GC (Collect on allocation) 350.00M->309.50M 27.462ms
+[3.589s] GC(14) Incremental GC (Collect on allocation) 370.50M->331.00M 27.124ms
+[3.655s] GC(15) Incremental GC (Collect on allocation) 391.00M->352.50M 26.241ms
+[3.724s] GC(16) Incremental GC (Collect on allocation) 411.62M->373.12M 30.517ms
+[4.094s] GC(17) Full GC (Collect on allocation) 431.12M->393.62M 331.913ms
+[4.155s] GC(18) Incremental GC (Collect on allocation) 449.62M->413.12M 24.731ms
+[4.214s] GC(19) Incremental GC (Collect on allocation) 468.12M->432.62M 23.622ms
+[4.290s] GC(20) Incremental GC (Collect on allocation) 486.62M->452.12M 39.760ms
+[4.364s] GC(21) Incremental GC (Collect on allocation) 505.12M->470.62M 40.027ms
+[4.434s] GC(22) Incremental GC (Collect on allocation) 522.62M->488.62M 38.527ms
+[4.879s] GC(23) Full GC (Collect on allocation) 544.12M->508.12M 409.786ms
+[4.946s] GC(24) Incremental GC (Collect on allocation) 570.62M->530.12M 28.287ms
+[5.018s] GC(25) Incremental GC (Collect on allocation) 596.12M->553.62M 31.098ms
+[5.225s] GC(26) Incremental GC (Collect on allocation) 623.12M->575.62M 53.426ms
+[6.159s] GC(27) Incremental GC (Collect on allocation) 648.62M->576.12M 17.233ms
+[6.455s] GC(28) Incremental GC (Collect on allocation) 652.12M->621.62M 65.073ms
+[6.682s] GC(29) Full GC (Collect on allocation) 701.12M->106.00M 180.111ms
+[6.767s] GC(30) Incremental GC (Collect on allocation) 182.50M->161.00M 37.115ms
+[7.058s] GC(31) Full GC (Collect on allocation) 242.12M->218.62M 241.921ms
+[7.146s] GC(32) Incremental GC (Collect on allocation) 296.62M->274.62M 39.055ms
+[7.233s] GC(33) Incremental GC (Collect on allocation) 351.12M->329.62M 41.609ms
+[7.644s] GC(34) Full GC (Collect on allocation) 404.62M->383.12M 359.554ms
+[7.727s] GC(35) Incremental GC (Collect on allocation) 455.50M->435.00M 36.074ms
+[7.807s] GC(36) Incremental GC (Collect on allocation) 506.00M->486.00M 37.834ms
+[7.933s] GC(37) Incremental GC (Collect on allocation) 556.00M->536.50M 84.174ms
+[8.555s] GC(38) Full GC (Collect on allocation) 605.50M->585.37M 574.574ms
+[8.643s] GC(39) Incremental GC (Collect on allocation) 662.37M->640.37M 39.621ms
+[8.726s] GC(40) Incremental GC (Collect on allocation) 715.87M->694.87M 37.150ms
+[8.868s] GC(41) Incremental GC (Collect on allocation) 769.00M->748.50M 96.449ms
+[9.674s] GC(42) Full GC (Collect on allocation) 821.00M->799.50M 763.130ms
+[9.764s] GC(43) Incremental GC (Collect on allocation) 881.00M->858.50M 40.484ms
+[9.891s] GC(44) Incremental GC (Collect on allocation) 938.87M->916.37M 78.544ms
+[10.071s] GC(45) Incremental GC (Collect on allocation) 994.87M->973.37M 133.272ms
+[11.075s] GC(46) Full GC (Collect on allocation) 1056.37M->1036.00M 954.034ms
+[11.180s] GC(47) Incremental GC (Collect on allocation) 1129.50M->1103.50M 47.615ms
+[11.329s] GC(48) Incremental GC (Collect on allocation) 1195.50M->1169.50M 92.106ms
+[12.538s] GC(49) Full GC (Collect on allocation) 1260.00M->1234.50M 1152.567ms
+[12.652s] GC(50) Incremental GC (Collect on allocation) 1336.50M->1308.00M 51.742ms
+[12.813s] GC(51) Incremental GC (Collect on allocation) 1408.50M->1380.00M 100.885ms
+[14.221s] GC(52) Full GC (Collect on allocation) 1550.36M->1529.11M 1334.262ms
+[14.475s] GC(53) Incremental GC (Collect on allocation) 1639.61M->1529.61M 2.382ms
+[14.727s] GC(54) Incremental GC (Collect on allocation) 1638.11M->1530.11M 2.277ms
+[14.985s] GC(55) Incremental GC (Collect on allocation) 1642.61M->1530.11M 2.497ms
+[15.188s] GC(56) Incremental GC (Collect on allocation) 1779.35M->1720.85M 2.660ms
+[15.465s] GC(57) Incremental GC (Collect on allocation) 1839.85M->1720.35M 3.337ms
+[15.910s] GC(58) Incremental GC (Collect on allocation) 1898.35M->1720.35M 10.888ms
+[16.143s] GC(59) Full GC (Collect on allocation) 1843.85M->93.62M 161.274ms
+[16.283s] GC(60) Incremental GC (Collect on allocation) 224.25M->187.75M 62.415ms
+[16.526s] GC(61) Incremental GC (Collect on allocation) 322.75M->284.75M 162.240ms
+[17.054s] GC(62) Full GC (Collect on allocation) 425.25M->384.75M 447.710ms
+[17.201s] GC(63) Incremental GC (Collect on allocation) 520.62M->482.12M 65.790ms
+[17.417s] GC(64) Incremental GC (Collect on allocation) 615.12M->577.62M 137.243ms
+[18.082s] GC(65) Full GC (Collect on allocation) 708.12M->671.00M 590.062ms
+[18.220s] GC(66) Incremental GC (Collect on allocation) 796.50M->760.50M 61.982ms
+[18.352s] GC(67) Incremental GC (Collect on allocation) 884.00M->849.00M 61.731ms
+[18.481s] GC(68) Incremental GC (Collect on allocation) 970.87M->936.87M 53.541ms
+[19.444s] GC(69) Full GC (Collect on allocation) 1056.37M->1026.50M 894.709ms
+[19.567s] GC(70) Incremental GC (Collect on allocation) 1142.00M->1110.00M 56.412ms
+[19.738s] GC(71) Incremental GC (Collect on allocation) 1223.50M->1192.00M 103.714ms
+[19.993s] GC(72) Incremental GC (Collect on allocation) 1303.50M->1272.00M 187.748ms
+[20.290s] GC(73) Incremental GC (Collect on allocation) 1381.50M->1350.50M 232.641ms
+[21.688s] GC(74) Full GC (Collect on allocation) 1466.50M->1434.50M 1329.530ms
+[21.803s] GC(75) Incremental GC (Collect on allocation) 1566.36M->1530.36M 5.196ms
+[22.092s] GC(76) Incremental GC (Collect on allocation) 1659.36M->1529.86M 4.004ms
+[22.389s] GC(77) Incremental GC (Collect on allocation) 1664.36M->1529.86M 2.496ms
+[23.764s] GC(78) Full GC (Collect on allocation) 1811.60M->1624.48M 1101.999ms
+[24.093s] GC(79) Incremental GC (Collect on allocation) 1771.98M->1624.48M 2.826ms
+[24.488s] GC(80) Incremental GC (Collect on allocation) 1775.48M->1624.48M 12.393ms
+2026-07-03 15:27:17,186 INFO  [io.quarkus] (Shutdown thread) quarkus-json stopped in 0.002s
+
+ Performance counter stats for './target/quarkus-json_-ParseOnce-runner -XX:+PrintGC':
+
+            75,698      context-switches                 #   3228.9 cs/sec  cs_per_second
+               312      cpu-migrations                   #     13.3 migrations/sec  migrations_per_second
+         3,241,530      page-faults                      # 138265.8 faults/sec  page_faults_per_second
+         23,444.18 msec task-clock                       #      1.0 CPUs  CPUs_utilized
+       271,421,324      cpu_core/branch-misses/          #      0.4 %  branch_miss_rate         (99.70%)
+    72,588,554,684      cpu_core/branches/               #   3096.2 M/sec  branch_frequency     (99.70%)
+    99,186,312,774      cpu_core/cpu-cycles/             #      4.2 GHz  cycles_frequency       (99.70%)
+   335,736,470,661      cpu_core/instructions/           #      3.4 instructions  insn_per_cycle  (99.70%)
+       108,924,177      cpu_atom/branch-misses/          #      0.4 %  branch_miss_rate         (0.26%)
+    23,169,878,951      cpu_atom/branches/               #    988.3 M/sec  branch_frequency     (0.28%)
+    44,592,081,159      cpu_atom/cpu-cycles/             #      1.9 GHz  cycles_frequency       (0.29%)
+    99,241,940,199      cpu_atom/instructions/           #      2.3 instructions  insn_per_cycle  (0.30%)
+             TopdownL1 (cpu_core)                        #      9.8 %  tma_bad_speculation
+                                                         #     14.6 %  tma_frontend_bound       (99.70%)
+                                                         #     26.1 %  tma_backend_bound
+                                                         #     49.5 %  tma_retiring             (99.70%)
+             TopdownL1 (cpu_atom)                        #      7.3 %  tma_bad_speculation      (0.28%)
+                                                         #     28.2 %  tma_backend_bound        (0.33%)
+                                                         #     19.3 %  tma_frontend_bound       (0.32%)
+                                                         #     46.4 %  tma_retiring             (0.29%)
+
+      23.548943020 seconds time elapsed
+
+      19.210824000 seconds user
+       4.134099000 seconds sys
+
+
+perf stat --delay 1000 ./target/quarkus-json_+ParseOnce-runner -XX:+PrintGC
+Command: perf stat --delay 1000 ./target/quarkus-json_+ParseOnce-runner -XX:+PrintGC
+Events disabled
+__  ____  __  _____   ___  __ ____  ______
+ --/ __ \/ / / / _ | / _ \/ //_/ / / / __/
+ -/ /_/ / /_/ / __ |/ , _/ ,< / /_/ /\ \
+--\___\_\____/_/ |_/_/|_/_/|_|\____/___/
+2026-07-03 15:27:19,275 INFO  [io.quarkus] (main) quarkus-json 1.0.0-SNAPSHOT native (powered by Quarkus 3.27.0) started in 0.012s. Listening on: http://0.0.0.0:8887
+2026-07-03 15:27:19,275 INFO  [io.quarkus] (main) Profile prod activated.
+2026-07-03 15:27:19,275 INFO  [io.quarkus] (main) Installed features: [cdi, rest, rest-jackson, smallrye-context-propagation, vertx]
+Events enabled
+[2.012s] GC(0) Full GC (Collect on allocation) 48.00M->13.00M 30.089ms
+[2.081s] GC(1) Full GC (Collect on allocation) 61.00M->29.50M 38.625ms
+[2.176s] GC(2) Full GC (Collect on allocation) 86.00M->49.50M 58.054ms
+[2.253s] GC(3) Incremental GC (Collect on allocation) 113.50M->72.00M 36.371ms
+[2.392s] GC(4) Full GC (Collect on allocation) 140.00M->96.00M 94.657ms
+[2.465s] GC(5) Incremental GC (Collect on allocation) 167.00M->121.50M 29.239ms
+[2.649s] GC(6) Full GC (Collect on allocation) 191.50M->145.50M 141.147ms
+[2.719s] GC(7) Incremental GC (Collect on allocation) 213.50M->169.50M 28.525ms
+[2.807s] GC(8) Incremental GC (Collect on allocation) 236.50M->193.50M 45.895ms
+[3.045s] GC(9) Full GC (Collect on allocation) 259.50M->216.50M 196.866ms
+[3.113s] GC(10) Incremental GC (Collect on allocation) 280.50M->239.00M 27.633ms
+[3.178s] GC(11) Incremental GC (Collect on allocation) 302.00M->261.50M 26.372ms
+[3.246s] GC(12) Incremental GC (Collect on allocation) 323.50M->283.00M 29.086ms
+[3.315s] GC(13) Incremental GC (Collect on allocation) 344.00M->304.50M 31.369ms
+[3.614s] GC(14) Full GC (Collect on allocation) 364.50M->326.00M 260.051ms
+[3.674s] GC(15) Incremental GC (Collect on allocation) 384.00M->346.50M 24.837ms
+[3.734s] GC(16) Incremental GC (Collect on allocation) 403.62M->366.62M 24.253ms
+[3.793s] GC(17) Incremental GC (Collect on allocation) 422.62M->386.12M 24.430ms
+[3.855s] GC(18) Incremental GC (Collect on allocation) 441.12M->405.62M 27.966ms
+[3.917s] GC(19) Incremental GC (Collect on allocation) 459.62M->424.62M 27.557ms
+[4.300s] GC(20) Full GC (Collect on allocation) 477.62M->443.12M 349.220ms
+[4.354s] GC(21) Incremental GC (Collect on allocation) 494.12M->461.12M 22.860ms
+[4.406s] GC(22) Incremental GC (Collect on allocation) 511.12M->479.12M 19.958ms
+[4.471s] GC(23) Incremental GC (Collect on allocation) 528.12M->496.62M 34.776ms
+[4.547s] GC(24) Incremental GC (Collect on allocation) 544.62M->513.12M 45.234ms
+[4.621s] GC(25) Incremental GC (Collect on allocation) 564.12M->531.12M 43.280ms
+[5.091s] GC(26) Full GC (Collect on allocation) 585.62M->550.12M 436.026ms
+[5.156s] GC(27) Incremental GC (Collect on allocation) 611.62M->571.62M 26.224ms
+[5.875s] GC(28) Incremental GC (Collect on allocation) 636.62M->575.62M 7.043ms
+[6.418s] GC(29) Incremental GC (Collect on allocation) 643.62M->598.12M 23.758ms
+[6.532s] GC(30) Incremental GC (Collect on allocation) 668.62M->648.62M 75.861ms
+[6.753s] GC(31) Full GC (Collect on allocation) 722.62M->129.00M 178.931ms
+[6.828s] GC(32) Incremental GC (Collect on allocation) 201.00M->181.00M 33.255ms
+[6.947s] GC(33) Incremental GC (Collect on allocation) 252.12M->231.62M 79.180ms
+[7.229s] GC(34) Full GC (Collect on allocation) 301.62M->281.62M 241.252ms
+[7.301s] GC(35) Incremental GC (Collect on allocation) 349.62M->330.62M 32.681ms
+[7.380s] GC(36) Incremental GC (Collect on allocation) 397.62M->378.62M 32.463ms
+[7.792s] GC(37) Full GC (Collect on allocation) 445.00M->425.37M 371.927ms
+[7.859s] GC(38) Incremental GC (Collect on allocation) 489.37M->471.37M 30.919ms
+[7.927s] GC(39) Incremental GC (Collect on allocation) 534.37M->516.87M 31.471ms
+[8.040s] GC(40) Incremental GC (Collect on allocation) 578.87M->561.37M 77.590ms
+[8.630s] GC(41) Full GC (Collect on allocation) 622.37M->604.37M 555.476ms
+[8.703s] GC(42) Incremental GC (Collect on allocation) 672.87M->653.37M 33.078ms
+[8.781s] GC(43) Incremental GC (Collect on allocation) 725.37M->705.37M 35.173ms
+[8.909s] GC(44) Incremental GC (Collect on allocation) 776.50M->756.00M 87.786ms
+[9.662s] GC(45) Full GC (Collect on allocation) 826.00M->805.50M 712.150ms
+[9.749s] GC(46) Incremental GC (Collect on allocation) 884.25M->862.25M 37.184ms
+[9.834s] GC(47) Incremental GC (Collect on allocation) 944.87M->922.37M 38.035ms
+[9.976s] GC(48) Incremental GC (Collect on allocation) 1003.37M->980.87M 95.517ms
+[10.947s] GC(49) Full GC (Collect on allocation) 1060.37M->1040.50M 925.049ms
+[11.042s] GC(50) Incremental GC (Collect on allocation) 1129.50M->1104.50M 42.220ms
+[11.177s] GC(51) Incremental GC (Collect on allocation) 1192.00M->1168.00M 83.650ms
+[11.372s] GC(52) Incremental GC (Collect on allocation) 1254.00M->1229.50M 145.067ms
+[11.593s] GC(53) Incremental GC (Collect on allocation) 1320.50M->1295.00M 167.121ms
+[12.852s] GC(54) Full GC (Collect on allocation) 1392.00M->1365.50M 1204.200ms
+[12.983s] GC(55) Incremental GC (Collect on allocation) 1557.36M->1529.86M 46.421ms
+[13.255s] GC(56) Incremental GC (Collect on allocation) 1638.36M->1530.36M 40.208ms
+[13.526s] GC(57) Incremental GC (Collect on allocation) 1636.86M->1530.86M 40.506ms
+[13.791s] GC(58) Incremental GC (Collect on allocation) 1635.36M->1530.36M 42.919ms
+[14.054s] GC(59) Incremental GC (Collect on allocation) 1791.60M->1625.73M 44.495ms
+[14.298s] GC(60) Incremental GC (Collect on allocation) 1737.73M->1625.23M 3.067ms
+[15.856s] GC(61) Full GC (Collect on allocation) 1810.23M->1433.75M 1120.218ms
+[16.006s] GC(62) Incremental GC (Collect on allocation) 1554.25M->1520.25M 74.739ms
+[16.233s] GC(63) Incremental GC (Collect on allocation) 1643.25M->1607.75M 144.895ms
+[16.585s] GC(64) Full GC (Collect on allocation) 1735.37M->270.75M 282.186ms
+[16.720s] GC(65) Incremental GC (Collect on allocation) 401.75M->364.75M 61.026ms
+[16.869s] GC(66) Incremental GC (Collect on allocation) 501.12M->462.62M 64.330ms
+[17.441s] GC(67) Full GC (Collect on allocation) 596.12M->558.00M 493.457ms
+[17.572s] GC(68) Incremental GC (Collect on allocation) 686.50M->650.50M 59.143ms
+[17.757s] GC(69) Incremental GC (Collect on allocation) 776.50M->741.00M 114.115ms
+[18.614s] GC(70) Full GC (Collect on allocation) 865.25M->828.87M 785.299ms
+[18.731s] GC(71) Incremental GC (Collect on allocation) 949.00M->915.50M 49.577ms
+[18.886s] GC(72) Incremental GC (Collect on allocation) 1033.50M->1001.00M 91.302ms
+[19.130s] GC(73) Incremental GC (Collect on allocation) 1117.00M->1084.50M 178.144ms
+[20.262s] GC(74) Full GC (Collect on allocation) 1207.00M->1176.00M 1063.288ms
+[20.405s] GC(75) Incremental GC (Collect on allocation) 1313.50M->1275.00M 64.557ms
+[20.604s] GC(76) Incremental GC (Collect on allocation) 1410.00M->1371.50M 125.403ms
+[21.815s] GC(77) Full GC (Collect on allocation) 1553.86M->1529.11M 1135.074ms
+[22.092s] GC(78) Incremental GC (Collect on allocation) 1657.11M->1529.11M 2.925ms
+[22.367s] GC(79) Incremental GC (Collect on allocation) 1655.11M->1529.11M 2.694ms
+[22.635s] GC(80) Incremental GC (Collect on allocation) 1653.11M->1529.11M 2.708ms
+[23.785s] GC(81) Full GC (Collect on allocation) 1732.35M->1624.48M 1056.284ms
+[24.047s] GC(82) Incremental GC (Collect on allocation) 1742.48M->1624.48M 2.704ms
+[24.488s] GC(83) Incremental GC (Collect on allocation) 1803.48M->1624.48M 7.950ms
+2026-07-03 15:27:43,756 INFO  [io.quarkus] (Shutdown thread) quarkus-json stopped in 0.003s
+
+ Performance counter stats for './target/quarkus-json_+ParseOnce-runner -XX:+PrintGC':
+
+            75,333      context-switches                 #   3210.6 cs/sec  cs_per_second
+               296      cpu-migrations                   #     12.6 migrations/sec  migrations_per_second
+         3,502,356      page-faults                      # 149265.9 faults/sec  page_faults_per_second
+         23,463.87 msec task-clock                       #      1.0 CPUs  CPUs_utilized
+       276,644,520      cpu_core/branch-misses/          #      0.4 %  branch_miss_rate         (99.46%)
+    73,770,004,777      cpu_core/branches/               #   3144.0 M/sec  branch_frequency     (99.46%)
+   101,715,268,797      cpu_core/cpu-cycles/             #      4.3 GHz  cycles_frequency       (99.46%)
+   344,319,094,196      cpu_core/instructions/           #      3.4 instructions  insn_per_cycle  (99.46%)
+        62,229,390      cpu_atom/branch-misses/          #      0.4 %  branch_miss_rate         (0.52%)
+    13,441,128,087      cpu_atom/branches/               #    572.8 M/sec  branch_frequency     (0.55%)
+    32,920,396,724      cpu_atom/cpu-cycles/             #      1.4 GHz  cycles_frequency       (0.58%)
+    57,010,887,132      cpu_atom/instructions/           #      1.7 instructions  insn_per_cycle  (0.60%)
+             TopdownL1 (cpu_core)                        #      9.8 %  tma_bad_speculation
+                                                         #     13.6 %  tma_frontend_bound       (99.46%)
+                                                         #     27.4 %  tma_backend_bound
+                                                         #     49.2 %  tma_retiring             (99.46%)
+             TopdownL1 (cpu_atom)                        #      6.5 %  tma_bad_speculation      (0.59%)
+                                                         #     37.7 %  tma_backend_bound        (0.66%)
+                                                         #     24.9 %  tma_frontend_bound       (0.64%)
+                                                         #     34.7 %  tma_retiring             (0.59%)
+
+      23.577581466 seconds time elapsed
+
+      18.957422000 seconds user
+       4.403303000 seconds sys
+
+
