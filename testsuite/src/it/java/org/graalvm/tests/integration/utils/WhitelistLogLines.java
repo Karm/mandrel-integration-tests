@@ -276,6 +276,13 @@ public enum WhitelistLogLines {
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 1, 0)) >= 0) {
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --enable-url-protocols= from command line\\..*"));
             }
+            // This happens since the Quarkus 4 move. The second line isn't always there (only sometimes). The usage
+            // error seems to happen consistently with GraalVM 25.2 but only with the automated test.
+            // See: https://github.com/Karm/mandrel-integration-tests/issues/415
+            // 2026-07-03 11:45:59,610 WARNING [io.opentelemetry.usage] (executor-thread-1) OpenTelemetry API usage issue detected. To see more details, enable FINEST logging for io.opentelemetry.usage. Stacktraces are includes to identify the offending call site.
+            // 2026-07-03 11:46:01,062 WARNING [io.quarkus.opentelemetry.runtime.exporter.otlp.sender.VertxGrpcSender] (vert.x-eventloop-thread-4) Failed to export . The request could not be executed. Full error message: Connection refused: localhost/127.0.0.1:4317
+            p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.usage\\] \\(executor-thread-1\\) OpenTelemetry API usage issue detected.*"));
+            p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.runtime\\.exporter\\.otlp\\.sender\\.VertxGrpcSender] \\(vert\\.x-eventloop-thread.*\\) Failed to export.*"));
             return p.toArray(new Pattern[0]);
         }
     },
