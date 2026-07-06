@@ -504,6 +504,8 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"));
                 // Quarkus 3.x intermittently with JDK 20 based build...
                 p.add(Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"));
+                // On quarkus 4.x we see this failure occasionally on Aarch64. See https://github.com/Karm/mandrel-integration-tests/issues/420
+                p.add(Pattern.compile(".*\\[io\\.netty\\.bootstrap\\.ServerBootstrap\\].*Failed to register an accepted channel:.*"));
                 // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
                 p.add(Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"));
                 if (IS_THIS_MACOS) {
