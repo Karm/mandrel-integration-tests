@@ -19,6 +19,8 @@ package org.graalvm.tests.integration.utils;
  *
  */
 
+import org.graalvm.home.Version;
+import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class UtilsTests {
 
     public final Path p = Path.of(BASE_DIR, "testsuite", "src", "test", "resources", "parse-serial-gc-build-and-run.log");
+    public final Path p_new = Path.of(BASE_DIR, "testsuite", "src", "test", "resources", "parse-serial-gc-build-and-run-new.log");
 
     @Test
     public void parse() throws IOException {
@@ -81,12 +84,17 @@ public class UtilsTests {
 
     @Test
     public void parseSerialGC() throws IOException {
+        boolean newLogFormat = UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0;
         final String filename = "./target/quarkus-json_+ParseOnce-runner -XX:+PrintGC";
-        final Commands.SerialGCLog pr = parseSerialGCLog(p, filename, false);
+        final Commands.SerialGCLog pr = parseSerialGCLog(newLogFormat ? p_new : p, filename, false);
         final String expected = "" +
                 "timeSpentInGCs 11.725144\n" +
                 "incrementalGCevents 23\n" +
                 "fullGCevents 6\n";
+        final String expected_new = "" +
+                "timeSpentInGCs 14.758271\n" +
+                "incrementalGCevents 61\n" +
+                "fullGCevents 23\n";
         final String actual = String.format(
                 "timeSpentInGCs %f\n" +
                         "incrementalGCevents %d\n" +
@@ -95,6 +103,6 @@ public class UtilsTests {
                 pr.timeSpentInGCs,
                 pr.incrementalGCevents,
                 pr.fullGCevents);
-        assertEquals(expected, actual, "perf tool output parsing method was likely changed without updating the test");
+        assertEquals(newLogFormat ? expected_new : expected, actual, "perf tool output parsing method was likely changed without updating the test");
     }
 }
