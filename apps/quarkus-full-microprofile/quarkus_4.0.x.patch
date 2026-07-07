@@ -1,15 +1,15 @@
 diff --git a/apps/quarkus-full-microprofile/pom.xml b/apps/quarkus-full-microprofile/pom.xml
-index ce7df81..0af4097 100644
+index 42109ed..0af4097 100644
 --- a/apps/quarkus-full-microprofile/pom.xml
 +++ b/apps/quarkus-full-microprofile/pom.xml
 @@ -15,7 +15,7 @@
-
+ 
      <properties>
          <quarkus.version>${global.quarkus.version}</quarkus.version>
 -        <vertx.auth.jwt.version>4.5.7</vertx.auth.jwt.version>
 +        <vertx.auth.jwt.version>5.1.3</vertx.auth.jwt.version>
      </properties>
-
+ 
      <dependencyManagement>
 @@ -47,10 +47,6 @@
              <groupId>io.quarkus</groupId>
@@ -24,7 +24,7 @@ index ce7df81..0af4097 100644
              <artifactId>quarkus-smallrye-health</artifactId>
 diff --git a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/metric/MetricController.java b/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/metric/MetricController.java
 deleted file mode 100644
-index 1f4c2df..0000000
+index db4c9fa..0000000
 --- a/apps/quarkus-full-microprofile/src/main/java/com/example/quarkus/metric/MetricController.java
 +++ /dev/null
 @@ -1,49 +0,0 @@
