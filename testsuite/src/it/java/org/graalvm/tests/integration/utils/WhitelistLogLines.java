@@ -31,6 +31,8 @@ import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_MACOS;
 import static org.graalvm.tests.integration.utils.Commands.IS_THIS_WINDOWS;
 import static org.graalvm.tests.integration.utils.Commands.QUARKUS_VERSION;
+import static org.graalvm.tests.integration.utils.Commands.quarkusEnv;
+
 
 /**
  * Whitelists errors in log files.
@@ -542,6 +544,14 @@ public enum WhitelistLogLines {
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 1, 0)) >= 0) {
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --enable-url-protocols= from command line\\..*"));
             }
+            // Hyperfoil sometimes complains about CPU threshold when assertions are enabled. See https://github.com/Karm/mandrel-integration-tests/issues/406
+            if (quarkusEnv() != null && quarkusEnv().getOrDefault("QUARKUS_NATIVE_ADDITIONAL_BUILD_ARGS_APPEND", "").contains("-ea")) {
+                p.add(Pattern.compile(".*WARN.*cpu-watchdog.*CPU.*was used for.*which is more than the threshold.*"));
+            }
+            // See https://github.com/Karm/mandrel-integration-tests/issues/341
+            p.add(Pattern.compile(".*WARNING:.*sun.misc.Unsafe::staticFieldBase has been called by com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
+            p.add(Pattern.compile(".*WARNING:.*Please consider reporting this to the maintainers of class com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
+            p.add(Pattern.compile(".*WARNING:.*sun\\.misc\\.Unsafe::staticFieldBase will be removed in a future release.*"));
             return p.toArray(new Pattern[0]);
         }
     },
