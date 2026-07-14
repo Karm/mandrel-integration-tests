@@ -172,6 +172,23 @@ public enum WhitelistLogLines {
             };
         }
     },
+    QUARKUS_PICOCLI_SBOM {
+        @Override
+        public Pattern[] get(boolean inContainer) {
+            final List<Pattern> p = new ArrayList<>();
+            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+            // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+            p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+            // False positives on 'error' 'Error', 'unknown' in the extracted SBOM
+            p.add(Pattern.compile(".*\"error_prone_annotations\".*"));
+            p.add(Pattern.compile(".*\"Unknown version of isorelax library used in JAXB project\".*"));
+            p.add(Pattern.compile(".*\"https://github\\.com/google/error-prone/error_prone_annotations\".*"));
+            p.add(Pattern.compile(".*\"https://errorprone\\.info/error_prone_annotations\".*"));
+            p.add(Pattern.compile(".*\"Error Prone is a static analysis tool for Java that catches common programming mistakes at compile-time\\..*"));
+            return p.toArray(new Pattern[0]);
+        }
+    },
     QUARKUS_FULL_MICROPROFILE {
         @Override
         public Pattern[] get(boolean inContainer) {

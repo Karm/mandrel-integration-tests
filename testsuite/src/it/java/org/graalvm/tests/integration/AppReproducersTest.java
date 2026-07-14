@@ -42,6 +42,7 @@ import static org.graalvm.tests.integration.utils.Commands.getRunCommand;
 import static org.graalvm.tests.integration.utils.Commands.getSubstringFromSmallTextFile;
 import static org.graalvm.tests.integration.utils.Commands.listStaticLibs;
 import static org.graalvm.tests.integration.utils.Commands.processStopper;
+import static org.graalvm.tests.integration.utils.Commands.quarkusEnv;
 import static org.graalvm.tests.integration.utils.Commands.removeContainer;
 import static org.graalvm.tests.integration.utils.Commands.removeContainers;
 import static org.graalvm.tests.integration.utils.Commands.replaceSwitchesInCmd;
@@ -86,6 +87,7 @@ import org.graalvm.tests.integration.utils.ContainerNames;
 import org.graalvm.tests.integration.utils.LogBuilder;
 import org.graalvm.tests.integration.utils.Logs;
 import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
+import org.graalvm.tests.integration.utils.versions.IfQuarkusVersion;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
@@ -1136,6 +1138,67 @@ public class AppReproducersTest {
             Logs.appendlnSection(report, String.join(" ", cmd));
 
             final Pattern p = Pattern.compile(".*Year: (?:1|1086), dayOfYear: 1, type: (?:japanese|buddhist|gregory).*");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+
+            processStopper(process, false);
+            Logs.checkLog(cn, mn, app, processLog);
+        } finally {
+            cleanup(process, cn, mn, report, app, processLog);
+        }
+    }
+
+    @Test
+    @Tag("quarkus")
+    @IfQuarkusVersion(min = "3.36.0")
+    @IfMandrelVersion(min = "25.0.4", max = "25.0.999")
+    public void quarkusPicoCliSBOM(TestInfo testInfo) throws IOException, InterruptedException {
+        final Apps app = Apps.QUARKUS_PICOCLI_SBOM;
+        Map<String, String> environment = quarkusEnv();
+        LOGGER.info("Testing app: " + app);
+        Process process = null;
+        File processLog = null;
+        final StringBuilder report = new StringBuilder();
+        final File appDir = Path.of(BASE_DIR, app.dir).toFile();
+        final String cn = testInfo.getTestClass().get().getCanonicalName();
+        final String mn = testInfo.getTestMethod().get().getName();
+        try {
+            // Cleanup
+            cleanTarget(app);
+            Files.createDirectories(Paths.get(appDir.getAbsolutePath() + File.separator + "logs"));
+
+            // Build
+            processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
+
+            builderRoutine(app, report, cn, mn, appDir, processLog, environment);
+            // Verify that the Quarkus SBOM feature got added during the build
+            Pattern p = Pattern.compile(".*io\\.quarkus\\.runner\\.SbomEmbedFeature: Embeds the application SBOM in the native image.*");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+
+            LOGGER.info("Running the picocli app...");
+            List<String> cmd = getRunCommand(app.buildAndRunCmds.runCommands[0]);
+            process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+
+            // Verify that the CLI app ran correctly
+            p = Pattern.compile(".*Hello Sir, go go commando!.*");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+
+            LOGGER.info("Extracting the embedded SBOM using native-image-configure...");
+            cmd = getRunCommand(app.buildAndRunCmds.runCommands[1]);
+            process = runCommand(cmd, appDir, processLog, app);
+            assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
+            process.waitFor(5, TimeUnit.SECONDS);
+            Logs.appendln(report, appDir.getAbsolutePath());
+            Logs.appendlnSection(report, String.join(" ", cmd));
+            // Verify that we have the Cyclone DX JSON in the log file
+            // We specifically look for the 'quarkus-cyclonedx-generator' and
+            // 'pkg:maven/info.picocli/picocli@' lines
+            p = Pattern.compile(".*quarkus-cyclonedx-generator.*");
+            assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
+            p = Pattern.compile(".*pkg:maven/info\\.picocli/picocli@.*");
             assertTrue(searchLogLines(p, processLog, Charset.defaultCharset()), "Expected pattern " + p.toString() + " was not found in the log.");
 
             processStopper(process, false);
