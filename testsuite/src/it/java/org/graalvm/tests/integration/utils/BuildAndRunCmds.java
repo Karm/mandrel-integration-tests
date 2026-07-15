@@ -83,6 +83,18 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\" + FINAL_NAME_TOKEN + ".exe" : "./target/" + FINAL_NAME_TOKEN } }
     ),
+    QUARKUS_PICOCLI_SBOM(
+            new String[][] {
+                {"mvn", "--batch-mode", "package", "-Dnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() }
+            },
+            new String[][] {
+                // Run the CLI
+                { IS_THIS_WINDOWS ? "target\\quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner.exe" : "./target/quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner", "Sir" },
+                // Use native-image-configure to get the SBOM and verify it
+                { IS_THIS_WINDOWS ? "native-image-configure.exe" : "native-image-configure", "extract-sbom", "--image-path=" +
+                        (IS_THIS_WINDOWS ? "target\\quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner.exe" : "./target/quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner") },
+            }
+    ),
     QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT(
             new String[][] {
                     { "mvn", "--batch-mode", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),

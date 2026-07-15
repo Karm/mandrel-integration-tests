@@ -96,6 +96,7 @@
                 <module>apps/quarkus-json</module>
                 <module>apps/quarkus-mp-orm-dbs-awt</module>
                 <module>apps/quarkus-spöklik-encoding</module>
+                <module>apps/quarkus-picocli-sbom</module>
                 <module>apps/quarkus-vertx</module>
                 <module>apps/random-numbers</module>
                 <module>apps/recordannotations</module>
