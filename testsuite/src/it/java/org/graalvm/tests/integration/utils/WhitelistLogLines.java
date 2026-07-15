@@ -327,6 +327,8 @@ public enum WhitelistLogLines {
             // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
             p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
             p.add(Pattern.compile(".*MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
+            // Micrometer gauge registration
+            p.add(Pattern.compile(".*MeterRegistry.*This Gauge has been already registered.*"));
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 // Testcontainers
                 p.add(Pattern.compile(".*org.tes.uti.ResourceReaper.*"));
@@ -399,10 +401,13 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*WARNING: If a serviceability tool is in use, please run with -XX:\\+EnableDynamicAgentLoading to hide this warning.*"));
                 p.add(Pattern.compile(".*WARNING: If a serviceability tool is not in use, please run with -Djdk\\.instrument\\.traceUsage for more information.*"));
                 p.add(Pattern.compile(".*WARNING: Dynamic loading of agents will be disallowed by default in a future release.*"));
-                p.add(Pattern.compile(".*WARN.*\\[io\\.micrometer\\.core\\.instrument\\.MeterRegistry\\] \\(main\\) This Gauge has been already registered.*the registration will be ignored. Note that subsequent logs will be logged at debug level.*"));
                 p.add(Pattern.compile(".*\\[WARNING\\] Quarkus Maven extension: an explicit 'argLine' is defined in maven-surefire-plugin config, but does not contain '@\\{argLine\\}': we will not be able to inject JVM parameters automatically\\. Please add '@\\{argLine\\}' to the argLine configuration you have defined.*"));
                 p.add(Pattern.compile(".*WARN.*\\[io\\.quarkus\\.deployment\\.jvm] \\(main\\) Could not get access to jdk\\.internal\\.module API: this is required for Quarkus to adjust Java Modules configuration to match the various requirements of each extension\\. Please ensure this JVM is launched with --add-opens=java\\.base\\/java\\.lang\\.invoke=ALL-UNNAMED.*"));
                 p.add(Pattern.compile(".*WARN.*\\[org\\.testcontainers\\.utility\\.ResourceReaper\\] \\(build-[0-9]*\\).*"));
+            }
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.33.2")) >= 0) {
+                // https://github.com/Karm/mandrel-integration-tests/issues/414
+                p.add(Pattern.compile(".*ParallelCommonsCompressArchiveCreator] Duplicate entry 'io/quarkus/hibernate/orm/panache/PanacheEntity.class': already added from 'Unknown source', ignoring entry from 'Current application'.*"));
             }
             return p.toArray(new Pattern[0]);
         }
