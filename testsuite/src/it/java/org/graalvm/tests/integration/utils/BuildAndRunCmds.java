@@ -95,6 +95,23 @@ public enum BuildAndRunCmds {
                         (IS_THIS_WINDOWS ? "target\\quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner.exe" : "./target/quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner") },
             }
     ),
+    QUARKUS_PICOCLI_SBOM_BUILDER_IMAGE(
+            new String[][] {
+                // Build using the container
+                {"mvn", "--batch-mode", "package", "-Dnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),
+                    "-Dquarkus.native.container-build=true",
+                    "-Dquarkus.native.container-runtime=" + CONTAINER_RUNTIME,
+                    "-Dquarkus.native.builder-image=" + BUILDER_IMAGE,
+                }
+            },
+            new String[][] {
+                // Run the CLI
+                { IS_THIS_WINDOWS ? "target\\quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner.exe" : "./target/quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner", "Sir" },
+                // Use native-image-utils (symlink to native-image-configure) to get the SBOM and verify it
+                { CONTAINER_RUNTIME, "run", "-i", "--rm", "-v", "./target:/project:z",
+                    "--entrypoint", "native-image-utils", BUILDER_IMAGE, "extract-sbom", "--image-path=/project/quarkus-picocli-sbom-1.0.0-SNAPSHOT-runner" },
+            }
+    ),
     QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT(
             new String[][] {
                     { "mvn", "--batch-mode", "verify", "-Pnative", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString(),

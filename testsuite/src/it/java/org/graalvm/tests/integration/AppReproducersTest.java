@@ -1152,7 +1152,19 @@ public class AppReproducersTest {
     @IfQuarkusVersion(min = "3.36.0")
     @IfMandrelVersion(min = "25.0.4", max = "25.0.999")
     public void quarkusPicoCliSBOM(TestInfo testInfo) throws IOException, InterruptedException {
-        final Apps app = Apps.QUARKUS_PICOCLI_SBOM;
+        quarkusPicoCli(testInfo, Apps.QUARKUS_PICOCLI_SBOM);
+    }
+
+    @Test
+    @Tag("builder-image")
+    @Tag("quarkus")
+    @IfQuarkusVersion(min = "3.36.0")
+    @IfMandrelVersion(min = "25.0.4", max = "25.0.999", inContainer = true)
+    public void quarkusPicoCliSBOMContainer(TestInfo testInfo) throws IOException, InterruptedException {
+        quarkusPicoCli(testInfo, Apps.QUARKUS_PICOCLI_SBOM_BUILDER_IMAGE);
+    }
+
+    public void quarkusPicoCli(TestInfo testInfo, Apps app) throws IOException, InterruptedException {
         Map<String, String> environment = quarkusEnv();
         LOGGER.info("Testing app: " + app);
         Process process = null;

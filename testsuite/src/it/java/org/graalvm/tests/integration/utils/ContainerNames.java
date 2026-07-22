@@ -37,6 +37,7 @@ public enum ContainerNames {
     JDK_REFLECTIONS_BUILDER_IMAGE("my-jdkreflections-runner"),
     QUARKUS_BUILDER_IMAGE_MP_ORM_DBS_AWT("my-quarkus-mp-orm-dbs-awt-container"),
     VTHREADS_PROPS_BUILDER_IMAGE("my-vthreads-props-runner"),
+    QUARKUS_PICOCLI_SBOM("my-quarkus-picocli-container"),
     NONE("NO_CONTAINER");
 
     public final String name;
