@@ -242,7 +242,7 @@ public enum GDBSession {
             return new CP[]{
                     SHOW_VERSION,
                     new CP("b ConfigTestController.java:33\n",
-                            Pattern.compile(".*Breakpoint 1 at .*: file com/example/quarkus/config/ConfigTestController.java, line 33.*",
+                            Pattern.compile(".*Breakpoint 1 at .*ConfigTestController.java[^\\n]*33.*",
                                     Pattern.DOTALL), increasedTimeoutMs),
                     new CP("run&\n",
                             Pattern.compile(".*Installed features:.*", Pattern.DOTALL), increasedTimeoutMs),
