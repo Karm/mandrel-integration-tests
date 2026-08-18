@@ -280,7 +280,6 @@ public class PerfCheckTest {
     }
 
     @Test
-    @IfMandrelVersion(min = "21.3")
     public void testQuarkusJSON(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_JSON_PERF;
         LOGGER.info("Testing app: " + app);
@@ -401,7 +400,6 @@ public class PerfCheckTest {
     }
 
     @Test
-    @IfMandrelVersion(min = "21.3")
     public void testQuarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_FULL_MICROPROFILE_PERF;
         LOGGER.info("Testing app: " + app);
@@ -537,7 +535,6 @@ public class PerfCheckTest {
     }
 
     @Test
-    @IfMandrelVersion(min = "21.3")
     public void compareNativeAndJVMSerialGCTime(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         final Apps app = Apps.QUARKUS_FULL_MICROPROFILE_GC;
         LOGGER.info("Testing app: " + app);
@@ -723,15 +720,11 @@ public class PerfCheckTest {
      * @throws URISyntaxException
      */
     @Test
-    @IfMandrelVersion(min = "22.3")
-    @IfQuarkusVersion(min = "2.13.3")
     public void testQuarkusMPOrmAwtLocal(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         testQuarkusMPOrmAwt(testInfo, false);
     }
 
     @Test
-    @IfMandrelVersion(min = "22.3", inContainer = true)
-    @IfQuarkusVersion(min = "2.13.3")
     @Tag("builder-image")
     public void testQuarkusMPOrmAwtContainer(TestInfo testInfo) throws IOException, InterruptedException, URISyntaxException {
         testQuarkusMPOrmAwt(testInfo, true);

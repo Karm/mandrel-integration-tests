@@ -20,7 +20,6 @@
 package org.graalvm.tests.integration;
 
 import org.apache.commons.io.FileUtils;
-import org.graalvm.tests.integration.utils.versions.IfMandrelVersion;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -51,11 +50,6 @@ public class StaticDistroChecksTest {
     private static final Logger LOGGER = Logger.getLogger(StaticDistroChecksTest.class.getName());
 
     @Test
-    @IfMandrelVersion(min = "22.2")
-    public void spaceInPath_22(TestInfo testInfo) throws IOException {
-        spaceInPath(testInfo);
-    }
-
     public void spaceInPath(TestInfo testInfo) throws IOException {
         final Path graalHomeSpace = Path.of(System.getProperty("java.io.tmpdir"), "there are spaces");
         try {

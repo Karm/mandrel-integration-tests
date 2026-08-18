@@ -141,14 +141,12 @@ public class JFRTest {
     @Test
     @Tag("builder-image")
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2", inContainer = true)
     public void jfrSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrSmoke(testInfo, Apps.JFR_SMOKE_BUILDER_IMAGE);
     }
 
     @Test
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2")
     public void jfrSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrSmoke(testInfo, Apps.JFR_SMOKE);
     }
@@ -172,8 +170,6 @@ public class JFRTest {
     @Tag("jfr-perf")
     @Tag("jfr")
     @Tag("builder-image")
-    @IfMandrelVersion(min = "23.0.0", inContainer = true) // Thread park event is introduced in 23.0
-    @IfQuarkusVersion(min = "3.0")
     public void jfrPerfContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrPerfTestRun(testInfo, true);
     }
@@ -181,8 +177,6 @@ public class JFRTest {
     @Test
     @Tag("jfr-perf")
     @Tag("jfr")
-    @IfMandrelVersion(min = "23.0.0") // Thread park event is introduced in 23.0
-    @IfQuarkusVersion(min = "3.0")
     public void jfrPerfTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrPerfTestRun(testInfo, false);
     }
@@ -771,14 +765,12 @@ public class JFRTest {
     @Test
     @Tag("builder-image")
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2", inContainer = true)
     public void jfrOptionsSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS_BUILDER_IMAGE);
     }
 
     @Test
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2")
     public void jfrOptionsSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS);
     }

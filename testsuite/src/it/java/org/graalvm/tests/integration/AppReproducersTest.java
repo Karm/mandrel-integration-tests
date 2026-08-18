@@ -212,7 +212,6 @@ public class AppReproducersTest {
      */
     @Test
     @Tag("resources")
-    @IfMandrelVersion(min = "23.0")
     public void resLocationsE(TestInfo testInfo) throws IOException, InterruptedException {
         final String expectedOutput = "" +
                 "Resources folders:\n" +
@@ -311,7 +310,6 @@ public class AppReproducersTest {
     @Test
     @Tag("builder-image")
     @Tag("imageio")
-    @IfMandrelVersion(min = "21.1", inContainer = true)
     public void imageioAWTContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO_BUILDER_IMAGE);
     }
@@ -319,7 +317,6 @@ public class AppReproducersTest {
     @Test
     @Tag("imageio")
     @DisabledOnOs({ OS.WINDOWS, OS.MAC }) // AWT support is not there yet
-    @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO);
     }
@@ -1084,7 +1081,6 @@ public class AppReproducersTest {
 
     @Test
     @Tag("calendars")
-    @IfMandrelVersion(min = "22.3.5") // The fix for this test is in 22.3.5 and better
     public void calendarsBakedIn(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.CALENDARS;
         LOGGER.info("Testing app: " + app);
@@ -1198,11 +1194,6 @@ public class AppReproducersTest {
     @Test
     @Tag("jdk-17")
     @Tag("recordannotations")
-    @IfMandrelVersion(min = "22.1", minJDK = "17")
-    public void recordAnnotationsWorkPost22_1(TestInfo testInfo) throws IOException, InterruptedException {
-        recordAnnotationsWork(testInfo);
-    }
-
     public void recordAnnotationsWork(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.RECORDANNOTATIONS;
         LOGGER.info("Testing app: " + app);
