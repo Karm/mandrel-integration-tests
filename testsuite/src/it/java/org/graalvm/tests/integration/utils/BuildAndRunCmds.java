@@ -32,12 +32,7 @@ import static org.graalvm.tests.integration.PerfCheckTest.FINAL_NAME_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.MX_HEAP_MB;
 import static org.graalvm.tests.integration.PerfCheckTest.GC_HEAP_MB;
 import static org.graalvm.tests.integration.PerfCheckTest.NATIVE_IMAGE_XMX_GB;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
@@ -337,7 +332,7 @@ public enum BuildAndRunCmds {
                     { "mvn", "--batch-mode", "clean", "package" },
                     { "java", "-Djava.awt.headless=true", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar" },
                     { "jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF" },
-                    { "native-image", UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
+                    { "native-image", "-H:+UnlockExperimentalVMOptions", ForeignAPISupport_24_2.token, "-H:-UnlockExperimentalVMOptions",
                             "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio", "-Djava.home=.", "-Djava.awt.headless=true" } }
@@ -360,7 +355,7 @@ public enum BuildAndRunCmds {
                     // Native image build itself (jar was updated with properties in the previous step)
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
-                            BUILDER_IMAGE, UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
+                            BUILDER_IMAGE, "-H:+UnlockExperimentalVMOptions", ForeignAPISupport_24_2.token, "-H:-UnlockExperimentalVMOptions",
                             "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio" }
             },
             new String[][] {
@@ -379,12 +374,12 @@ public enum BuildAndRunCmds {
                     IS_THIS_WINDOWS ?
                             new String[] { "powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
                             : new String[] { "unzip", "test_data.txt.zip", "-d", "target" },
-                    { "native-image", UnlockExperimentalVMOptions_23_1.token,
+                    { "native-image", "-H:+UnlockExperimentalVMOptions",
                             "-H:GenerateDebugInfo=" + (IS_THIS_MACOS ? "0" : "1"), "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
-                            TrackNodeSourcePosition_23_0.token,
-                            DebugCodeInfoUseSourceMappings_23_0.token,
-                            OmitInlinedMethodDebugLineInfo_23_0.token,
-                            LockExperimentalVMOptions_23_1.token,
+                            "-H:+TrackNodeSourcePosition",
+                            "-H:+DebugCodeInfoUseSourceMappings",
+                            "-H:+OmitInlinedMethodDebugLineInfo",
+                            "-H:-UnlockExperimentalVMOptions",
                             "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" } },
             new String[][] {
                     { "java", "-jar", "./target/debug-symbols-smoke.jar" },

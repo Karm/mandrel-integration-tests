@@ -22,12 +22,7 @@ package org.graalvm.tests.integration;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.ARCH;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.DOCKER_GHA_BUILDX;
@@ -1322,22 +1317,6 @@ public class AppReproducersTest {
     private static Map<String, String> getSwitches(Apps app) {
         final Map<String, String> switches = new HashMap<>();
         final Version version = getVersion(app.runtimeContainer != ContainerNames.NONE);
-        if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
-            switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
-            switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);
-        } else {
-            switches.put(UnlockExperimentalVMOptions_23_1.token, "");
-            switches.put(LockExperimentalVMOptions_23_1.token, "");
-        }
-        if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
-            switches.put(TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement);
-            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement);
-            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
-        } else {
-            switches.put(TrackNodeSourcePosition_23_0.token, "");
-            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
-            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
-        }
         if (version.compareTo(Version.create(24, 2, 0)) >= 0) {
             switches.put(ForeignAPISupport_24_2.token, ForeignAPISupport_24_2.replacement);
         } else {
