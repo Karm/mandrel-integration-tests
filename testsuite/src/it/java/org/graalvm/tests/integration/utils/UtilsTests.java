@@ -84,14 +84,9 @@ public class UtilsTests {
 
     @Test
     public void parseSerialGC() throws IOException {
-        boolean newLogFormat = UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0;
         final String filename = "./target/quarkus-json_+ParseOnce-runner -XX:+PrintGC";
-        final Commands.SerialGCLog pr = parseSerialGCLog(newLogFormat ? p_new : p, filename, false);
+        final Commands.SerialGCLog pr = parseSerialGCLog(p_new, filename, false);
         final String expected = "" +
-                "timeSpentInGCs 11.725144\n" +
-                "incrementalGCevents 23\n" +
-                "fullGCevents 6\n";
-        final String expected_new = "" +
                 "timeSpentInGCs 14.758271\n" +
                 "incrementalGCevents 61\n" +
                 "fullGCevents 23\n";
@@ -103,6 +98,6 @@ public class UtilsTests {
                 pr.timeSpentInGCs,
                 pr.incrementalGCevents,
                 pr.fullGCevents);
-        assertEquals(newLogFormat ? expected_new : expected, actual, "perf tool output parsing method was likely changed without updating the test");
+        assertEquals(expected, actual, "perf tool output parsing method was likely changed without updating the test");
     }
 }

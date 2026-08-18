@@ -951,16 +951,11 @@ public class Commands {
     }
 
     public static SerialGCLog parseSerialGCLog(Path path, String statsFor, boolean isJVM) throws IOException {
-        // there is a new log format for GC cycles in native, starting Mandrel 23.1
-        boolean newLogFormat = UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0;
-
         final Pattern begin = Pattern.compile(".*\\s+\\Q" + statsFor + "\\E$");
         final Pattern incremental = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Young \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
-                (newLogFormat ? Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\s(?:Pause\\s)?Incremental\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$") :
-                        Pattern.compile("^\\[Incremental\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$"));
+                Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\s(?:Pause\\s)?Incremental\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$");
         final Pattern full = isJVM ? Pattern.compile("\\[[^]]*]\\[info]\\[gc] GC\\([0-9]+\\) Pause Full \\(Allocation[^)]*\\)[^)]*\\)\\s+([0-9\\.]+)ms$") :
-                (newLogFormat ? Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\s(?:Pause\\s)?Full\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$") :
-                        Pattern.compile("^\\[Full\\s+GC\\s+\\(CollectOnAllocation\\)[^,]*,\\s+([0-9\\.]+)\\s+secs\\]$"));
+                Pattern.compile("\\[[^]]*]\\sGC\\([0-9]+\\)\\s(?:Pause\\s)?Full\\sGC\\s\\(Collect\\son\\sallocation\\)\\s[0-9\\.]+M->[0-9\\.]+M\\s([0-9\\.]+)ms$");
         final Pattern end = Pattern.compile(".*quarkus.*stopped.*");
         try (Scanner sc = new Scanner(path, UTF_8)) {
             while (sc.hasNextLine()) {
@@ -975,13 +970,13 @@ public class Commands {
                 Matcher m = incremental.matcher(line);
                 if (m.matches()) {
                     l.incrementalGCevents = l.incrementalGCevents + 1;
-                    l.timeSpentInGCs = l.timeSpentInGCs + (isJVM || newLogFormat ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
+                    l.timeSpentInGCs = l.timeSpentInGCs + Double.parseDouble(m.group(1)) / 1000.0;
                     continue;
                 }
                 m = full.matcher(line);
                 if (m.matches()) {
                     l.fullGCevents = l.fullGCevents + 1;
-                    l.timeSpentInGCs = l.timeSpentInGCs + (isJVM || newLogFormat ? Double.parseDouble(m.group(1)) / 1000.0 : Double.parseDouble(m.group(1)));
+                    l.timeSpentInGCs = l.timeSpentInGCs + Double.parseDouble(m.group(1)) / 1000.0;
                 }
             }
             return l;

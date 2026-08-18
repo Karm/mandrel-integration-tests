@@ -191,9 +191,7 @@ public class JFRTest {
             generateJFRConfigurationFile(inContainer, jfrPerfJfc, processLog);
 
             Map<String, String> switches = null;
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
-            }
+            switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
 
             if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
                 patch = "quarkus_3.31.x.patch";

@@ -506,50 +506,43 @@ public enum WhitelistLogLines {
         public Pattern[] get(boolean inContainer) {
             final List<Pattern> p = new ArrayList<>();
             p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) <= 0) {
-                // https://github.com/oracle/graal/issues/3636
-                p.add(Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"));
-                // https://github.com/oracle/graal/issues/4431
-                p.add(Pattern.compile(".*Exception occurred when setting value \"150/s\" for class jdk.jfr.internal.Control.*"));
-            } else {
-                /* We don't support the OldObjectSample event or the JFR Deprecated events annotation yet.
-                 * https://github.com/oracle/graal/pull/8057 intercepts calls to adjust settings related to
-                 * such events and instead logs a warning specific to SubstrateVM.
-                 * Allow list those log lines until they are supported.
-                 */
-                p.add(Pattern.compile(".*@Deprecated JFR events, and leak profiling are not yet supported.*"));
-                // https://github.com/oracle/graal/issues/3636
-                p.add(Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"));
-                // Hyperfoil spits this on GHA CI, cannot reproduce locally
-                p.add(Pattern.compile(".*ControllerVerticle] Uncaught error: java.lang.NullPointerException.*"));
-                // For some reason, Podman spits this when terminating Hyperfoil containers
-                p.add(Pattern.compile(".*Could not retrieve exit code from event: died not found: unable to find event.*"));
-                // Again Hyperfoil and Podman. There might be something odd with stopping those agents? Not a Quaruks/Mandrel issue.
-                p.add(Pattern.compile(".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"));
-                // Quarkus 3.x intermittently with JDK 20 based build...
-                p.add(Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"));
-                // On quarkus 4.x we see this failure occasionally on Aarch64. See https://github.com/Karm/mandrel-integration-tests/issues/420
-                p.add(Pattern.compile(".*\\[io\\.netty\\.bootstrap\\.ServerBootstrap\\].*Failed to register an accepted channel:.*"));
-                // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
-                p.add(Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"));
-                if (IS_THIS_MACOS) {
-                    // MacOS https://github.com/quarkusio/quarkus/issues/40938
-                    p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
-                }
-                // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
-                // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
-                p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
-                // Allow the quarkus main warning of older Mandrel releases
-                p.add(Pattern.compile(
-                        ".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"));
-                if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
-                    // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
-                    p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
-                    // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
-                    p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
-                    p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
-                    p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
-                }
+            /* We don't support the OldObjectSample event or the JFR Deprecated events annotation yet.
+             * https://github.com/oracle/graal/pull/8057 intercepts calls to adjust settings related to
+             * such events and instead logs a warning specific to SubstrateVM.
+             * Allow list those log lines until they are supported.
+             */
+            p.add(Pattern.compile(".*@Deprecated JFR events, and leak profiling are not yet supported.*"));
+            // https://github.com/oracle/graal/issues/3636
+            p.add(Pattern.compile(".*Unable to commit. Requested size [0-9]* too large.*"));
+            // Hyperfoil spits this on GHA CI, cannot reproduce locally
+            p.add(Pattern.compile(".*ControllerVerticle] Uncaught error: java.lang.NullPointerException.*"));
+            // For some reason, Podman spits this when terminating Hyperfoil containers
+            p.add(Pattern.compile(".*Could not retrieve exit code from event: died not found: unable to find event.*"));
+            // Again Hyperfoil and Podman. There might be something odd with stopping those agents? Not a Quarkus/Mandrel issue.
+            p.add(Pattern.compile(".*Waiting for container .* getting exit code of container .* from DB: no such exit code \\(container in state running\\).*"));
+            // Quarkus 3.x intermittently with JDK 20 based build...
+            p.add(Pattern.compile(".*io.net.boo.ServerBootstrap.*Failed to register an accepted channel:.*"));
+            // On quarkus 4.x we see this failure occasionally on Aarch64. See https://github.com/Karm/mandrel-integration-tests/issues/420
+            p.add(Pattern.compile(".*\\[io\\.netty\\.bootstrap\\.ServerBootstrap\\].*Failed to register an accepted channel:.*"));
+            // Perf test uses netty 4 which doesn't have the relevant native config in the lib. See https://github.com/netty/netty/pull/13596
+            p.add(Pattern.compile(".*Warning: The option '-H:ReflectionConfigurationResources=META-INF/native-image/io\\.netty/netty-transport/reflection-config\\.json' is experimental.*"));
+            if (IS_THIS_MACOS) {
+                // MacOS https://github.com/quarkusio/quarkus/issues/40938
+                p.add(Pattern.compile(".*Can not find io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider.*"));
+            }
+            // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
+            // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
+            p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
+            // Allow the quarkus main warning of older Mandrel releases
+            p.add(Pattern.compile(
+                    ".*\\[WARNING\\] \\[io.quarkus.deployment.pkg.steps.NativeImageBuildStep\\] You are using an older version of GraalVM or Mandrel : 23\\.0.* Quarkus currently supports 23.1.* Please upgrade to this version\\..*"));
+            if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
+                p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
+                // Ignore JDK 24+ jctools warnings till https://github.com/JCTools/JCTools/issues/395 gets resolved
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
+                p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
+                p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
             }
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
