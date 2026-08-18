@@ -110,19 +110,6 @@ public class JFRTest {
 
     public static final String BASE_DIR = getBaseDir();
 
-    public enum JFROption {
-        MONITOR_22("--enable-monitoring=jfr"),
-        MONITOR_21("-H:+AllowVMInspection"),
-        HOTSPOT_17_FLIGHT_RECORDER(""),
-        HOTSPOT_11_FLIGHT_RECORDER("-XX:+FlightRecorder");
-
-        public final String replacement;
-
-        JFROption(String replacement) {
-            this.replacement = replacement;
-        }
-    }
-
     public enum Endpoint {
         REGULAR,
         WORK;
@@ -132,11 +119,6 @@ public class JFRTest {
             return name().toLowerCase();
         }
     }
-
-    // https://github.com/oracle/graal/pull/4823
-    public static final String JFR_MONITORING_SWITCH_TOKEN = "<ALLOW_VM_INSPECTION>";
-    // https://bugs.openjdk.org/browse/JDK-8225312
-    public static final String JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN = "<FLIGHT_RECORDER>";
 
     @Test
     @Tag("builder-image")
@@ -629,15 +611,8 @@ public class JFRTest {
 
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            final Map<String, String> switches;
-            final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) >= 0) {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_22.replacement);
-            } else {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
-            }
             // In this case, four commands are used to run the app, JVM, JVM JFR, Native, Native JFR
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             final File inputData = Path.of(BASE_DIR, app.dir, "target", "test_data.txt").toFile();
 
@@ -654,11 +629,6 @@ public class JFRTest {
             LOGGER.info("Running JVM JFR mode...");
             start = System.currentTimeMillis();
             cmd = getRunCommand(app.buildAndRunCmds.runCommands[1]);
-            if (UsedVersion.jdkFeature(inContainer) >= 17) {
-                cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_17_FLIGHT_RECORDER.replacement));
-            } else {
-                cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_11_FLIGHT_RECORDER.replacement));
-            }
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
@@ -802,13 +772,7 @@ public class JFRTest {
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            final Map<String, String> switches;
-            if (UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE).compareTo(Version.create(22, 3, 0)) >= 0) {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_22.replacement);
-            } else {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
-            }
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             final Map<String[], Pattern> cmdOutput = new HashMap<>();
             cmdOutput.put(new String[]{"./target/timezones",
