@@ -480,12 +480,6 @@ public class AppReproducersTest {
             if (getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
                 expected.add("libsvm_container.a");
             }
-            if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
-                // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
-                // NO-OP
-            } else {
-                expected.add("libharfbuzz.a");
-            }
 
             final Set<String> actual = listStaticLibs(executable);
 
