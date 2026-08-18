@@ -471,7 +471,6 @@ public class AppReproducersTest {
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
             final Set<String> expected = new HashSet<>();
-            expected.add("libfdlibm.a");
             expected.add("libjava.a");
             expected.add("libjvm.a");
             expected.add("liblibchelper.a");
@@ -480,10 +479,6 @@ public class AppReproducersTest {
             expected.add("libzip.a");
             if (getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
                 expected.add("libsvm_container.a");
-            }
-            if (UsedVersion.jdkFeature(inContainer) >= 21) {
-                // JDK 21 has fdlibm ported to Java. See JDK-8171407
-                expected.remove("libfdlibm.a");
             }
             if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
                 // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
