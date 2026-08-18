@@ -471,29 +471,15 @@ public class AppReproducersTest {
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
             final Set<String> expected = new HashSet<>();
-            expected.add("libawt.a");
-            expected.add("libawt_headless.a");
             expected.add("libfdlibm.a");
-            expected.add("libfontmanager.a");
             expected.add("libjava.a");
-            expected.add("libjavajpeg.a");
             expected.add("libjvm.a");
-            expected.add("liblcms.a");
             expected.add("liblibchelper.a");
             expected.add("libnet.a");
             expected.add("libnio.a");
             expected.add("libzip.a");
             if (getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
                 expected.add("libsvm_container.a");
-            }
-            if (getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
-                // The set of static libs for imageio is smaller beginning with Mandrel 23+ as
-                // it has dynamic AWT support.
-                expected.remove("libawt_headless.a");
-                expected.remove("libfontmanager.a");
-                expected.remove("libjavajpeg.a");
-                expected.remove("liblcms.a");
-                expected.remove("libawt.a");
             }
             if (UsedVersion.jdkFeature(inContainer) >= 21) {
                 // JDK 21 has fdlibm ported to Java. See JDK-8171407
