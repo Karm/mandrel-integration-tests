@@ -91,14 +91,12 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Minimum pool size: undefined/unknown.*"));
             p.add(Pattern.compile(".*Isolation level: <unknown>.*"));
             p.add(Pattern.compile(".*Maximum pool size: undefined/unknown.*"));
-            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.27.0")) >= 0) {
-                p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
-                p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
-                p.add(Pattern.compile(".*Default catalog/schema: unknown/unknown.*"));
-                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.5")) <= 0) {
-                    // https://github.com/quarkusio/quarkus/issues/50568
-                    p.add(Pattern.compile(".*io.smallrye.common.process.*Command " + CONTAINER_RUNTIME + ".*completed but logged errors:.*"));
-                }
+            p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
+            p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
+            p.add(Pattern.compile(".*Default catalog/schema: unknown/unknown.*"));
+            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.5")) <= 0) {
+                // https://github.com/quarkusio/quarkus/issues/50568
+                p.add(Pattern.compile(".*io.smallrye.common.process.*Command " + CONTAINER_RUNTIME + ".*completed but logged errors:.*"));
             }
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
                 p.add(Pattern.compile(".*A terminally deprecated method in sun.misc.Unsafe has been called.*"));
@@ -106,11 +104,6 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*"));
                 p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*guava-.*.jar.*"));
                 p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset will be removed in a future release.*"));
-            }
-            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.15.7")) == 0 && IS_THIS_WINDOWS) {
-                // Q 3.15.7 is used due to https://code.quarkus.redhat.com/ compatibility but it does not have
-                // https://github.com/quarkusio/quarkus/issues/43895 fixed yet.
-                p.add(Pattern.compile(".*the option '--enable-monitoring' contains value.*that are not supported on Windows: heapdump.*"));
             }
             // TODO: Revisit when we leave JDK 17...
             p.add(Pattern.compile(".*location of system modules is not set in conjunction with -source 17.*"));
@@ -253,20 +246,16 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
                 p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
-                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.21.3")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
-                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0.*"));
-                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory will be removed in a future release.*"));
-                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0.*"));
-                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class org.jboss.threads.JBossExecutors.*"));
-                    p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
-                }
+                p.add(Pattern.compile(".*consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory will be removed in a future release.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0.*"));
+                p.add(Pattern.compile(".*consider reporting this to the maintainers of class org.jboss.threads.JBossExecutors.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
             }
             // Ignore INFO message about class containing Error in its name
             p.add(Pattern.compile(".*\\[INFO\\] Can't extract module name from .*JsonMissingMessageBodyReaderErrorMessageContextualizer.*"));
-            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.17.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
-                // https://github.com/quarkusio/quarkus/discussions/47150
-                p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
-            }
+            // https://github.com/quarkusio/quarkus/discussions/47150
+            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
             if (IS_THIS_MACOS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
                 p.add(Pattern.compile(".*Netty DefaultChannelId initialization \\(with io\\.netty\\.machineId.*\\) took more than a second.*"));
             }
@@ -360,13 +349,9 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*DDL \"drop sequence hibernate_sequence\" .*"));
                 p.add(Pattern.compile(".*quarkus-resteasy-mutiny extension is deprecated.*"));
             }
-            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.17.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
-                // https://github.com/quarkusio/quarkus/discussions/47150
-                p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
-            }
-            if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.20.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
-                p.add(Pattern.compile(".*org.jboss.resteasy.reactive.MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
-            }
+            // https://github.com/quarkusio/quarkus/discussions/47150
+            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            p.add(Pattern.compile(".*org.jboss.resteasy.reactive.MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
                 // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
                 p.add(Pattern.compile(".*WARNING: java\\.lang\\.System::loadLibrary has been called by com\\.aayushatharva\\.brotli4j\\.Brotli4jLoader.*"));
@@ -374,14 +359,12 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset has been called by .*jctools.util.UnsafeRefArrayAccess.*"));
                 p.add(Pattern.compile(".*WARNING: Please consider reporting this to the maintainers of class .*jctools.util.UnsafeRefArrayAccess"));
                 p.add(Pattern.compile(".*WARNING: sun.misc.Unsafe::arrayBaseOffset will be removed in a future release"));
-                if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.21.0")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
-                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0.*"));
-                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory will be removed in a future release.*"));
-                    p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0.*"));
-                    p.add(Pattern.compile(".*consider reporting this to the maintainers of class org.jboss.threads.JBossExecutors.*"));
-                    p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
-                    p.add(Pattern.compile(".*java.lang.System::load has been called by com.sun.jna.Native in.*net/java/dev/jna.*"));
-                }
+                p.add(Pattern.compile(".*consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory will be removed in a future release.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0.*"));
+                p.add(Pattern.compile(".*consider reporting this to the maintainers of class org.jboss.threads.JBossExecutors.*"));
+                p.add(Pattern.compile(".*sun.misc.Unsafe::objectFieldOffset has been called by org.jboss.threads.JBossExecutors.*"));
+                p.add(Pattern.compile(".*java.lang.System::load has been called by com.sun.jna.Native in.*net/java/dev/jna.*"));
                 if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.1")) >= 0 || QUARKUS_VERSION.isSnapshot()) {
                     p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
                     p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
