@@ -922,13 +922,13 @@ public class AppReproducersTest {
 
     @Test
     @Tag("builder-image")
-    @IfMandrelVersion(min = "25.0.5", inContainer = true)
+    @IfMandrelVersion(min = "25.0.5", minJDK = "25.0.5", inContainer = true)
     public void tlsHybridKemContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         tlsHybridKem(testInfo, Apps.TLS_HYBRID_KEM_BUILDER_IMAGE);
     }
 
     @Test
-    @IfMandrelVersion(min = "25.0.5")
+    @IfMandrelVersion(min = "25.0.5", minJDK = "25.0.5")
     public void tlsHybridKemTest(TestInfo testInfo) throws IOException, InterruptedException {
         tlsHybridKem(testInfo, Apps.TLS_HYBRID_KEM);
     }
