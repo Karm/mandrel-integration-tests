@@ -246,6 +246,9 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.runtime\\.exporter\\.otlp\\.sender\\.VertxGrpcSender] \\(vert\\.x-eventloop-thread.*\\) Failed to export.*"));
                 // https://github.com/Karm/mandrel-integration-tests/issues/432
                 p.add(Pattern.compile(".*WARNING \\[io\\.quarkus\\.opentelemetry\\..*\\] .*Connection handler exception:.*InvalidLineSeparatorException.*"));
+                // https://github.com/Karm/mandrel-integration-tests/issues/438
+                p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.metrics\\.export\\.PeriodicMetricReader] .*Exporter failed.*"));
+                p.add(Pattern.compile(".*WARNING \\[io\\.quarkus\\.opentelemetry\\.runtime\\.exporter\\.otlp\\.sender\\.VertxHttpSender] .*Too many log messages detected\\. Will only log.*from now on.*"));
             }
             if (IS_THIS_MACOS) {
                 // MacOS https://github.com/quarkusio/quarkus/issues/40938
