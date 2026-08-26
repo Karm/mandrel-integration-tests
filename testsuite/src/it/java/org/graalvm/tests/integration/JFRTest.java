@@ -110,19 +110,6 @@ public class JFRTest {
 
     public static final String BASE_DIR = getBaseDir();
 
-    public enum JFROption {
-        MONITOR_22("--enable-monitoring=jfr"),
-        MONITOR_21("-H:+AllowVMInspection"),
-        HOTSPOT_17_FLIGHT_RECORDER(""),
-        HOTSPOT_11_FLIGHT_RECORDER("-XX:+FlightRecorder");
-
-        public final String replacement;
-
-        JFROption(String replacement) {
-            this.replacement = replacement;
-        }
-    }
-
     public enum Endpoint {
         REGULAR,
         WORK;
@@ -133,22 +120,15 @@ public class JFRTest {
         }
     }
 
-    // https://github.com/oracle/graal/pull/4823
-    public static final String JFR_MONITORING_SWITCH_TOKEN = "<ALLOW_VM_INSPECTION>";
-    // https://bugs.openjdk.org/browse/JDK-8225312
-    public static final String JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN = "<FLIGHT_RECORDER>";
-
     @Test
     @Tag("builder-image")
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2", inContainer = true)
     public void jfrSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrSmoke(testInfo, Apps.JFR_SMOKE_BUILDER_IMAGE);
     }
 
     @Test
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2")
     public void jfrSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrSmoke(testInfo, Apps.JFR_SMOKE);
     }
@@ -172,8 +152,6 @@ public class JFRTest {
     @Tag("jfr-perf")
     @Tag("jfr")
     @Tag("builder-image")
-    @IfMandrelVersion(min = "23.0.0", inContainer = true) // Thread park event is introduced in 23.0
-    @IfQuarkusVersion(min = "3.0")
     public void jfrPerfContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrPerfTestRun(testInfo, true);
     }
@@ -181,8 +159,6 @@ public class JFRTest {
     @Test
     @Tag("jfr-perf")
     @Tag("jfr")
-    @IfMandrelVersion(min = "23.0.0") // Thread park event is introduced in 23.0
-    @IfQuarkusVersion(min = "3.0")
     public void jfrPerfTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrPerfTestRun(testInfo, false);
     }
@@ -215,9 +191,7 @@ public class JFRTest {
             generateJFRConfigurationFile(inContainer, jfrPerfJfc, processLog);
 
             Map<String, String> switches = null;
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
-            }
+            switches = Map.of("-H:+SignalHandlerBasedExecutionSampler", "-H:+UnlockExperimentalVMOptions,-H:+SignalHandlerBasedExecutionSampler,-H:-UnlockExperimentalVMOptions");
 
             if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_3_31_0) >= 0) {
                 patch = "quarkus_3.31.x.patch";
@@ -635,15 +609,8 @@ public class JFRTest {
 
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
-            final Map<String, String> switches;
-            final boolean inContainer = app.runtimeContainer != ContainerNames.NONE;
-            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(22, 3, 0)) >= 0) {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_22.replacement);
-            } else {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
-            }
             // In this case, four commands are used to run the app, JVM, JVM JFR, Native, Native JFR
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             final File inputData = Path.of(BASE_DIR, app.dir, "target", "test_data.txt").toFile();
 
@@ -660,11 +627,6 @@ public class JFRTest {
             LOGGER.info("Running JVM JFR mode...");
             start = System.currentTimeMillis();
             cmd = getRunCommand(app.buildAndRunCmds.runCommands[1]);
-            if (UsedVersion.jdkFeature(inContainer) >= 17) {
-                cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_17_FLIGHT_RECORDER.replacement));
-            } else {
-                cmd = replaceSwitchesInCmd(cmd, Map.of(JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN, JFROption.HOTSPOT_11_FLIGHT_RECORDER.replacement));
-            }
             process = runCommand(cmd, appDir, processLog, app, inputData);
             assertNotNull(process, "The test application failed to run. Check " + getLogsDir(cn, mn) + File.separator + processLog.getName());
             process.waitFor(30, TimeUnit.SECONDS);
@@ -771,14 +733,12 @@ public class JFRTest {
     @Test
     @Tag("builder-image")
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2", inContainer = true)
     public void jfrOptionsSmokeContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS_BUILDER_IMAGE);
     }
 
     @Test
     @Tag("jfr")
-    @IfMandrelVersion(min = "21.2")
     public void jfrOptionsSmokeTest(TestInfo testInfo) throws IOException, InterruptedException {
         jfrOptionsSmoke(testInfo, Apps.JFR_OPTIONS);
     }
@@ -810,13 +770,7 @@ public class JFRTest {
             // Build and run
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
 
-            final Map<String, String> switches;
-            if (UsedVersion.getVersion(app.runtimeContainer != ContainerNames.NONE).compareTo(Version.create(22, 3, 0)) >= 0) {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_22.replacement);
-            } else {
-                switches = Map.of(JFR_MONITORING_SWITCH_TOKEN, JFROption.MONITOR_21.replacement);
-            }
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, switches);
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             final Map<String[], Pattern> cmdOutput = new HashMap<>();
             cmdOutput.put(new String[]{"./target/timezones",

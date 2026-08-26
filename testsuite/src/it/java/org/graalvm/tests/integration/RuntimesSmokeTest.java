@@ -195,11 +195,7 @@ public class RuntimesSmokeTest {
     public void quarkusFullMicroProfile(TestInfo testInfo) throws IOException, InterruptedException {
         Apps app = Apps.QUARKUS_FULL_MICROPROFILE;
         final Map<String, String> switches;
-        if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
-            switches = Map.of("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
-        } else {
-            switches = null;
-        }
+        switches = Map.of("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
 
         String patch = null;
         if (QUARKUS_VERSION.compareTo(QuarkusVersion.V_4_0_0) >= 0) {

@@ -56,11 +56,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CMD_LONG_TIMEOUT_MS;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
@@ -121,7 +116,7 @@ public class DebugSymbolsTest {
 
             // In this case, the two last commands are used for running the app; one in JVM mode and the other in Native mode.
             // We should somehow capture this semantically in an Enum or something. This is fragile...
-            builderRoutine(app, report, cn, mn, appDir, processLog, null, getSwitches());
+            builderRoutine(app, report, cn, mn, appDir, processLog);
 
             assertTrue(Files.exists(Path.of(appDir.getAbsolutePath(), "target", "debug-symbols-smoke")),
                     "debug-symbols-smoke executable does not exist. Compilation failed. Check the logs.");
@@ -150,8 +145,7 @@ public class DebugSymbolsTest {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
                 Logs.appendlnSection(report, appDir.getAbsolutePath());
                 Logs.appendln(report, String.join(" ", processBuilder.command()));
-                final long increasedTimeoutMs = (UsedVersion.getVersion(false)
-                        .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
+                final long increasedTimeoutMs = CMD_LONG_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                         increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
@@ -171,28 +165,6 @@ public class DebugSymbolsTest {
         } finally {
             cleanup(null, cn, mn, report, app, processLog);
         }
-    }
-
-    private static Map<String, String> getSwitches() {
-        final Map<String, String> switches = new HashMap<>();
-        final Version version = UsedVersion.getVersion(false);
-        if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
-            switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
-            switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);
-        } else {
-            switches.put(UnlockExperimentalVMOptions_23_1.token, "");
-            switches.put(LockExperimentalVMOptions_23_1.token, "");
-        }
-        if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
-            switches.put(TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement);
-            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement);
-            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
-        } else {
-            switches.put(TrackNodeSourcePosition_23_0.token, "");
-            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
-            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
-        }
-        return switches;
     }
 
     @Test
@@ -225,11 +197,7 @@ public class DebugSymbolsTest {
             // Build
             processLog = Path.of(appDir.getAbsolutePath(), "logs", "build-and-run.log").toFile();
             final Map<String, String> switches;
-            if (UsedVersion.getVersion(false).compareTo(Version.create(23, 1, 0)) >= 0) {
-                switches = Map.of("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
-            } else {
-                switches = null;
-            }
+            switches = Map.of("-H:Log=registerResource:", "-H:+UnlockExperimentalVMOptions,-H:Log=registerResource:,-H:-UnlockExperimentalVMOptions");
             Map<String, String> environment = quarkusEnv();
             builderRoutine(app, report, cn, mn, appDir, processLog, environment, switches);
 
@@ -259,8 +227,7 @@ public class DebugSymbolsTest {
 
             Logs.appendlnSection(report, appDir.getAbsolutePath());
             Logs.appendln(report, String.join(" ", processBuilder.command()));
-            final long increasedTimeoutMs = (UsedVersion.getVersion(false)
-                    .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
+            final long increasedTimeoutMs = CMD_LONG_TIMEOUT_MS;
             boolean result = waitForBufferToMatch(report, stringBuffer,
                     Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                     increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
@@ -379,8 +346,7 @@ public class DebugSymbolsTest {
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(gdbProcess.getOutputStream()))) {
                 Logs.appendlnSection(report, appDir.getAbsolutePath());
                 Logs.appendln(report, String.join(" ", processBuilder.command()));
-                final long increasedTimeoutMs = (UsedVersion.getVersion(true)
-                        .compareTo(Version.create(23, 0, 0)) >= 0) ? CMD_LONG_TIMEOUT_MS : CMD_DEFAULT_TIMEOUT_MS;
+                final long increasedTimeoutMs = CMD_LONG_TIMEOUT_MS;
                 boolean result = waitForBufferToMatch(report, stringBuffer,
                         Pattern.compile(".*Reading symbols from.*", Pattern.DOTALL),
                         increasedTimeoutMs, 50, TimeUnit.MILLISECONDS); // Time unit is the same for timeout and sleep.
@@ -428,8 +394,7 @@ public class DebugSymbolsTest {
                             final AtomicBoolean failedToConnect = new AtomicBoolean(true);
                             final Runnable webRequest = () -> {
                                 final long gotoURLStart = System.currentTimeMillis();
-                                final long timeoutMs = (UsedVersion.getVersion(inContainer)
-                                        .compareTo(Version.create(23, 0, 0)) >= 0) ? LONG_GOTO_URL_TIMEOUT_MS : GOTO_URL_TIMEOUT_MS;
+                                final long timeoutMs = LONG_GOTO_URL_TIMEOUT_MS;
                                 long durationMs = 0;
                                 final String url = cp.c.split("URL ")[1];
                                 while (failedToConnect.get() && durationMs < timeoutMs) {

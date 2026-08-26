@@ -22,12 +22,7 @@ package org.graalvm.tests.integration;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.ARCH;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.DOCKER_GHA_BUILDX;
@@ -213,7 +208,6 @@ public class AppReproducersTest {
      */
     @Test
     @Tag("resources")
-    @IfMandrelVersion(min = "23.0")
     public void resLocationsE(TestInfo testInfo) throws IOException, InterruptedException {
         final String expectedOutput = "" +
                 "Resources folders:\n" +
@@ -312,7 +306,6 @@ public class AppReproducersTest {
     @Test
     @Tag("builder-image")
     @Tag("imageio")
-    @IfMandrelVersion(min = "21.1", inContainer = true)
     public void imageioAWTContainerTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO_BUILDER_IMAGE);
     }
@@ -320,7 +313,6 @@ public class AppReproducersTest {
     @Test
     @Tag("imageio")
     @DisabledOnOs({ OS.WINDOWS, OS.MAC }) // AWT support is not there yet
-    @IfMandrelVersion(min = "21.1")
     public void imageioAWTTest(TestInfo testInfo) throws IOException, InterruptedException {
         imageioAWT(testInfo, Apps.IMAGEIO);
     }
@@ -472,14 +464,8 @@ public class AppReproducersTest {
             // Test static libs in the executable
             final File executable = new File(appDir.getAbsolutePath() + File.separator + "target", "imageio");
             final Set<String> expected = new HashSet<>();
-            expected.add("libawt.a");
-            expected.add("libawt_headless.a");
-            expected.add("libfdlibm.a");
-            expected.add("libfontmanager.a");
             expected.add("libjava.a");
-            expected.add("libjavajpeg.a");
             expected.add("libjvm.a");
-            expected.add("liblcms.a");
             expected.add("liblibchelper.a");
             expected.add("libnet.a");
             expected.add("libnio.a");
@@ -490,25 +476,6 @@ public class AppReproducersTest {
             }
             if (getVersion(inContainer).compareTo(Version.parse("24.2")) >= 0) {
                 expected.add("libsvm_container.a");
-            }
-            if (getVersion(inContainer).compareTo(Version.parse("23.0")) >= 0) {
-                // The set of static libs for imageio is smaller beginning with Mandrel 23+ as
-                // it has dynamic AWT support.
-                expected.remove("libawt_headless.a");
-                expected.remove("libfontmanager.a");
-                expected.remove("libjavajpeg.a");
-                expected.remove("liblcms.a");
-                expected.remove("libawt.a");
-            }
-            if (UsedVersion.jdkFeature(inContainer) >= 21) {
-                // JDK 21 has fdlibm ported to Java. See JDK-8171407
-                expected.remove("libfdlibm.a");
-            }
-            if (UsedVersion.jdkFeature(inContainer) > 11 || (UsedVersion.jdkFeature(inContainer) == 11 && UsedVersion.jdkUpdate(inContainer) > 12)) {
-                // Harfbuzz removed: https://github.com/graalvm/mandrel/issues/286
-                // NO-OP
-            } else {
-                expected.add("libharfbuzz.a");
             }
 
             final Set<String> actual = listStaticLibs(executable);
@@ -1270,7 +1237,6 @@ public class AppReproducersTest {
 
     @Test
     @Tag("calendars")
-    @IfMandrelVersion(min = "22.3.5") // The fix for this test is in 22.3.5 and better
     public void calendarsBakedIn(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.CALENDARS;
         LOGGER.info("Testing app: " + app);
@@ -1384,11 +1350,6 @@ public class AppReproducersTest {
     @Test
     @Tag("jdk-17")
     @Tag("recordannotations")
-    @IfMandrelVersion(min = "22.1", minJDK = "17")
-    public void recordAnnotationsWorkPost22_1(TestInfo testInfo) throws IOException, InterruptedException {
-        recordAnnotationsWork(testInfo);
-    }
-
     public void recordAnnotationsWork(TestInfo testInfo) throws IOException, InterruptedException {
         final Apps app = Apps.RECORDANNOTATIONS;
         LOGGER.info("Testing app: " + app);
@@ -1517,22 +1478,6 @@ public class AppReproducersTest {
     private static Map<String, String> getSwitches(Apps app) {
         final Map<String, String> switches = new HashMap<>();
         final Version version = getVersion(app.runtimeContainer != ContainerNames.NONE);
-        if (version.compareTo(Version.create(23, 1, 0)) >= 0) {
-            switches.put(UnlockExperimentalVMOptions_23_1.token, UnlockExperimentalVMOptions_23_1.replacement);
-            switches.put(LockExperimentalVMOptions_23_1.token, LockExperimentalVMOptions_23_1.replacement);
-        } else {
-            switches.put(UnlockExperimentalVMOptions_23_1.token, "");
-            switches.put(LockExperimentalVMOptions_23_1.token, "");
-        }
-        if (version.compareTo(Version.create(23, 0, 0)) >= 0) {
-            switches.put(TrackNodeSourcePosition_23_0.token, TrackNodeSourcePosition_23_0.replacement);
-            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, DebugCodeInfoUseSourceMappings_23_0.replacement);
-            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, OmitInlinedMethodDebugLineInfo_23_0.replacement);
-        } else {
-            switches.put(TrackNodeSourcePosition_23_0.token, "");
-            switches.put(DebugCodeInfoUseSourceMappings_23_0.token, "");
-            switches.put(OmitInlinedMethodDebugLineInfo_23_0.token, "");
-        }
         if (version.compareTo(Version.create(24, 2, 0)) >= 0) {
             switches.put(ForeignAPISupport_24_2.token, ForeignAPISupport_24_2.replacement);
         } else {

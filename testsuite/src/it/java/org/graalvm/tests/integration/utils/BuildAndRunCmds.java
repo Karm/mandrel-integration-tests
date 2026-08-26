@@ -26,18 +26,11 @@ import static org.graalvm.tests.integration.AppReproducersTest.BUILDX_LOAD_TOKEN
 import static org.graalvm.tests.integration.AppReproducersTest.LOCALEINCLUDES_TOKEN_1;
 import static org.graalvm.tests.integration.AppReproducersTest.LOCALEINCLUDES_TOKEN_2;
 import static org.graalvm.tests.integration.AppReproducersTest.RUNTIME_IMAGE_BASE_TOKEN;
-import static org.graalvm.tests.integration.JFRTest.JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN;
-import static org.graalvm.tests.integration.JFRTest.JFR_MONITORING_SWITCH_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.FINAL_NAME_TOKEN;
 import static org.graalvm.tests.integration.PerfCheckTest.GC_HEAP_MB;
 import static org.graalvm.tests.integration.PerfCheckTest.MX_HEAP_MB;
 import static org.graalvm.tests.integration.PerfCheckTest.NATIVE_IMAGE_XMX_GB;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.DebugCodeInfoUseSourceMappings_23_0;
 import static org.graalvm.tests.integration.utils.AuxiliaryOptions.ForeignAPISupport_24_2;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.LockExperimentalVMOptions_23_1;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.OmitInlinedMethodDebugLineInfo_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.TrackNodeSourcePosition_23_0;
-import static org.graalvm.tests.integration.utils.AuxiliaryOptions.UnlockExperimentalVMOptions_23_1;
 import static org.graalvm.tests.integration.utils.Commands.BUILDER_IMAGE;
 import static org.graalvm.tests.integration.utils.Commands.CONTAINER_RUNTIME;
 import static org.graalvm.tests.integration.utils.Commands.GRAALVM_BUILD_OUTPUT_JSON_FILE;
@@ -337,7 +330,7 @@ public enum BuildAndRunCmds {
                     { "mvn", "--batch-mode", "clean", "package" },
                     { "java", "-Djava.awt.headless=true", "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image", "-jar", "target/imageio.jar" },
                     { "jar", "uf", "target/imageio.jar", "-C", "src/main/resources/", "META-INF" },
-                    { "native-image", UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
+                    { "native-image", "-H:+UnlockExperimentalVMOptions", ForeignAPISupport_24_2.token, "-H:-UnlockExperimentalVMOptions",
                             "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio" } },
             new String[][] {
                     { IS_THIS_WINDOWS ? "target\\imageio.exe" : "./target/imageio", "-Djava.home=.", "-Djava.awt.headless=true" } }
@@ -360,7 +353,7 @@ public enum BuildAndRunCmds {
                     // Native image build itself (jar was updated with properties in the previous step)
                     { CONTAINER_RUNTIME, "run", IS_THIS_WINDOWS ? "" : "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "imageio:/project:z",
-                            BUILDER_IMAGE, UnlockExperimentalVMOptions_23_1.token, ForeignAPISupport_24_2.token, LockExperimentalVMOptions_23_1.token,
+                            BUILDER_IMAGE, "-H:+UnlockExperimentalVMOptions", ForeignAPISupport_24_2.token, "-H:-UnlockExperimentalVMOptions",
                             "-J-Djava.awt.headless=true", "--no-fallback", "-jar", "target/imageio.jar", "target/imageio" }
             },
             new String[][] {
@@ -379,12 +372,12 @@ public enum BuildAndRunCmds {
                     IS_THIS_WINDOWS ?
                             new String[] { "powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
                             : new String[] { "unzip", "test_data.txt.zip", "-d", "target" },
-                    { "native-image", UnlockExperimentalVMOptions_23_1.token,
+                    { "native-image", "-H:+UnlockExperimentalVMOptions",
                             "-H:GenerateDebugInfo=" + (IS_THIS_MACOS ? "0" : "1"), "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
-                            TrackNodeSourcePosition_23_0.token,
-                            DebugCodeInfoUseSourceMappings_23_0.token,
-                            OmitInlinedMethodDebugLineInfo_23_0.token,
-                            LockExperimentalVMOptions_23_1.token,
+                            "-H:+TrackNodeSourcePosition",
+                            "-H:+DebugCodeInfoUseSourceMappings",
+                            "-H:+OmitInlinedMethodDebugLineInfo",
+                            "-H:-UnlockExperimentalVMOptions",
                             "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" } },
             new String[][] {
                     { "java", "-jar", "./target/debug-symbols-smoke.jar" },
@@ -458,11 +451,10 @@ public enum BuildAndRunCmds {
                     IS_THIS_WINDOWS ?
                             new String[] { "powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
                             : new String[] { "unzip", "test_data.txt.zip", "-d", "target" },
-                    { "native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" } },
+                    { "native-image", "--enable-monitoring=jfr", "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" } },
             new String[][] {
                     { "java", "-jar", "./target/debug-symbols-smoke.jar" },
                     { "java",
-                            JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
                             "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
                             "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar" },
                     { IS_THIS_WINDOWS ? "target\\debug-symbols-smoke.exe" : "./target/debug-symbols-smoke" },
@@ -478,7 +470,7 @@ public enum BuildAndRunCmds {
                     { CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
                             "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
-                            BUILDER_IMAGE, JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" } },
+                            BUILDER_IMAGE, "--enable-monitoring=jfr", "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" } },
             new String[][] {
                     { CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-i",
@@ -490,7 +482,6 @@ public enum BuildAndRunCmds {
                             "--entrypoint", "java", "-v", BASE_DIR + File.separator + "apps" + File.separator + "debug-symbols-smoke:/project:z",
                             "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-run-java-jfr",
                             BUILDER_IMAGE,
-                            JFR_FLIGHT_RECORDER_HOTSPOT_TOKEN,
                             "-XX:StartFlightRecording=filename=logs/flight-java.jfr",
                             "-Xlog:jfr", "-jar", "./target/debug-symbols-smoke.jar" },
                     { "./target/debug-symbols-smoke" },
@@ -502,7 +493,7 @@ public enum BuildAndRunCmds {
     JFR_OPTIONS(
             new String[][] {
                     { "mvn", "--batch-mode", "package" },
-                    { "native-image", JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/timezones.jar", "target/timezones" }/* @see JFRTest.java */ }
+                    { "native-image", "--enable-monitoring=jfr", "-jar", "target/timezones.jar", "target/timezones" }/* @see JFRTest.java */ }
     ),
     JFR_OPTIONS_BUILDER_IMAGE(
             new String[][] {
@@ -510,7 +501,7 @@ public enum BuildAndRunCmds {
                     { CONTAINER_RUNTIME, "run", "-u", IS_THIS_WINDOWS ? "" : getUnixUIDGID(),
                             "-t", "-v", BASE_DIR + File.separator + "apps" + File.separator + "timezones:/project:z",
                             "--name", ContainerNames.JFR_SMOKE_BUILDER_IMAGE.name + "-build",
-                            BUILDER_IMAGE, JFR_MONITORING_SWITCH_TOKEN, "-jar", "target/timezones.jar", "target/timezones" }/* @see JFRTest.java */ }
+                            BUILDER_IMAGE, "--enable-monitoring=jfr", "-jar", "target/timezones.jar", "target/timezones" }/* @see JFRTest.java */ }
     ),
     RESLOCATIONS(
             new String[][] {
