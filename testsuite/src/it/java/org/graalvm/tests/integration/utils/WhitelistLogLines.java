@@ -171,7 +171,7 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             final List<Pattern> p = new ArrayList<>();
-            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration.*quarkus.version.*provided.*"));
             // Upstream GraalVM issue due to changed metadata format. See https://github.com/oracle/graal/issues/9057
             // and https://github.com/oracle/graal/commit/5fc14c42fd8bbad0c8e661b4ebd8f96255f86e6b
             p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
@@ -207,7 +207,7 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*MpPublisherMessageBodyReader is already registered.*"));
             // Params quirk, harmless
             p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"));
-            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration.*quarkus.version.*provided.*"));
             if (IS_THIS_WINDOWS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
                 // GitHub workflow Windows executor flaw:
                 p.add(Pattern.compile(".*Unable to make the Vert.x cache directory.*"));
@@ -307,7 +307,7 @@ public enum WhitelistLogLines {
         public Pattern[] get(boolean inContainer) {
             final List<Pattern> p = new ArrayList<>();
             // Our config
-            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.version\".*"));
+            p.add(Pattern.compile(".*Unrecognized configuration.*quarkus.version.*provided.*"));
             // Testcontainers might not need it, depends on your system.
             p.add(Pattern.compile(".*Attempted to read Testcontainers configuration file.*"));
             p.add(Pattern.compile(".*does not support the reuse of containers.*"));
@@ -413,7 +413,7 @@ public enum WhitelistLogLines {
             final List<Pattern> p = new ArrayList<>();
             // Params quirk, harmless
             p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"));
-            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration.*quarkus.version.*provided.*"));
             // Specific Podman version warning about the way we start gdb in an already running container; harmless.
             p.add(Pattern.compile(".*The --tty and --interactive flags might not work properly.*"));
             // Expected part of the app log
@@ -475,7 +475,7 @@ public enum WhitelistLogLines {
             final List<Pattern> p = new ArrayList<>();
             // Params quirk, harmless
             p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.home.*was provided.*"));
-            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration.*quarkus.version.*provided.*"));
             // https://github.com/quarkusio/quarkus/issues/30508#issuecomment-1402066131
             p.add(Pattern.compile(".*Warning: Could not register io.netty.* queryAllPublicMethods for reflection.*"));
             // https://github.com/quarkusio/quarkus/blob/2.13.7.Final/core/deployment/src/main/java/io/quarkus/deployment/OutputFilter.java#L27
@@ -500,7 +500,7 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             final List<Pattern> p = new ArrayList<>();
-            p.add(Pattern.compile(".*Unrecognized configuration key.*quarkus.version.*was provided.*"));
+            p.add(Pattern.compile(".*Unrecognized configuration.*quarkus.version.*provided.*"));
             /* We don't support the OldObjectSample event or the JFR Deprecated events annotation yet.
              * https://github.com/oracle/graal/pull/8057 intercepts calls to adjust settings related to
              * such events and instead logs a warning specific to SubstrateVM.
