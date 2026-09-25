@@ -22,6 +22,8 @@ package org.graalvm.tests.integration.utils;
 import org.graalvm.home.Version;
 import org.graalvm.tests.integration.utils.versions.UsedVersion;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.graalvm.tests.integration.utils.Commands.CMD_DEFAULT_TIMEOUT_MS;
@@ -42,7 +44,10 @@ public enum GDBSession {
     DEBUG_SYMBOLS_SMOKE {
         @Override
         public CP[] get(boolean inContainer) {
-            return new CP[]{
+            final Pattern bp2Pattern = Pattern.compile(
+                    ".*Breakpoint 2, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:71.* if \\(myString != null.*",
+                    Pattern.DOTALL);
+            final List<CP> steps = new ArrayList<>(List.of(
                     SHOW_VERSION,
                     new CP("run < ./test_data_small.txt\n",
                             Pattern.compile(".*fdc7c50f390c145bc58a0bedbe5e6d2e35177ac73d12e2b23df149ce496a5572.*exited normally.*",
@@ -73,12 +78,13 @@ public enum GDBSession {
                     new CP("c\n",
                             Pattern.compile(".*Breakpoint 3, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:76.*String l = sc.nextLine\\(\\);.*",
                                     Pattern.DOTALL)),
-                    new CP("c\n",
-                            Pattern.compile(".*Breakpoint 2, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:71.* if \\(myString != null.*",
-                                    Pattern.DOTALL)),
-                    new CP("c\n",
-                            Pattern.compile(".*Breakpoint 2, debug_symbols_smoke.Main::main.*at debug_symbols_smoke/Main.java:71.* if \\(myString != null.*",
-                                    Pattern.DOTALL)),
+                    new CP("c\n", bp2Pattern)));
+            // GraalVM CE 25.5+ inlines the loop more aggressively,
+            // so breakpoint 2 is only hit once before the program exits.
+            if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 5, 0)) < 0) {
+                steps.add(new CP("c\n", bp2Pattern));
+            }
+            steps.addAll(List.of(
                     new CP("d 2\n",
                             Pattern.compile(".*", Pattern.DOTALL)),
                     new CP("c\n",
@@ -86,8 +92,8 @@ public enum GDBSession {
                                     Pattern.DOTALL)),
                     new CP("list ClassA.java:30\n",
                             Pattern.compile(".*ClassA\\(int myNumber, String myString\\).*",
-                                    Pattern.DOTALL)),
-                };
+                                    Pattern.DOTALL))));
+            return steps.toArray(new CP[0]);
         }
     },
     DEBUG_QUARKUS_FULL_MICROPROFILE {
