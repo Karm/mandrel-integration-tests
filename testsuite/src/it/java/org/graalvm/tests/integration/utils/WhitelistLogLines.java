@@ -125,7 +125,7 @@ public enum WhitelistLogLines {
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
                 // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
                 // See https://github.com/oracle/graal/pull/12162
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -146,7 +146,7 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -277,7 +277,7 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -461,7 +461,7 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from 'META-INF/native-image/.*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -542,7 +542,7 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -572,7 +572,7 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -588,7 +588,7 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -607,7 +607,7 @@ public enum WhitelistLogLines {
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
                 // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
                 // See https://github.com/oracle/graal/pull/12162
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -631,7 +631,7 @@ public enum WhitelistLogLines {
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
                 // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
                 // See https://github.com/oracle/graal/pull/12162
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -650,7 +650,7 @@ public enum WhitelistLogLines {
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0)) {
                 // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
                 // See https://github.com/oracle/graal/pull/12162
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
@@ -667,7 +667,7 @@ public enum WhitelistLogLines {
         public Pattern[] get(boolean inContainer) {
             final List<Pattern> p = new ArrayList<>();
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
             }
@@ -690,7 +690,7 @@ public enum WhitelistLogLines {
             // GraalVM 26 or graal/master that is Labs JDK 25 based adds a warning count at the end of the build output.
             // See https://github.com/oracle/graal/pull/12162
             if (UsedVersion.getVersion(inContainer).compareTo(Version.create(25, 0, 0)) >= 0) {
-                p.add(Pattern.compile(".*The build process encountered .* warning.\\..*"));
+                p.add(Pattern.compile(".*The build process encountered .* warning[s]?\\..*"));
                 // https://github.com/oracle/graal/pull/12755 in GraalVM > 25 deprecates the fallback options
                 p.add(Pattern.compile(".*Warning: Using a deprecated option --no-fallback from command line\\..*"));
                 p.add(Pattern.compile(".*Warning: Option 'FallbackThreshold' is deprecated and might be removed in a future release:.*"));
