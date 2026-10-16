@@ -242,6 +242,9 @@ public enum WhitelistLogLines {
                 // https://github.com/Karm/mandrel-integration-tests/issues/438
                 p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.metrics\\.export\\.PeriodicMetricReader] .*Exporter failed.*"));
                 p.add(Pattern.compile(".*WARNING \\[io\\.quarkus\\.opentelemetry\\.runtime\\.exporter\\.otlp\\.sender\\.VertxHttpSender] .*Too many log messages detected\\. Will only log.*from now on.*"));
+                // OTel batch exporters throw NPE when Jaeger/collector is not running; harmless when no collector is present.
+                p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.logs\\.export\\.BatchLogRecordProcessor.*\\] .* Exporter threw an Exception: java\\.lang\\.NullPointerException.*"));
+                p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.trace\\.export\\.BatchSpanProcessor.*\\] .* Exporter threw an Exception: java\\.lang\\.NullPointerException.*"));
             }
             if (IS_THIS_MACOS) {
                 // MacOS https://github.com/quarkusio/quarkus/issues/40938
