@@ -17,7 +17,7 @@
 package org.acme.vertx;
 
 import io.quarkus.runtime.Startup;
-import io.vertx.mutiny.pgclient.PgPool;
+import io.vertx.mutiny.sqlclient.Pool;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -30,7 +30,7 @@ public class FruitApp {
     boolean schemaCreate;
 
     @Inject
-    PgPool client;
+    Pool client;
 
     @Startup
     void initdb() {

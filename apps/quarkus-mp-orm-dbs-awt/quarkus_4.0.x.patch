@@ -1,0 +1,165 @@
+diff --git a/apps/quarkus-mp-orm-dbs-awt/pom.xml b/apps/quarkus-mp-orm-dbs-awt/pom.xml
+index 949873d..880334b 100644
+--- a/apps/quarkus-mp-orm-dbs-awt/pom.xml
++++ b/apps/quarkus-mp-orm-dbs-awt/pom.xml
+@@ -25,5 +25,6 @@
+         <quarkus.platform.version>${quarkus.version}</quarkus.platform.version>
+         <apache.pdfbox.version>3.0.0</apache.pdfbox.version>
++        <maven.surefire.version>3.5.2</maven.surefire.version>
+         <final.name>${final.name}</final.name>
+     </properties>
+     <dependencyManagement>
+@@ -103,7 +104,7 @@
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-smallrye-metrics</artifactId>
++            <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+@@ -123,7 +124,7 @@
+         </dependency>
+         <dependency>
+             <groupId>io.quarkus</groupId>
+-            <artifactId>quarkus-junit5</artifactId>
++            <artifactId>quarkus-junit</artifactId>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+@@ -167,7 +168,7 @@
+                 <artifactId>maven-surefire-plugin</artifactId>
+                 <version>${maven.surefire.version}</version>
+                 <configuration>
+-                    <argLine>${jvm.args}</argLine>
++                    <argLine>@{argLine} ${jvm.args}</argLine>
+                     <systemPropertyVariables>
+                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                         <maven.home>${maven.home}</maven.home>
+@@ -184,7 +185,7 @@
+                             <goal>verify</goal>
+                         </goals>
+                         <configuration>
+-                            <argLine>${jvm.args}</argLine>
++                            <argLine>@{argLine} ${jvm.args}</argLine>
+                             <systemPropertyVariables>
+                                 <jvm.args>${jvm.args}</jvm.args>
+                                 <native.image.path>${project.build.directory}/${project.build.finalName}-runner
+@@ -220,7 +221,7 @@
+                                     <goal>verify</goal>
+                                 </goals>
+                                 <configuration>
+-                                    <argLine>${jvm.args}</argLine>
++                                    <argLine>@{argLine} ${jvm.args}</argLine>
+                                     <systemPropertyVariables>
+                                         <jvm.args>${jvm.args}</jvm.args>
+                                         <native.image.path>
+diff --git a/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java b/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java
+index 9c4d7de..f06f8cc 100644
+--- a/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java
++++ b/apps/quarkus-mp-orm-dbs-awt/src/main/java/quarkus/metric/MetricController.java
+@@ -1,11 +1,11 @@
+ package quarkus.metric;
+
+-import org.eclipse.microprofile.metrics.Counter;
+-import org.eclipse.microprofile.metrics.MetricUnits;
+-import org.eclipse.microprofile.metrics.annotation.Gauge;
+-import org.eclipse.microprofile.metrics.annotation.Metric;
+-import org.eclipse.microprofile.metrics.annotation.Timed;
++import io.micrometer.core.instrument.Counter;
++import io.micrometer.core.instrument.MeterRegistry;
++import io.micrometer.core.instrument.Timer;
++import io.micrometer.core.instrument.Gauge;
+
++import jakarta.annotation.PostConstruct;
+ import jakarta.enterprise.context.ApplicationScoped;
+ import jakarta.inject.Inject;
+ import jakarta.ws.rs.GET;
+@@ -16,25 +16,30 @@
+ public class MetricController {
+
+     @Inject
+-    @Metric(name = "endpoint_counter")
+-    Counter counter;
++    MeterRegistry registry;
++
++    private Counter counter;
++
++    @PostConstruct
++    void init() {
++        counter = registry.counter("endpoint_counter");
++
++        Gauge.builder("counter_gauge", counter, Counter::count)
++                .description("Reports the current count of the endpoint_counter.")
++                .register(registry);
++    }
+
+     @Path("timed")
+-    @Timed(name = "timed-request")
+     @GET
+     public String timedRequest() {
+-        return "Request is used in statistics, check with the Metrics call.";
++        Timer timer = registry.timer("timed-request");
++        return timer.record(() -> "Request is used in statistics, check with the Metrics call.");
+     }
+
+     @Path("increment")
+     @GET
+     public long doIncrement() {
+-        counter.inc();
+-        return counter.getCount();
+-    }
+-
+-    @Gauge(name = "counter_gauge", unit = MetricUnits.NONE)
+-    long getCustomerCount() {
+-        return counter.getCount();
++        counter.increment();
++        return (long) counter.count();
+     }
+ }
+diff --git a/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java b/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java
+index 95b8ed8..0675512 100644
+--- a/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java
++++ b/apps/quarkus-mp-orm-dbs-awt/src/test/java/quarkus/metric/MetricResourceTest.java
+@@ -21,6 +21,7 @@ public class MetricResourceTest {
+                 .when().get("q/metrics")
+                 .then()
+                 .statusCode(200)
+-                .body(containsStringIgnoringCase("MetricController_endpoint_counter_total 1.0"));
++                .body(containsStringIgnoringCase("endpoint_counter_total 1.0"))
++                .body(containsStringIgnoringCase("counter_gauge 1.0"));
+     }
+ }
+diff --git a/apps/quarkus-mp-orm-dbs-awt/src/main/resources/application.properties b/apps/quarkus-mp-orm-dbs-awt/src/main/resources/application.properties
+--- a/apps/quarkus-mp-orm-dbs-awt/src/main/resources/application.properties
++++ b/apps/quarkus-mp-orm-dbs-awt/src/main/resources/application.properties
+@@ -8,5 +8,5 @@
+ quarkus.datasource.db1.devservices.image-name=quay.io/debezium/postgres:16
+ quarkus.hibernate-orm.db1.datasource=db1
+-quarkus.hibernate-orm.db1.database.generation=drop-and-create
+-quarkus.hibernate-orm.db1.sql-load-script=importDB1.sql
++quarkus.hibernate-orm.db1.schema-management.strategy=drop-and-create
++quarkus.hibernate-orm.db1.schema-management.init-script=importDB1.sql
+ quarkus.hibernate-orm.db1.packages=quarkus.orm.db1
+@@ -20,5 +20,5 @@
+ quarkus.datasource.db2.devservices.image-name=quay.io/mariadb-foundation/mariadb-devel:11.4
+ quarkus.hibernate-orm.db2.datasource=db2
+-quarkus.hibernate-orm.db2.database.generation=drop-and-create
+-quarkus.hibernate-orm.db2.sql-load-script=importDB2.sql
++quarkus.hibernate-orm.db2.schema-management.strategy=drop-and-create
++quarkus.hibernate-orm.db2.schema-management.init-script=importDB2.sql
+ quarkus.hibernate-orm.db2.packages=quarkus.orm.db2
+@@ -42,9 +42,9 @@
+-# OpenTelemetry Q 3.x
++# OpenTelemetry (no OTLP collector in the test)
+ quarkus.otel.traces.exporter=cdi
+ quarkus.otel.traces.sampler=parentbased_always_on
+-quarkus.otel.service.name=Demo-Service-A
+-quarkus.otel.exporter.otlp.endpoint=http://localhost:4317
+-quarkus.otel.exporter.otlp.traces.endpoint=http://localhost:4317
++quarkus.otel.exporter.otlp.enabled=false
++# Prometheus already collects metrics via Micrometer.
++quarkus.otel.metrics.enabled=false
+
+ # Additional native resources to include
+ quarkus.native.resources.includes=privateKey.pem,MyFreeMono.ttf,MyFreeSerif.ttf,quarkus-icon.png

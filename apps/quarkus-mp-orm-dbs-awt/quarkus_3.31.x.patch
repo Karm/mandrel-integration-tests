@@ -2,9 +2,8 @@ diff --git a/apps/quarkus-mp-orm-dbs-awt/pom.xml b/apps/quarkus-mp-orm-dbs-awt/p
 index 949873d..880334b 100644
 --- a/apps/quarkus-mp-orm-dbs-awt/pom.xml
 +++ b/apps/quarkus-mp-orm-dbs-awt/pom.xml
-@@ -25,6 +25,7 @@
+@@ -25,5 +25,6 @@
          <quarkus.platform.version>${quarkus.version}</quarkus.platform.version>
-         <vertx.auth.jwt.version>4.5.7</vertx.auth.jwt.version>
          <apache.pdfbox.version>3.0.0</apache.pdfbox.version>
 +        <maven.surefire.version>3.5.2</maven.surefire.version>
          <final.name>${final.name}</final.name>

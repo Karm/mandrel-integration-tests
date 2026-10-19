@@ -15,7 +15,6 @@
 
     <properties>
         <quarkus.version>${global.quarkus.version}</quarkus.version>
-        <vertx.auth.jwt.version>4.5.7</vertx.auth.jwt.version>
     </properties>
 
     <dependencyManagement>
@@ -33,7 +32,6 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-auth-jwt</artifactId>
-            <version>${vertx.auth.jwt.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>

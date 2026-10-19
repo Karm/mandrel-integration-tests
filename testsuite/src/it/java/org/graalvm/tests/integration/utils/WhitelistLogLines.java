@@ -348,6 +348,7 @@ public enum WhitelistLogLines {
             if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot()) {
                 // https://github.com/Karm/mandrel-integration-tests/issues/432
                 p.add(Pattern.compile(".*WARNING \\[io\\.quarkus\\.opentelemetry\\..*\\] .*Connection handler exception:.*InvalidLineSeparatorException.*"));
+                p.add(Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"));
             }
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 // Testcontainers
