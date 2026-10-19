@@ -76,6 +76,27 @@ jobs:
               os: 'macos-15'
               timeout-minutes: 130
 
+            - quarkus-version: '4.0.0.Beta1'
+              mandrel-version: '25.0.3.0-Final'
+              java-version: '25'
+              os: 'windows-2022'
+              timeout-minutes: 80
+            - quarkus-version: '4.0.0.Beta1'
+              mandrel-version: '25.0.3.0-Final'
+              java-version: '25'
+              os: 'ubuntu-22.04'
+              timeout-minutes: 130
+            - quarkus-version: '4.0.0.Beta1'
+              mandrel-version: '25.0.3.0-Final'
+              java-version: '25'
+              os: 'ubuntu-22.04-arm'
+              timeout-minutes: 130
+            - quarkus-version: '4.0.0.Beta1'
+              mandrel-version: '25.0.3.0-Final'
+              java-version: '25'
+              os: 'macos-15'
+              timeout-minutes: 130
+
     steps:
       - uses: actions/checkout@v4
         with:
