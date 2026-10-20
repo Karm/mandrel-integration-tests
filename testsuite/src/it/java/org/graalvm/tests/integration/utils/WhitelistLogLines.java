@@ -245,6 +245,12 @@ public enum WhitelistLogLines {
                 // OTel batch exporters throw NPE when Jaeger/collector is not running; harmless when no collector is present.
                 p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.logs\\.export\\.BatchLogRecordProcessor.*\\] .* Exporter threw an Exception: java\\.lang\\.NullPointerException.*"));
                 p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.trace\\.export\\.BatchSpanProcessor.*\\] .* Exporter threw an Exception: java\\.lang\\.NullPointerException.*"));
+                // Quarkus main passes --add-exports for certain modules (resteasy-reactive-client, vertx-core)
+                // Ignore the warning for this test.
+                p.add(Pattern.compile("WARNING: Unknown module: io\\.quarkus\\.resteasy\\.reactive\\.client specified to --add-exports.*"));
+                p.add(Pattern.compile("WARNING: Unknown module: io\\.vertx\\.core specified to --add-exports.*"));
+                // Quarkus main warns about no explicitly defined module name. Ignore it for this test.
+                p.add(Pattern.compile(".*\\[WARNING\\] \\[io\\.quarkus\\.maven\\.dependency\\] Artifact .* does not have a defined module name; using computed name .*"));
             }
             if (IS_THIS_MACOS) {
                 // MacOS https://github.com/quarkusio/quarkus/issues/40938
