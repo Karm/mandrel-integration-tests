@@ -23,16 +23,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - mandrel-version: '23.1.11.0-Final'
+          - mandrel-version: '23.1.12.1-Final'
             java-version: '21'
             os: ubuntu-22.04
-          - mandrel-version: '23.1.11.0-Final'
+          - mandrel-version: '23.1.12.1-Final'
             java-version: '21'
             os: windows-2022
-          - mandrel-version: '25.0.3.0-Final'
+          - mandrel-version: '25.0.4.1-Final'
             java-version: '25'
             os: ubuntu-22.04
-          - mandrel-version: '25.0.3.0-Final'
+          - mandrel-version: '25.0.4.1-Final'
             java-version: '25'
             os: windows-2022
     steps:
