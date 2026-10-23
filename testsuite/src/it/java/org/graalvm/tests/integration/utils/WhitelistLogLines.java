@@ -571,6 +571,10 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*WARNING:.*sun.misc.Unsafe::staticFieldBase has been called by com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
             p.add(Pattern.compile(".*WARNING:.*Please consider reporting this to the maintainers of class com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
             p.add(Pattern.compile(".*WARNING:.*sun\\.misc\\.Unsafe::staticFieldBase will be removed in a future release.*"));
+            // Quarkus main passes --add-exports vertx-core. This produces a warning.
+            p.add(Pattern.compile("WARNING: Unknown module: io\\.vertx\\.core specified to --add-exports.*"));
+            // Quarkus main issues this warning in the maven plugin.
+            p.add(Pattern.compile(".*\\[WARNING\\] \\[io\\.quarkus\\.maven\\.dependency\\] Artifact .* does not have a defined module name; using computed name .*"));
             return p.toArray(new Pattern[0]);
         }
     },
