@@ -94,6 +94,13 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*JDBC fetch size: undefined/unknown.*"));
             p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
             p.add(Pattern.compile(".*Default catalog/schema: unknown/unknown.*"));
+            if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot()) {
+                // Shared by all benchmarks, including JFR.
+                // Quarkus main passes --add-exports for modules that may be absent from an application's module path.
+                p.add(Pattern.compile("WARNING: Unknown module: [\\w.]+ specified to --add-exports.*"));
+                // Quarkus main computes module names for artifacts without an explicitly defined name.
+                p.add(Pattern.compile(".*\\[WARNING\\] \\[io\\.quarkus\\.maven\\.dependency\\] Artifact .* does not have a defined module name; using computed name .*"));
+            }
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.5")) <= 0) {
                 // https://github.com/quarkusio/quarkus/issues/50568
                 p.add(Pattern.compile(".*io.smallrye.common.process.*Command " + CONTAINER_RUNTIME + ".*completed but logged errors:.*"));
@@ -245,12 +252,6 @@ public enum WhitelistLogLines {
                 // OTel batch exporters throw NPE when Jaeger/collector is not running; harmless when no collector is present.
                 p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.logs\\.export\\.BatchLogRecordProcessor.*\\] .* Exporter threw an Exception: java\\.lang\\.NullPointerException.*"));
                 p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.sdk\\.trace\\.export\\.BatchSpanProcessor.*\\] .* Exporter threw an Exception: java\\.lang\\.NullPointerException.*"));
-                // Quarkus main passes --add-exports for certain modules (resteasy-reactive-client, vertx-core)
-                // Ignore the warning for this test.
-                p.add(Pattern.compile("WARNING: Unknown module: io\\.quarkus\\.resteasy\\.reactive\\.client specified to --add-exports.*"));
-                p.add(Pattern.compile("WARNING: Unknown module: io\\.vertx\\.core specified to --add-exports.*"));
-                // Quarkus main warns about no explicitly defined module name. Ignore it for this test.
-                p.add(Pattern.compile(".*\\[WARNING\\] \\[io\\.quarkus\\.maven\\.dependency\\] Artifact .* does not have a defined module name; using computed name .*"));
             }
             if (IS_THIS_MACOS) {
                 // MacOS https://github.com/quarkusio/quarkus/issues/40938
@@ -571,10 +572,6 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*WARNING:.*sun.misc.Unsafe::staticFieldBase has been called by com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
             p.add(Pattern.compile(".*WARNING:.*Please consider reporting this to the maintainers of class com\\.google\\.inject\\.internal\\.aop\\.HiddenClassDefiner.*"));
             p.add(Pattern.compile(".*WARNING:.*sun\\.misc\\.Unsafe::staticFieldBase will be removed in a future release.*"));
-            // Quarkus main passes --add-exports vertx-core. This produces a warning.
-            p.add(Pattern.compile("WARNING: Unknown module: io\\.vertx\\.core specified to --add-exports.*"));
-            // Quarkus main issues this warning in the maven plugin.
-            p.add(Pattern.compile(".*\\[WARNING\\] \\[io\\.quarkus\\.maven\\.dependency\\] Artifact .* does not have a defined module name; using computed name .*"));
             return p.toArray(new Pattern[0]);
         }
     },
