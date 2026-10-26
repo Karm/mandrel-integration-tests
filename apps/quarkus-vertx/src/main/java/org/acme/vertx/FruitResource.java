@@ -36,7 +36,7 @@ import jakarta.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.pgclient.PgPool;
+import io.vertx.mutiny.sqlclient.Pool;
 
 @Path("fruits")
 @Produces(MediaType.APPLICATION_JSON)
@@ -44,7 +44,7 @@ import io.vertx.mutiny.pgclient.PgPool;
 public class FruitResource {
 
     @Inject
-    PgPool client;
+    Pool client;
 
     @GET
     public Uni<Response> get() {
