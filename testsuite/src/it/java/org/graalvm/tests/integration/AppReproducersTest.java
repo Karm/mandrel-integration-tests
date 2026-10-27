@@ -467,9 +467,13 @@ public class AppReproducersTest {
             expected.add("libjava.a");
             expected.add("libjvm.a");
             expected.add("liblibchelper.a");
-            expected.add("libnet.a");
-            expected.add("libnio.a");
-            expected.add("libzip.a");
+            if (getVersion(inContainer).compareTo(Version.parse("25.5.5")) < 0) {
+                // Configurable JNI library linkage (GR-77774, GR-76660, GR-79433) removed
+                // these incidental static library dependencies in GraalVM 25.5.5.
+                expected.add("libnet.a");
+                expected.add("libnio.a");
+                expected.add("libzip.a");
+            }
             if (getVersion(inContainer).compareTo(Version.parse("25.3")) >= 0) {
                 // The added support for the Dual Pivot Quicksort intrinsics in GraalVM 25.3 require this library
                 expected.add("libsimdsort.a");
