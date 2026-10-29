@@ -31,7 +31,7 @@ $ mvn clean verify -Dquarkus.version=2.13.3.Final -Pnative -Dquarkus.profile=tes
 Databases are started and stopped automatically via Quarkus devservices using testcontainers. If you need to work with those manually, you can start them e.g. as:
 
 ```
-podman run --network=host --ulimit memlock=-1:-1 -it -d --rm=true --name quarkus_test_db -e POSTGRES_USER=quarkus -e POSTGRES_PASSWORD=quarkus -e POSTGRES_DB=db1 quay.io/debezium/postgres:15
+podman run --network=host --ulimit memlock=-1:-1 -it -d --rm=true --name quarkus_test_db -e POSTGRES_USER=quarkus -e POSTGRES_PASSWORD=quarkus -e POSTGRES_DB=db1 quay.io/debezium/postgres:16
 
 podman run -it -d --name mariadb -p 49157:3306  --env MARIADB_USER=quarkus --env MARIADB_PASSWORD=quarkus --env MARIADB_ROOT_PASSWORD=quarkus --env MARIADB_DATABASE=db2 mariadb:10.3
 ```

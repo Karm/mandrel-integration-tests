@@ -106,6 +106,10 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*io.smallrye.common.process.*Command " + CONTAINER_RUNTIME + ".*completed but logged errors:.*"));
             }
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
+                // Maven's Jansi native library emits these companion warnings on JDK 24+.
+                p.add(Pattern.compile(".*WARNING: A restricted method in java\\.lang\\.System has been called.*"));
+                p.add(Pattern.compile(".*WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module.*"));
+                p.add(Pattern.compile(".*WARNING: Restricted methods will be blocked in a future release unless native access is enabled.*"));
                 p.add(Pattern.compile(".*A terminally deprecated method in sun.misc.Unsafe has been called.*"));
                 p.add(Pattern.compile(".*java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module.*jansi-.*.jar.*"));
                 p.add(Pattern.compile(".*Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture\\$UnsafeAtomicHelper.*"));
