@@ -2,14 +2,15 @@ diff --git a/apps/quarkus-full-microprofile/pom.xml b/apps/quarkus-full-micropro
 index ce7df81..a07c885 100644
 --- a/apps/quarkus-full-microprofile/pom.xml
 +++ b/apps/quarkus-full-microprofile/pom.xml
-@@ -47,10 +47,6 @@
+@@ -47,10 +47,10 @@
              <groupId>io.quarkus</groupId>
              <artifactId>quarkus-smallrye-jwt</artifactId>
          </dependency>
--        <dependency>
--            <groupId>io.quarkus</groupId>
+         <dependency>
+             <groupId>io.quarkus</groupId>
 -            <artifactId>quarkus-smallrye-metrics</artifactId>
--        </dependency>
++            <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+         </dependency>
          <dependency>
              <groupId>io.quarkus</groupId>
              <artifactId>quarkus-smallrye-health</artifactId>

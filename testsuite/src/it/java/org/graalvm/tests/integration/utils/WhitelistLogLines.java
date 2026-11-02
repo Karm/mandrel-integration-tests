@@ -335,6 +335,7 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Warning: Option 'DynamicProxyConfigurationResources' is deprecated.*"));
             p.add(Pattern.compile(".*MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
             // Micrometer gauge registration
+            // https://github.com/quarkusio/quarkus/issues/57954
             p.add(Pattern.compile(".*MeterRegistry.*This Gauge has been already registered.*"));
             if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot()) {
                 // https://github.com/Karm/mandrel-integration-tests/issues/432
@@ -400,14 +401,6 @@ public enum WhitelistLogLines {
             // sometimes showing up, probably caused by Jaeger not running
             p.add(Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Client is closed.*"));
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.31.3")) >= 0) {
-                // Noise that came up after upgrading to Quarkus 3.31.3 and using quarkus-micrometer-registry-prometheus
-                // instead of quarkus-smallrye-metrics.
-                p.add(Pattern.compile(".*WARNING: A Java agent has been loaded dynamically.*"));
-                p.add(Pattern.compile(".*WARNING: If a serviceability tool is in use, please run with -XX:\\+EnableDynamicAgentLoading to hide this warning.*"));
-                p.add(Pattern.compile(".*WARNING: If a serviceability tool is not in use, please run with -Djdk\\.instrument\\.traceUsage for more information.*"));
-                p.add(Pattern.compile(".*WARNING: Dynamic loading of agents will be disallowed by default in a future release.*"));
-                p.add(Pattern.compile(".*\\[WARNING\\] Quarkus Maven extension: an explicit 'argLine' is defined in maven-surefire-plugin config, but does not contain '@\\{argLine\\}': we will not be able to inject JVM parameters automatically\\. Please add '@\\{argLine\\}' to the argLine configuration you have defined.*"));
-                p.add(Pattern.compile(".*WARN.*\\[io\\.quarkus\\.deployment\\.jvm] \\(main\\) Could not get access to jdk\\.internal\\.module API: this is required for Quarkus to adjust Java Modules configuration to match the various requirements of each extension\\. Please ensure this JVM is launched with --add-opens=java\\.base\\/java\\.lang\\.invoke=ALL-UNNAMED.*"));
                 p.add(Pattern.compile(".*WARN.*\\[org\\.testcontainers\\.utility\\.ResourceReaper\\] \\(build-[0-9]*\\).*"));
             }
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.33.2")) >= 0) {

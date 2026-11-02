@@ -11,14 +11,15 @@ index 42109ed..0af4097 100644
      </properties>
  
      <dependencyManagement>
-@@ -47,10 +47,6 @@
+@@ -47,10 +47,10 @@
              <groupId>io.quarkus</groupId>
              <artifactId>quarkus-smallrye-jwt</artifactId>
          </dependency>
--        <dependency>
--            <groupId>io.quarkus</groupId>
+         <dependency>
+             <groupId>io.quarkus</groupId>
 -            <artifactId>quarkus-smallrye-metrics</artifactId>
--        </dependency>
++            <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+         </dependency>
          <dependency>
              <groupId>io.quarkus</groupId>
              <artifactId>quarkus-smallrye-health</artifactId>
@@ -77,3 +78,14 @@ index db4c9fa..0000000
 -        return counter.getCount();
 -    }
 -}
+diff --git a/apps/quarkus-full-microprofile/src/main/resources/application.properties b/apps/quarkus-full-microprofile/src/main/resources/application.properties
+--- a/apps/quarkus-full-microprofile/src/main/resources/application.properties
++++ b/apps/quarkus-full-microprofile/src/main/resources/application.properties
+@@ -6,6 +6,7 @@
+ mp.jwt.verify.publickey.location=META-INF/resources/publicKey.pem
+ mp.jwt.verify.issuer=https://server.example.com
+ quarkus.smallrye-jwt.enabled=true
++quarkus.otel.metrics.enabled=false
+ quarkus.otel.traces.exporter=cdi
+ quarkus.otel.traces.sampler=parentbased_always_on
+ quarkus.otel.service.name=Demo-Service-A
