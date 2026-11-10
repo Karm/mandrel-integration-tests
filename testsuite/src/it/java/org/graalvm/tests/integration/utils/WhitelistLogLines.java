@@ -195,6 +195,9 @@ public enum WhitelistLogLines {
         @Override
         public Pattern[] get(boolean inContainer) {
             final List<Pattern> p = new ArrayList<>();
+            // Micrometer gauge registration
+            // work around https://github.com/quarkusio/quarkus/issues/57954
+            p.add(Pattern.compile(".*MeterRegistry.*This Gauge has been already registered.*"));
             // Unused argument on new Graal; Quarkus uses it for backward compatibility.
             p.add(Pattern.compile(".*Ignoring server-mode native-image argument --no-server.*"));
             if (IS_THIS_WINDOWS) {
