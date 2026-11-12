@@ -212,8 +212,8 @@ public class PerfCheckTest {
                 report.put("rssKb", Long.toString(getRSSkB(process.children().sorted().findFirst().get().pid())));
                 processStopper(process, false, true);
                 final String statsFor = Arrays.stream(app.buildAndRunCmds.runCommands[i])
-                        // skipping first 4 perf tool conf
-                        .skip(4).collect(Collectors.joining(" ")).trim();
+                        // skipping first 6 perf tool conf
+                        .skip(6).collect(Collectors.joining(" ")).trim();
                 waitForFileToMatch(Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*"), processLog.toPath(), 0, 5, 1, TimeUnit.SECONDS);
                 final Commands.PerfRecord pr = parsePerfRecord(processLog.toPath(), statsFor);
                 report.put("file", statsFor);
@@ -335,8 +335,8 @@ public class PerfCheckTest {
                 report.put("rssKb", Long.toString(getRSSkB(process.children().sorted().findFirst().get().pid())));
                 processStopper(process, false, true);
                 final String statsFor = Arrays.stream(app.buildAndRunCmds.runCommands[i])
-                        // skipping first 4 perf tool conf
-                        .skip(4).collect(Collectors.joining(" ")).trim();
+                        // skipping first 6 perf tool conf
+                        .skip(6).collect(Collectors.joining(" ")).trim();
                 waitForFileToMatch(Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*"), processLog.toPath(), 0, 5, 1, TimeUnit.SECONDS);
                 final Commands.PerfRecord pr = parsePerfRecord(processLog.toPath(), statsFor);
                 report.put("file", statsFor);
@@ -468,8 +468,8 @@ public class PerfCheckTest {
                 report.put("rssKb", Long.toString(getRSSkB(process.children().sorted().findFirst().get().pid())));
                 processStopper(process, false, true);
                 final String statsFor = Arrays.stream(app.buildAndRunCmds.runCommands[i])
-                        // skipping first 2:  `perf stat'
-                        .skip(2).collect(Collectors.joining(" ")).trim();
+                        // skipping first 4:  `perf stat -e ...'
+                        .skip(4).collect(Collectors.joining(" ")).trim();
                 waitForFileToMatch(Pattern.compile(".*Performance counter stats for\\s+'\\Q" + statsFor + "\\E':.*"), processLog.toPath(), 0, 5, 1, TimeUnit.SECONDS);
                 final Commands.PerfRecord pr = parsePerfRecord(processLog.toPath(), statsFor);
                 report.put("file", statsFor);
