@@ -167,8 +167,8 @@ public enum BuildAndRunCmds {
                     // -XX:+UseG1GC
                     // Profile capture:
                     // No "--delay", "2000",  for perf o capture startup too...
-                    { "perf", "stat", "-e", "duration_time,user_time,system_time", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
-                    { "perf", "stat", "-e", "duration_time,user_time,system_time", "./target/quarkus-runner", "-XX:+PrintGC" } }
+                    { "perf", "stat", "-e", "duration_time,user_time,system_time,context-switches,page-faults,cpu-migrations,task-clock", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
+                    { "perf", "stat", "-e", "duration_time,user_time,system_time,context-switches,page-faults,cpu-migrations,task-clock", "./target/quarkus-runner", "-XX:+PrintGC" } }
     ),
     QUARKUS_FULL_MICROPROFILE_GC(
             new String[][] {
@@ -209,9 +209,9 @@ public enum BuildAndRunCmds {
                     //-XX:+UseShenandoahGC
                     //-XX:+UseSerialGC
                     //-XX:+UseG1GC
-                    { "perf", "stat", "-e", "duration_time,user_time,system_time", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
-                    { "perf", "stat", "-e", "duration_time,user_time,system_time", "--delay", "1000", "./target/quarkus-json_-ParseOnce-runner", "-XX:+PrintGC" },
-                    { "perf", "stat", "-e", "duration_time,user_time,system_time", "--delay", "1000", "./target/quarkus-json_+ParseOnce-runner", "-XX:+PrintGC" } }
+                    { "perf", "stat", "-e", "duration_time,user_time,system_time,context-switches,page-faults,cpu-migrations,task-clock", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
+                    { "perf", "stat", "-e", "duration_time,user_time,system_time,context-switches,page-faults,cpu-migrations,task-clock", "--delay", "1000", "./target/quarkus-json_-ParseOnce-runner", "-XX:+PrintGC" },
+                    { "perf", "stat", "-e", "duration_time,user_time,system_time,context-switches,page-faults,cpu-migrations,task-clock", "--delay", "1000", "./target/quarkus-json_+ParseOnce-runner", "-XX:+PrintGC" } }
     ),
     QUARKUS_JSON_PERF(
             new String[][] {
@@ -225,8 +225,8 @@ public enum BuildAndRunCmds {
                             "-Dcustom.final.name=quarkus-json" },
                     { "mvn", "--batch-mode", "package", "-Dcustom.final.name=quarkus-json", "-Dquarkus.version=" + QUARKUS_VERSION.getVersionString() } },
             new String[][] {
-                    { "perf", "stat", "-e", "duration_time,user_time,system_time", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
-                    { "perf", "stat", "-e", "duration_time,user_time,system_time", "--delay", "1000", "./target/quarkus-json-runner", "-XX:+PrintGC" } }
+                    { "perf", "stat", "-e", "duration_time,user_time,system_time,context-switches,page-faults,cpu-migrations,task-clock", "--delay", "2000", "java", "-Xlog:gc", "-XX:+UseSerialGC", "-Xmx" + MX_HEAP_MB + "m", "-jar", "target/quarkus-app/quarkus-run.jar" },
+                    { "perf", "stat", "-e", "duration_time,user_time,system_time,context-switches,page-faults,cpu-migrations,task-clock", "--delay", "1000", "./target/quarkus-json-runner", "-XX:+PrintGC" } }
     ),
     QUARKUS_BUILDER_IMAGE_ENCODING(
             new String[][] {
