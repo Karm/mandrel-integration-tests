@@ -1062,18 +1062,28 @@ public class Commands {
                 }
             }
             final SerialGCLog l = new SerialGCLog();
+            // JVM and native runs share a single build-and-run.log; the app's stdout is
+            // redirected asynchronously. A previous run's shutdown line ...quarkus... stopped...
+            // can be flushed into the file *after* this run's start marker, hence && end.matcher(line).matches()
+            boolean sawGC = false;
             String line;
-            while (sc.hasNextLine() && !end.matcher(line = sc.nextLine()).matches()) {
+            while (sc.hasNextLine()) {
+                line = sc.nextLine();
+                if (sawGC && end.matcher(line).matches()) {
+                    break;
+                }
                 Matcher m = incremental.matcher(line);
                 if (m.matches()) {
                     l.incrementalGCevents = l.incrementalGCevents + 1;
                     l.timeSpentInGCs = l.timeSpentInGCs + Double.parseDouble(m.group(1)) / 1000.0;
+                    sawGC = true;
                     continue;
                 }
                 m = full.matcher(line);
                 if (m.matches()) {
                     l.fullGCevents = l.fullGCevents + 1;
                     l.timeSpentInGCs = l.timeSpentInGCs + Double.parseDouble(m.group(1)) / 1000.0;
+                    sawGC = true;
                 }
             }
             return l;

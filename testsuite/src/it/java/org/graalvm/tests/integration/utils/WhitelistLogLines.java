@@ -238,6 +238,11 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*No BatchSpanProcessor delegate specified.*"));
             p.add(Pattern.compile(".*Connection refused: .*:4317.*"));
             p.add(Pattern.compile(".*The request could not be executed.*:4317.*"));
+            // OTel warning emitted when no OTLP collector is running. Appears on the (main) thread on
+            // Quarkus 3.x and on (executor-thread-*) on Quarkus 4.x.
+            p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.usage\\] \\(.*\\) OpenTelemetry API usage issue detected.*"));
+            // The OTLP exporter (gRPC on Quarkus 3.x, HTTP on Quarkus 4.x) floods logs when no collector is reachable at :4317; harmless here.
+            p.add(Pattern.compile(".*WARNING \\[io\\.quarkus\\.opentelemetry\\.runtime\\.exporter\\.otlp\\.sender\\.Vertx(Grpc|Http)Sender] .*Too many log messages detected\\. Will only log.*from now on.*"));
             if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot())
             {
                 // This happens since the Quarkus 4 move. The second line isn't always there (only sometimes). The usage
@@ -359,6 +364,8 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*No BatchSpanProcessor delegate specified, no action taken.*"));
                 p.add(Pattern.compile(".*Connection refused: .*:4317.*"));
                 p.add(Pattern.compile(".*The request could not be executed.*:4317.*"));
+                // OTel SDK warning emitted when no OTLP collector is running (on Quarkus 3.x it is logged on the (main) thread).
+                p.add(Pattern.compile(".*WARNING \\[io\\.opentelemetry\\.usage\\] \\(.*\\) OpenTelemetry API usage issue detected.*"));
                 // Warnings about experimental options, caused by Quarkus
                 p.add(Pattern.compile(".*The option '-H:ReflectionConfigurationResources=.*netty-transport/reflection-config.json' is experimental.*"));
                 p.add(Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"));
@@ -405,6 +412,8 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Failed to export spans. The request could not be executed. Full error message: Client is closed.*"));
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.31.3")) >= 0) {
                 p.add(Pattern.compile(".*WARN.*\\[org\\.testcontainers\\.utility\\.ResourceReaper\\] \\(build-[0-9]*\\).*"));
+                // empty-message reaper noise, but logged on a common ForkJoinPool worker thread
+                p.add(Pattern.compile(".*WARN.*\\[org\\.testcontainers\\.utility\\.ResourceReaper\\] \\(ForkJoinPool\\.commonPool-worker-[0-9]*\\).*"));
             }
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.33.2")) >= 0) {
                 // https://github.com/Karm/mandrel-integration-tests/issues/414
