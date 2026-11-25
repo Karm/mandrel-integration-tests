@@ -370,7 +370,7 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { "mvn", "--batch-mode", "package" },
                     IS_THIS_WINDOWS ?
-                            new String[] { "powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
+                            new String[] { "pwsh", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
                             : new String[] { "unzip", "test_data.txt.zip", "-d", "target" },
                     { "native-image", "-H:+UnlockExperimentalVMOptions",
                             "-H:GenerateDebugInfo=" + (IS_THIS_MACOS ? "0" : "1"), "-H:+PreserveFramePointer", "-H:-DeleteLocalSymbols",
@@ -449,7 +449,7 @@ public enum BuildAndRunCmds {
             new String[][] {
                     { "mvn", "--batch-mode", "package" },
                     IS_THIS_WINDOWS ?
-                            new String[] { "powershell", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
+                            new String[] { "pwsh", "-c", "\"Expand-Archive -Path test_data.txt.zip -DestinationPath target -Force\"" }
                             : new String[] { "unzip", "test_data.txt.zip", "-d", "target" },
                     { "native-image", "--enable-monitoring=jfr", "-jar", "target/debug-symbols-smoke.jar", "target/debug-symbols-smoke" } },
             new String[][] {
