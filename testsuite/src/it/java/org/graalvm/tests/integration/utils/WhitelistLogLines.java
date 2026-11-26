@@ -98,8 +98,10 @@ public enum WhitelistLogLines {
                 // Shared by all benchmarks, including JFR.
                 // Quarkus main passes --add-exports for modules that may be absent from an application's module path.
                 p.add(Pattern.compile("WARNING: Unknown module: [\\w.]+ specified to --add-exports.*"));
-                // Quarkus main computes module names for artifacts without an explicitly defined name.
-                p.add(Pattern.compile(".*\\[WARNING\\] \\[io\\.quarkus\\.maven\\.dependency\\] Artifact .* does not have a defined module name; using computed name .*"));
+                // Quarkus 4 can report computed module names in Maven or JBoss log format.
+                // Quarkus lowered this warning to INFO on main so this won't be necessary in the near future:
+                // https://github.com/quarkusio/quarkus/pull/57726
+                p.add(Pattern.compile(".*(?:\\[WARNING\\]|\\bWARN)\\s+\\[io\\.quarkus\\.maven\\.dependency\\] (?:\\([^)]+\\) )?Artifact .* does not have a defined module name; using computed name .*"));
             }
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.5")) <= 0) {
                 // https://github.com/quarkusio/quarkus/issues/50568
