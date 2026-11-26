@@ -287,8 +287,7 @@ public enum WhitelistLogLines {
             }
             // Ignore INFO message about class containing Error in its name
             p.add(Pattern.compile(".*\\[INFO\\] Can't extract module name from .*JsonMissingMessageBodyReaderErrorMessageContextualizer.*"));
-            // https://github.com/quarkusio/quarkus/discussions/47150
-            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            p.add(UNRECOGNIZED_REST_CLIENT_URL_ALIAS);
             if (IS_THIS_MACOS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
                 p.add(Pattern.compile(".*Netty DefaultChannelId initialization \\(with io\\.netty\\.machineId.*\\) took more than a second.*"));
             }
@@ -383,8 +382,7 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*DDL \"drop sequence hibernate_sequence\" .*"));
                 p.add(Pattern.compile(".*quarkus-resteasy-mutiny extension is deprecated.*"));
             }
-            // https://github.com/quarkusio/quarkus/discussions/47150
-            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            p.add(UNRECOGNIZED_REST_CLIENT_URL_ALIAS);
             p.add(Pattern.compile(".*org.jboss.resteasy.reactive.MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
                 // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
@@ -714,6 +712,11 @@ public enum WhitelistLogLines {
             return p.toArray(new Pattern[0]);
         }
     };
+
+    // Quarkus 3 reports a quoted key; Quarkus 4 reports an unquoted property.
+    // https://github.com/quarkusio/quarkus/discussions/47150
+    private static final Pattern UNRECOGNIZED_REST_CLIENT_URL_ALIAS = Pattern.compile(
+            ".*Unrecognized configuration (?:key|property) \"?quarkus\\.client\\.Service/mp-rest/url\"? (?:was )?provided.*");
 
     public abstract Pattern[] get(boolean inContainer);
 
