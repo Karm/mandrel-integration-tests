@@ -95,11 +95,17 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
             p.add(Pattern.compile(".*Default catalog/schema: unknown/unknown.*"));
             if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot()) {
+                // Hibernate ORM 8 moved its database-info message to a logger Quarkus does not yet filter.
+                // Remove this workaround once https://github.com/quarkusio/quarkus/pull/58806 is merged
+                // and all tested Quarkus versions include the fix.
+                p.add(Pattern.compile("\\s*Isolation level: undefined/unknown\\s*"));
                 // Shared by all benchmarks, including JFR.
                 // Quarkus main passes --add-exports for modules that may be absent from an application's module path.
                 p.add(Pattern.compile("WARNING: Unknown module: [\\w.]+ specified to --add-exports.*"));
-                // Quarkus main computes module names for artifacts without an explicitly defined name.
-                p.add(Pattern.compile(".*\\[WARNING\\] \\[io\\.quarkus\\.maven\\.dependency\\] Artifact .* does not have a defined module name; using computed name .*"));
+                // Quarkus 4 can report computed module names in Maven or JBoss log format.
+                // Quarkus lowered this warning to INFO on main so this won't be necessary in the near future:
+                // https://github.com/quarkusio/quarkus/pull/57726
+                p.add(Pattern.compile(".*(?:\\[WARNING\\]|\\bWARN)\\s+\\[io\\.quarkus\\.maven\\.dependency\\] (?:\\([^)]+\\) )?Artifact .* does not have a defined module name; using computed name .*"));
             }
             if (QUARKUS_VERSION.compareTo(new QuarkusVersion("3.28.5")) <= 0) {
                 // https://github.com/quarkusio/quarkus/issues/50568
@@ -287,8 +293,7 @@ public enum WhitelistLogLines {
             }
             // Ignore INFO message about class containing Error in its name
             p.add(Pattern.compile(".*\\[INFO\\] Can't extract module name from .*JsonMissingMessageBodyReaderErrorMessageContextualizer.*"));
-            // https://github.com/quarkusio/quarkus/discussions/47150
-            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            p.add(UNRECOGNIZED_REST_CLIENT_URL_ALIAS);
             if (IS_THIS_MACOS && "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"))) {
                 p.add(Pattern.compile(".*Netty DefaultChannelId initialization \\(with io\\.netty\\.machineId.*\\) took more than a second.*"));
             }
@@ -345,9 +350,16 @@ public enum WhitelistLogLines {
             // Micrometer gauge registration
             // https://github.com/quarkusio/quarkus/issues/57954
             p.add(Pattern.compile(".*MeterRegistry.*This Gauge has been already registered.*"));
+            if (QUARKUS_VERSION.majorIs(4)) {
+                // Dev Services generates both JDBC URL spellings for named datasources.
+                // https://github.com/quarkusio/quarkus/issues/58802
+                p.add(Pattern.compile(".*SRCFG01009: The Map path keys \"quarkus\\.datasource\\.\"(db[12])\"\""
+                        + " and \"quarkus\\.datasource\\.\\1\" are ambiguous\\..*"));
+            }
             if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot()) {
                 // https://github.com/Karm/mandrel-integration-tests/issues/432
                 p.add(Pattern.compile(".*WARNING \\[io\\.quarkus\\.opentelemetry\\..*\\] .*Connection handler exception:.*InvalidLineSeparatorException.*"));
+                p.add(Pattern.compile(".*The option '-H:IncludeResourceBundles=yasson-messages' is experimental.*"));
             }
             if (QUARKUS_VERSION.majorIs(3) || QUARKUS_VERSION.isSnapshot()) {
                 // Testcontainers
@@ -382,8 +394,7 @@ public enum WhitelistLogLines {
                 p.add(Pattern.compile(".*DDL \"drop sequence hibernate_sequence\" .*"));
                 p.add(Pattern.compile(".*quarkus-resteasy-mutiny extension is deprecated.*"));
             }
-            // https://github.com/quarkusio/quarkus/discussions/47150
-            p.add(Pattern.compile(".*Unrecognized configuration key \"quarkus.client.Service.*"));
+            p.add(UNRECOGNIZED_REST_CLIENT_URL_ALIAS);
             p.add(Pattern.compile(".*org.jboss.resteasy.reactive.MultipartForm in org.jboss.resteasy.reactive has been deprecated.*"));
             if ((UsedVersion.getVersion(inContainer).compareTo(Version.create(24, 2, 0)) >= 0)) {
                 // quarkus-netty has brotli as a dependency and native image builds with JDK 24+ produce these warnings
@@ -713,6 +724,11 @@ public enum WhitelistLogLines {
             return p.toArray(new Pattern[0]);
         }
     };
+
+    // Quarkus 3 reports a quoted key; Quarkus 4 reports an unquoted property.
+    // https://github.com/quarkusio/quarkus/discussions/47150
+    private static final Pattern UNRECOGNIZED_REST_CLIENT_URL_ALIAS = Pattern.compile(
+            ".*Unrecognized configuration (?:key|property) \"?quarkus\\.client\\.Service/mp-rest/url\"? (?:was )?provided.*");
 
     public abstract Pattern[] get(boolean inContainer);
 
