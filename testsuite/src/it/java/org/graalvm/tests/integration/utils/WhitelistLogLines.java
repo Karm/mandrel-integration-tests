@@ -95,6 +95,10 @@ public enum WhitelistLogLines {
             p.add(Pattern.compile(".*Pool: undefined/unknown.*"));
             p.add(Pattern.compile(".*Default catalog/schema: unknown/unknown.*"));
             if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot()) {
+                // Hibernate ORM 8 moved its database-info message to a logger Quarkus does not yet filter.
+                // Remove this workaround once https://github.com/quarkusio/quarkus/pull/58806 is merged
+                // and all tested Quarkus versions include the fix.
+                p.add(Pattern.compile("\\s*Isolation level: undefined/unknown\\s*"));
                 // Shared by all benchmarks, including JFR.
                 // Quarkus main passes --add-exports for modules that may be absent from an application's module path.
                 p.add(Pattern.compile("WARNING: Unknown module: [\\w.]+ specified to --add-exports.*"));
