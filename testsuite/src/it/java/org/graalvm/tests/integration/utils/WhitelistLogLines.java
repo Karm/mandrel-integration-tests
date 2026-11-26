@@ -344,6 +344,12 @@ public enum WhitelistLogLines {
             // Micrometer gauge registration
             // https://github.com/quarkusio/quarkus/issues/57954
             p.add(Pattern.compile(".*MeterRegistry.*This Gauge has been already registered.*"));
+            if (QUARKUS_VERSION.majorIs(4)) {
+                // Dev Services generates both JDBC URL spellings for named datasources.
+                // https://github.com/quarkusio/quarkus/issues/58802
+                p.add(Pattern.compile(".*SRCFG01009: The Map path keys \"quarkus\\.datasource\\.\"(db[12])\"\""
+                        + " and \"quarkus\\.datasource\\.\\1\" are ambiguous\\..*"));
+            }
             if (QUARKUS_VERSION.majorIs(4) || QUARKUS_VERSION.isSnapshot()) {
                 // https://github.com/Karm/mandrel-integration-tests/issues/432
                 p.add(Pattern.compile(".*WARNING \\[io\\.quarkus\\.opentelemetry\\..*\\] .*Connection handler exception:.*InvalidLineSeparatorException.*"));
